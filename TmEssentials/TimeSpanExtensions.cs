@@ -21,7 +21,7 @@ namespace TmEssentials
 		{
 			var formatBuilder = new StringBuilder("m':'ss'.'ff");
 
-			if (useHundredths)
+			if (!useHundredths)
 				formatBuilder.Append('f');
 
 			if (timeSpan.TotalHours >= 1)
