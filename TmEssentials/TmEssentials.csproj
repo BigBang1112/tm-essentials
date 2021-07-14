@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<Product>TmEssentials</Product>
+		<AssemblyName>TmEssentials</AssemblyName>
+		<AssemblyTitle>TmEssentials</AssemblyTitle>
+		<Authors>Petr Pivoňka (BigBang1112)</Authors>
+		<Description>A .NET library providing essential Trackmania features, like the time or text formatting.</Description>
+		<Copyright>Copyright © Petr 'BigBang1112' Pivoňka</Copyright>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+
+		<Version>1.0.0</Version>
+		<PackageReleaseNotes></PackageReleaseNotes>
+
+		<TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
+		<Platforms>AnyCPU;x64;x86</Platforms>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<PackageTags>trackmania, tm, essentials</PackageTags>
+
+		<RepositoryType>git</RepositoryType>
+		<RepositoryUrl>https://github.com/BigBang1112/tm-essentials</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/BigBang1112/tm-essentials</PackageProjectUrl>
+
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+		<NoWarn>1591</NoWarn>
+	</PropertyGroup>
+</Project>
