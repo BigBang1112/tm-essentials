@@ -31,7 +31,7 @@ namespace TmEssentials
 				formatBuilder.Insert(0, "d':'h");
 
 			if (timeSpan.Ticks < 0)
-				formatBuilder.Insert(0, '-');
+				formatBuilder.Insert(0, "'-'");
 
 			return timeSpan.ToString(formatBuilder.ToString());
 		}
