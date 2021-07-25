@@ -1,5 +1,8 @@
 # Trackmania Essentials
 
+[![Nuget](https://img.shields.io/nuget/v/TmEssentials?style=for-the-badge)](https://www.nuget.org/packages/TmEssentials/)
+[![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/BigBang1112/tm-essentials?include_prereleases&style=for-the-badge)](https://github.com/BigBang1112/tm-essentials/releases)
+
 A super light-weight library that provides formatting features.
 
 ## Time formatting
