@@ -17,7 +17,7 @@ namespace TmEssentials
 		/// <param name="timeSpan">A TimeSpan.</param>
 		/// <param name="useHundredths">If to use the hundredths instead of milliseconds (for better looks on TMUF for example)</param>
 		/// <returns>A string representation of Trackmania time format.</returns>
-		public static string ToStringTm(this TimeSpan timeSpan, bool useHundredths = false)
+		public static string ToTmString(this TimeSpan timeSpan, bool useHundredths = false)
 		{
 			var formatBuilder = new StringBuilder("m':'ss'.'ff");
 
@@ -43,7 +43,7 @@ namespace TmEssentials
 		/// <param name="nullString">A string to use if <paramref name="timeSpan"/> is null.</param>
 		/// <param name="useHundredths">If to use the hundredths instead of milliseconds (for better looks on TMUF for example)</param>
 		/// <returns>A string representation of Trackmania time format.</returns>
-		public static string ToStringTm(this TimeSpan? timeSpan, string nullString, bool useHundredths = false)
+		public static string ToTmString(this TimeSpan? timeSpan, string nullString, bool useHundredths = false)
 		{
 			if (timeSpan.HasValue)
 				return ToStringTm(timeSpan.Value, useHundredths);
@@ -58,7 +58,7 @@ namespace TmEssentials
 		/// <returns>A string representation of Trackmania time format.</returns>
 		public static string ToStringTm(this TimeSpan? timeSpan, bool useHundredths = false)
 		{
-			return ToStringTm(timeSpan, "-:--.--" + (useHundredths ? "" : "-"), useHundredths);
+			return ToTmString(timeSpan, "-:--.--" + (useHundredths ? "" : "-"), useHundredths);
 		}
 	}
 }
