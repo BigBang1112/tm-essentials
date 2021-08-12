@@ -7,11 +7,13 @@ A super light-weight library that provides formatting features.
 
 ## Time formatting
 
-`TimeSpanExtensions.ToStringTm()`
+`TimeSpanExtensions.ToMilliseconds()` - Total milliseconds as integer value with truncated ticks.
+
+`TimeSpanExtensions.ToTmString()`
 
 ```cs
 TimeSpan time = TimeSpan.FromSeconds(23.51);
-string formattedTime = time.ToStringTm();
+string formattedTime = time.ToTmString();
 Console.WriteLine(formattedTime);
 
 // Output: 0:23.510
@@ -19,7 +21,7 @@ Console.WriteLine(formattedTime);
 
 ```cs
 TimeSpan time = TimeSpan.FromSeconds(23.51);
-string formattedTime = time.ToStringTm(useHundredths: true);
+string formattedTime = time.ToTmString(useHundredths: true);
 Console.WriteLine(formattedTime);
 
 // Output: 0:23.51
@@ -27,7 +29,7 @@ Console.WriteLine(formattedTime);
 
 ```cs
 TimeSpan? noTime = null;
-string formattedTime = noTime.ToStringTm();
+string formattedTime = noTime.ToTmString();
 Console.WriteLine(formattedTime);
 
 // Output: -:--.---
@@ -35,7 +37,7 @@ Console.WriteLine(formattedTime);
 
 ```cs
 TimeSpan? noTime = null;
-string formattedTime = noTime.ToStringTm(useHundredths: true);
+string formattedTime = noTime.ToTmString(useHundredths: true);
 Console.WriteLine(formattedTime);
 
 // Output: -:--.--
@@ -45,14 +47,16 @@ Console.WriteLine(formattedTime);
 
 Currently only deformat.
 
+Credits to [reaby](https://github.com/reaby) for the Regex pattern.
+
 `Formatter.Deformat()`
 
 ```cs
-var formatted = "$L[goo.gl/XFp5HJ]$i$09fSYN$000.$fffDoc_Me4ik";
+var formatted = "$F00T$D01M$C13U$A14.$815K$727r$528a$329z$23By$03CC$03Co$04Bl$059o$068r$077s$085 $094v$0A30$0B1.$0C01";
 var deformatted = Formatter.Deformat(formatted);
 Console.WriteLine(deformatted);
 
-// Output: SYN.Doc_Me4ik
+// Output: TMU.KrazyColors v0.1
 ```
 
 ## .NET Standard 2+
