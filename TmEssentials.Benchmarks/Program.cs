@@ -11,7 +11,7 @@ namespace TmEssentials.Benchmarks
     {
         static void Main(string[] args)
         {
-            BenchmarkRunner.Run<TimeSpanExtensionsBenchmarks>();
+            BenchmarkRunner.Run<FormatterBenchmarks>();
         }
     }
 }
