@@ -8,14 +8,10 @@ using System.Threading.Tasks;
 
 using System.Net.Http;
 
-#endif
-
 namespace TmEssentials;
 
 public static class HttpClientExtensions
 {
-
-#if NET6_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER
 
     /// <summary>
     /// Send a HEAD request to the specified Uri as an asynchronous operation.
@@ -28,7 +24,6 @@ public static class HttpClientExtensions
         var head = new HttpRequestMessage(HttpMethod.Head, requestUri);
         return await http.SendAsync(head);
     }
+}
 
 #endif
-
-}
