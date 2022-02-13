@@ -2,17 +2,17 @@
 
 public interface ITime : IComparable, IComparable<TimeSpan>
 {
-    public int Days { get; }
-    public int Hours { get; }
-    public int Milliseconds { get; }
-    public int Minutes { get; }
-    public int Seconds { get; }
-    public long Ticks { get; }
-    public float TotalDays { get; }
-    public float TotalHours { get; }
-    public float TotalMilliseconds { get; }
-    public float TotalMinutes { get; }
-    public float TotalSeconds { get; }
+    int Days { get; }
+    int Hours { get; }
+    int Milliseconds { get; }
+    int Minutes { get; }
+    int Seconds { get; }
+    long Ticks { get; }
+    float TotalDays { get; }
+    float TotalHours { get; }
+    float TotalMilliseconds { get; }
+    float TotalMinutes { get; }
+    float TotalSeconds { get; }
 
     ITime Add(ITime ts);
     //static int Compare(ITime t1, ITime t2);
