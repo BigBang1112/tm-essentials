@@ -69,7 +69,7 @@ public record struct TimeSingle(float TimeInSeconds) : ITime
         throw new NotImplementedException();
     }
 
-    public int CompareTo(TimeSpan other)
+    public int CompareTo(ITime? other)
     {
         throw new NotImplementedException();
     }

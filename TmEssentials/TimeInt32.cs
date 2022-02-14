@@ -69,7 +69,7 @@ public record struct TimeInt32(int TimeInMilliseconds) : ITime
         throw new NotImplementedException();
     }
 
-    public int CompareTo(TimeSpan other)
+    public int CompareTo(ITime? other)
     {
         throw new NotImplementedException();
     }

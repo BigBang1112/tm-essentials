@@ -1,6 +1,6 @@
 ﻿namespace TmEssentials;
 
-public interface ITime : IComparable, IComparable<TimeSpan>
+public interface ITime : IComparable, IComparable<ITime>
 {
     int Days { get; }
     int Hours { get; }
