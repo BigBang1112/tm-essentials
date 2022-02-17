@@ -1,20 +1,23 @@
 ﻿namespace TmEssentials;
 
-public record struct TimeInt32(int TimeInMilliseconds) : ITime
+public readonly record struct TimeInt32(int TotalMilliseconds) : ITime
 {
     public static readonly TimeInt32 Zero = new();
+    public static readonly TimeInt32 MaxValue = new(int.MaxValue);
+    public static readonly TimeInt32 MinValue = new(int.MinValue);
 
-    public int Days => throw new NotImplementedException();
-    public int Hours => throw new NotImplementedException();
-    public int Milliseconds => throw new NotImplementedException();
-    public int Minutes => throw new NotImplementedException();
-    public int Seconds => throw new NotImplementedException();
-    public long Ticks => throw new NotImplementedException();
-    public float TotalDays => throw new NotImplementedException();
-    public float TotalHours => throw new NotImplementedException();
-    public float TotalMilliseconds => throw new NotImplementedException();
-    public float TotalMinutes => throw new NotImplementedException();
-    public float TotalSeconds => throw new NotImplementedException();
+    public int Days => (int)TotalDays;
+    public int Hours => (int)TotalHours % 24;
+    public int Milliseconds => TotalMilliseconds % 1000;
+    public int Minutes => (int)TotalMinutes % 60;
+    public int Seconds => (int)TotalSeconds % 60;
+    public long Ticks => (long)TotalMilliseconds * 10_000;
+    public float TotalDays => TotalMilliseconds / 86_400_000f;
+    public float TotalHours => TotalMilliseconds / 3_600_000f;
+    public float TotalMinutes => TotalMilliseconds / 60_000f;
+    public float TotalSeconds => TotalMilliseconds / 1_000f;
+
+    float ITime.TotalMilliseconds => TotalMilliseconds;
 
     public TimeInt32(int hours, int minutes, int seconds) : this(0, hours, minutes, seconds)
     {
@@ -27,110 +30,96 @@ public record struct TimeInt32(int TimeInMilliseconds) : ITime
         
     }
 
-    public static TimeInt32 FromDays(int value) => new(value * 86_400_000);
-    public static TimeInt32 FromHours(int value) => new(value * 3_600_000);
-    public static TimeInt32 FromMilliseconds(int value) => new(value);
-    public static TimeInt32 FromMinutes(int value) => new(value * 60_000);
-    public static TimeInt32 FromSeconds(int value) => new(value * 1_000);
+    public static TimeInt32 FromDays(float value) => new((int)(value * 86_400_000));
+    public static TimeInt32 FromHours(float value) => new((int)(value * 3_600_000));
+    public static TimeInt32 FromMilliseconds(float value) => new((int)(value));
+    public static TimeInt32 FromMinutes(float value) => new((int)(value * 60_000));
+    public static TimeInt32 FromSeconds(float value) => new((int)(value * 1_000));
     public static TimeInt32 FromTicks(long value) => new((int)(value / 10_000));
 
-    public ITime Add(ITime ts)
+    public ITime Add(ITime time)
     {
-        throw new NotImplementedException();
+        return new TimeInt32(TotalMilliseconds + (int)time.TotalMilliseconds);
     }
 
     public ITime Divide(float divisor)
     {
-        throw new NotImplementedException();
+        return this / divisor;
     }
 
-    public float Divide(ITime ts)
+    public float Divide(ITime time)
     {
-        throw new NotImplementedException();
+        return TotalSeconds / time.TotalSeconds;
     }
 
     public ITime Duration()
     {
-        throw new NotImplementedException();
+        return new TimeInt32(TotalMilliseconds >= 0 ? TotalMilliseconds : -TotalMilliseconds);
     }
 
     public ITime Multiply(float factor)
     {
-        throw new NotImplementedException();
+        return this * factor;
     }
 
     public ITime Negate()
     {
-        throw new NotImplementedException();
+        return -this;
     }
 
     public int CompareTo(object? obj)
     {
-        throw new NotImplementedException();
+        if (obj is null)
+        {
+            return 1;
+        }
+
+        if (obj is not ITime time)
+        {
+            throw new ArgumentException("Value must be ITime.", nameof(obj));
+        }
+
+        return CompareTo(time);
     }
 
     public int CompareTo(ITime? other)
     {
-        throw new NotImplementedException();
+        if (other is null)
+        {
+            return 1;
+        }
+
+        var milliseconds = TotalMilliseconds;
+        var otherMilliseconds = other.TotalMilliseconds;
+
+        if (milliseconds > otherMilliseconds)
+        {
+            return 1;
+        }
+
+        if (milliseconds < otherMilliseconds)
+        {
+            return -1;
+        }
+
+        return 0;
     }
 
-    public static TimeInt32 operator +(TimeInt32 t1, TimeInt32 t2)
-    {
-        throw new NotImplementedException();
-    }
+    public TimeSingle ToTimeSingle() => new(TotalSeconds);
 
-    public static TimeInt32 operator /(TimeInt32 time, float divisor)
-    {
-        throw new NotImplementedException();
-    }
+    public static bool operator >(TimeInt32 t1, TimeInt32 t2) => t1.TotalSeconds > t2.TotalSeconds;
+    public static bool operator >=(TimeInt32 t1, TimeInt32 t2) => t1.TotalSeconds >= t2.TotalSeconds;
+    public static bool operator <(TimeInt32 t1, TimeInt32 t2) => t1.TotalSeconds < t2.TotalSeconds;
+    public static bool operator <=(TimeInt32 t1, TimeInt32 t2) => t1.TotalSeconds <= t2.TotalSeconds;
 
-    public static float operator /(TimeInt32 t1, TimeInt32 t2)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static bool operator >(TimeInt32 t1, TimeInt32 t2)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static bool operator >=(TimeInt32 t1, TimeInt32 t2)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static bool operator <(TimeInt32 t1, TimeInt32 t2)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static bool operator <=(TimeInt32 t1, TimeInt32 t2)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static TimeInt32 operator *(float factor, TimeInt32 timeSpan)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static TimeInt32 operator *(TimeInt32 timeSpan, float factor)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static TimeInt32 operator -(TimeInt32 t1, TimeInt32 t2)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static TimeInt32 operator -(TimeInt32 t)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static TimeInt32 operator +(TimeInt32 t)
-    {
-        throw new NotImplementedException();
-    }
+    public static TimeInt32 operator +(TimeInt32 t) => t;
+    public static TimeInt32 operator +(TimeInt32 t1, TimeInt32 t2) => new(t1.TotalMilliseconds + t2.TotalMilliseconds);
+    public static TimeInt32 operator -(TimeInt32 t1, TimeInt32 t2) => new(t1.TotalMilliseconds - t2.TotalMilliseconds);
+    public static TimeInt32 operator -(TimeInt32 t) => new(-t.TotalMilliseconds);
+    public static TimeSingle operator *(float factor, TimeInt32 t) => new(factor * t.TotalSeconds);
+    public static TimeInt32 operator *(int factor, TimeInt32 t) => new(factor * t.TotalMilliseconds);
+    public static TimeSingle operator *(TimeInt32 t, float factor) => factor * t;
+    public static TimeInt32 operator *(TimeInt32 t, int factor) => factor * t;
+    public static TimeSingle operator /(TimeInt32 t, float divisor) => new(t.TotalSeconds / divisor);
+    public static float operator /(TimeInt32 t1, TimeInt32 t2) => t1.TotalMilliseconds / (float)t2.TotalMilliseconds;
 }

@@ -1,28 +1,31 @@
 ﻿namespace TmEssentials;
 
-public record struct TimeSingle(float TimeInSeconds) : ITime
+public readonly record struct TimeSingle(float TotalSeconds) : ITime
 {
     public static readonly TimeSingle Zero = new();
+    public static readonly TimeSingle MaxValue = new(float.MaxValue);
+    public static readonly TimeSingle MinValue = new(float.MinValue);
 
-    public int Days => throw new NotImplementedException();
-    public int Hours => throw new NotImplementedException();
-    public int Milliseconds => throw new NotImplementedException();
-    public int Minutes => throw new NotImplementedException();
-    public int Seconds => throw new NotImplementedException();
-    public long Ticks => throw new NotImplementedException();
-    public float TotalDays => throw new NotImplementedException();
-    public float TotalHours => throw new NotImplementedException();
-    public float TotalMilliseconds => throw new NotImplementedException();
-    public float TotalMinutes => throw new NotImplementedException();
-    public float TotalSeconds => throw new NotImplementedException();
+    public int Days => (int)TotalDays;
+    public int Hours => (int)TotalHours % 24;
+    public float Milliseconds => TotalMilliseconds % 1000; // helps with float errors
+    public int Minutes => (int)TotalMinutes % 60;
+    public int Seconds => (int)TotalSeconds % 60;
+    public long Ticks => (long)(TotalSeconds * 10_000_000);
+    public float TotalDays => TotalSeconds / 86_400f;
+    public float TotalHours => TotalSeconds / 3_600f;
+    public float TotalMilliseconds => TotalSeconds * 1000;
+    public float TotalMinutes => TotalSeconds / 60f;
 
-    public TimeSingle(float hours, float minutes, float seconds) : this(0, hours, minutes, seconds)
+    int ITime.Milliseconds => (int)Milliseconds;
+
+    public TimeSingle(int hours, int minutes, int seconds) : this(0, hours, minutes, seconds)
     {
 
     }
 
-    public TimeSingle(float days, float hours, float minutes, float seconds, float milliseconds = 0)
-         : this(milliseconds / 1_000f + seconds + minutes * 60 + hours * 3_600 + days * 86_400)
+    public TimeSingle(int days, int hours, int minutes, int seconds, float milliseconds = 0)
+         : this(milliseconds / 1_000 + seconds + minutes * 60 + hours * 3_600 + days * 86_400)
     {
 
     }
@@ -34,103 +37,87 @@ public record struct TimeSingle(float TimeInSeconds) : ITime
     public static TimeSingle FromSeconds(float value) => new(value);
     public static TimeSingle FromTicks(long value) => new(value / 10_000_000f);
 
-    public ITime Add(ITime ts)
+    public ITime Add(ITime time)
     {
-        throw new NotImplementedException();
+        return new TimeSingle(TotalSeconds + time.TotalSeconds);
     }
 
     public ITime Divide(float divisor)
     {
-        throw new NotImplementedException();
+        return this / divisor;
     }
 
-    public float Divide(ITime ts)
+    public float Divide(ITime time)
     {
-        throw new NotImplementedException();
+        return TotalSeconds / time.TotalSeconds;
     }
 
     public ITime Duration()
     {
-        throw new NotImplementedException();
+        return new TimeSingle(TotalSeconds >= 0 ? TotalSeconds : -TotalSeconds);
     }
 
     public ITime Multiply(float factor)
     {
-        throw new NotImplementedException();
+        return this * factor;
     }
 
     public ITime Negate()
     {
-        throw new NotImplementedException();
+        return -this;
     }
 
     public int CompareTo(object? obj)
     {
-        throw new NotImplementedException();
+        if (obj is null)
+        {
+            return 1;
+        }
+
+        if (obj is not ITime time)
+        {
+            throw new ArgumentException("Value must be ITime.", nameof(obj));
+        }
+
+        return CompareTo(time);
     }
 
     public int CompareTo(ITime? other)
     {
-        throw new NotImplementedException();
+        if (other is null)
+        {
+            return 1;
+        }
+
+        var seconds = TotalSeconds;
+        var otherSeconds = other.TotalSeconds;
+
+        if (seconds > otherSeconds)
+        {
+            return 1;
+        }
+
+        if (seconds < otherSeconds)
+        {
+            return -1;
+        }
+
+        return 0;
     }
 
-    public static TimeSingle operator +(TimeSingle t1, TimeSingle t2)
-    {
-        throw new NotImplementedException();
-    }
+    public TimeInt32 ToTimeInt32() => new((int)TotalMilliseconds);
 
-    public static TimeSingle operator /(TimeSingle time, float divisor)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static float operator /(TimeSingle t1, TimeSingle t2)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static bool operator >(TimeSingle t1, TimeSingle t2)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static bool operator >=(TimeSingle t1, TimeSingle t2)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static bool operator <(TimeSingle t1, TimeSingle t2)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static bool operator <=(TimeSingle t1, TimeSingle t2)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static TimeSingle operator *(float factor, TimeSingle timeSpan)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static TimeSingle operator *(TimeSingle timeSpan, float factor)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static TimeSingle operator -(TimeSingle t1, TimeSingle t2)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static TimeSingle operator -(TimeSingle t)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static TimeSingle operator +(TimeSingle t)
-    {
-        throw new NotImplementedException();
-    }
+    public static bool operator >(TimeSingle t1, TimeSingle t2) => t1.TotalSeconds > t2.TotalSeconds;
+    public static bool operator >=(TimeSingle t1, TimeSingle t2) => t1.TotalSeconds >= t2.TotalSeconds;
+    public static bool operator <(TimeSingle t1, TimeSingle t2) => t1.TotalSeconds < t2.TotalSeconds;
+    public static bool operator <=(TimeSingle t1, TimeSingle t2) => t1.TotalSeconds <= t2.TotalSeconds;
+    
+    public static TimeSingle operator +(TimeSingle t) => t;
+    public static TimeSingle operator +(TimeSingle t1, TimeSingle t2) => new(t1.TotalSeconds + t2.TotalSeconds);
+    public static TimeSingle operator -(TimeSingle t1, TimeSingle t2) => new(t1.TotalSeconds - t2.TotalSeconds);
+    public static TimeSingle operator -(TimeSingle t) => new(-t.TotalSeconds);
+    public static TimeSingle operator *(float factor, TimeSingle t) => new(factor * t.TotalSeconds);
+    public static TimeSingle operator *(TimeSingle t, float factor) => factor * t;
+    public static TimeSingle operator /(TimeSingle t, float divisor) => new(t.TotalSeconds / divisor);
+    public static float operator /(TimeSingle t1, TimeSingle t2) => t1.TotalSeconds / t2.TotalSeconds;
 }
