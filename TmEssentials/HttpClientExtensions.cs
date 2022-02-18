@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-
-#if NET6_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER
+﻿#if NET6_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER
 
 using System.Net.Http;
 
@@ -12,7 +6,6 @@ namespace TmEssentials;
 
 public static class HttpClientExtensions
 {
-
     /// <summary>
     /// Send a HEAD request to the specified Uri as an asynchronous operation.
     /// </summary>
