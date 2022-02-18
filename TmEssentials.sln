@@ -1,19 +1,27 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31424.327
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32126.317
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TmEssentials", "TmEssentials\TmEssentials.csproj", "{3B66D13A-8539-4279-8183-776456DFCE4A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{3D486601-EFFF-4E23-8442-9B6FD48FA751}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		LICENSE = LICENSE
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TmEssentials.Tests", "TmEssentials.Tests\TmEssentials.Tests.csproj", "{7C6146D4-D28A-4173-8E24-499521CFC13B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TmEssentials.Tests", "TmEssentials.Tests\TmEssentials.Tests.csproj", "{7C6146D4-D28A-4173-8E24-499521CFC13B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TmEssentials.Benchmarks", "TmEssentials.Benchmarks\TmEssentials.Benchmarks.csproj", "{B4695506-C7B2-474D-A0D6-2313A887EA15}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TmEssentials.Benchmarks", "TmEssentials.Benchmarks\TmEssentials.Benchmarks.csproj", "{B4695506-C7B2-474D-A0D6-2313A887EA15}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{FABB1FE5-3288-4642-9FEB-D27E759ECD92}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{E6F0839C-918D-4C12-96ED-C50DBCDBB250}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\dotnet.yml = .github\workflows\dotnet.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,6 +44,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E6F0839C-918D-4C12-96ED-C50DBCDBB250} = {FABB1FE5-3288-4642-9FEB-D27E759ECD92}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {65BC5FB0-FDF8-4D79-9D16-F2A960120A19}
