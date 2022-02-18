@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Globalization;
+﻿using System.Drawing;
 using System.Text;
 using System.Text.RegularExpressions;
 
 namespace TmEssentials;
 
-public static class Formatter
+public static class TextFormatter
 {
     //
     // Credits to reaby for the patterns (https://github.com/reaby)

@@ -133,11 +133,11 @@ Currently only deformat.
 
 Credits to [reaby](https://github.com/reaby) for the Regex pattern.
 
-`Formatter.Deformat()`
+`TextFormatter.Deformat()`
 
 ```cs
 var formatted = "$F00T$D01M$C13U$A14.$815K$727r$528a$329z$23By$03CC$03Co$04Bl$059o$068r$077s$085 $094v$0A30$0B1.$0C01";
-var deformatted = Formatter.Deformat(formatted);
+var deformatted = TextFormatter.Deformat(formatted);
 Console.WriteLine(deformatted);
 
 // Output: TMU.KrazyColors v0.1
