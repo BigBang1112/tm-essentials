@@ -16,6 +16,7 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime
     public float TotalHours => TotalSeconds / 3_600f;
     public float TotalMilliseconds => TotalSeconds * 1000;
     public float TotalMinutes => TotalSeconds / 60f;
+    public bool IsNegative => TotalSeconds < 0;
 
     int ITime.Milliseconds => (int)Milliseconds;
 
@@ -107,6 +108,16 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime
 
     public TimeInt32 ToTimeInt32() => new((int)TotalMilliseconds);
 
+    public string ToString(bool useHundredths)
+    {
+        return TimeFormatter.ToTmString(Days, Hours, Minutes, Seconds, (int)Milliseconds, TotalHours, TotalDays, IsNegative, useHundredths);
+    }
+
+    public override string ToString()
+    {
+        return ToString(useHundredths: false);
+    }
+
     public static bool operator >(TimeSingle t1, TimeSingle t2) => t1.TotalSeconds > t2.TotalSeconds;
     public static bool operator >=(TimeSingle t1, TimeSingle t2) => t1.TotalSeconds >= t2.TotalSeconds;
     public static bool operator <(TimeSingle t1, TimeSingle t2) => t1.TotalSeconds < t2.TotalSeconds;
@@ -120,4 +131,7 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime
     public static TimeSingle operator *(TimeSingle t, float factor) => factor * t;
     public static TimeSingle operator /(TimeSingle t, float divisor) => new(t.TotalSeconds / divisor);
     public static float operator /(TimeSingle t1, TimeSingle t2) => t1.TotalSeconds / t2.TotalSeconds;
+
+    public static implicit operator TimeSpan(TimeSingle t) => TimeSpan.FromSeconds(t.TotalSeconds);
+    public static implicit operator TimeSingle(TimeSpan t) => FromSeconds((float)t.TotalSeconds);
 }

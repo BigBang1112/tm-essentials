@@ -13,6 +13,7 @@ public interface ITime : IComparable, IComparable<ITime>
     float TotalMilliseconds { get; }
     float TotalMinutes { get; }
     float TotalSeconds { get; }
+    bool IsNegative { get; }
 
     ITime Add(ITime ts);
     //static int Compare(ITime t1, ITime t2);

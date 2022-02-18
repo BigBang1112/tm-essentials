@@ -16,6 +16,7 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime
     public float TotalHours => TotalMilliseconds / 3_600_000f;
     public float TotalMinutes => TotalMilliseconds / 60_000f;
     public float TotalSeconds => TotalMilliseconds / 1_000f;
+    public bool IsNegative => TotalMilliseconds < 0;
 
     float ITime.TotalMilliseconds => TotalMilliseconds;
 
@@ -27,7 +28,17 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime
     public TimeInt32(int days, int hours, int minutes, int seconds, int milliseconds = 0)
          : this(milliseconds + seconds * 1_000 + minutes * 60_000 + hours * 3_600_000 + days * 86_400_000)
     {
-        
+
+    }
+
+    public string ToString(bool useHundredths)
+    {
+        return TimeFormatter.ToTmString(Days, Hours, Minutes, Seconds, Milliseconds, TotalHours, TotalDays, IsNegative, useHundredths);
+    }
+
+    public override string ToString()
+    {
+        return ToString(useHundredths: false);
     }
 
     public static TimeInt32 FromDays(float value) => new((int)(value * 86_400_000));
@@ -122,4 +133,7 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime
     public static TimeInt32 operator *(TimeInt32 t, int factor) => factor * t;
     public static TimeSingle operator /(TimeInt32 t, float divisor) => new(t.TotalSeconds / divisor);
     public static float operator /(TimeInt32 t1, TimeInt32 t2) => t1.TotalMilliseconds / (float)t2.TotalMilliseconds;
+
+    public static implicit operator TimeSpan(TimeInt32 t) => TimeSpan.FromMilliseconds(t.TotalMilliseconds);
+    public static implicit operator TimeInt32(TimeSpan t) => FromMilliseconds((float)t.TotalMilliseconds);
 }
