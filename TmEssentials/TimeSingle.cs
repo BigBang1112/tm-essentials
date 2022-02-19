@@ -11,7 +11,7 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime
     public float Milliseconds => TotalMilliseconds % 1000; // helps with float errors
     public int Minutes => (int)TotalMinutes % 60;
     public int Seconds => (int)TotalSeconds % 60;
-    public long Ticks => (long)(TotalSeconds * 10_000_000);
+    public long Ticks => (long)TotalMilliseconds * 10_000;
     public float TotalDays => TotalSeconds / 86_400f;
     public float TotalHours => TotalSeconds / 3_600f;
     public float TotalMilliseconds => TotalSeconds * 1000;
@@ -36,7 +36,7 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime
     public static TimeSingle FromMilliseconds(float value) => new(value / 1_000);
     public static TimeSingle FromMinutes(float value) => new(value * 60);
     public static TimeSingle FromSeconds(float value) => new(value);
-    public static TimeSingle FromTicks(long value) => new(value / 10_000_000f);
+    public static TimeSingle FromTicks(long value) => new(value / 10_000 / 1_000f);
 
     public ITime Add(ITime time)
     {
@@ -125,7 +125,9 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime
     
     public static TimeSingle operator +(TimeSingle t) => t;
     public static TimeSingle operator +(TimeSingle t1, TimeSingle t2) => new(t1.TotalSeconds + t2.TotalSeconds);
+    public static TimeSingle operator +(TimeSingle t1, TimeSpan t2) => new(t1.TotalSeconds + (float)t2.TotalSeconds);
     public static TimeSingle operator -(TimeSingle t1, TimeSingle t2) => new(t1.TotalSeconds - t2.TotalSeconds);
+    public static TimeSingle operator -(TimeSingle t1, TimeSpan t2) => new(t1.TotalSeconds - (float)t2.TotalSeconds);
     public static TimeSingle operator -(TimeSingle t) => new(-t.TotalSeconds);
     public static TimeSingle operator *(float factor, TimeSingle t) => new(factor * t.TotalSeconds);
     public static TimeSingle operator *(TimeSingle t, float factor) => factor * t;
@@ -134,4 +136,5 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime
 
     public static implicit operator TimeSpan(TimeSingle t) => TimeSpan.FromSeconds(t.TotalSeconds);
     public static implicit operator TimeSingle(TimeSpan t) => FromSeconds((float)t.TotalSeconds);
+    public static implicit operator TimeSingle(TimeInt32 t) => FromMilliseconds(t.TotalMilliseconds);
 }

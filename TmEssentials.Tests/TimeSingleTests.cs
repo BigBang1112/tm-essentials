@@ -266,8 +266,8 @@ public class TimeSingleTests
 
     [Theory]
     [InlineData(0)]
-    [InlineData(-1_000)]
-    [InlineData(1_000)]
+    [InlineData(-10_000)]
+    [InlineData(10_000)]
     [InlineData(100_000)]
     [InlineData(5_100_000)]
     public void FromTicks_TicksShouldBeEqual(long ticks)

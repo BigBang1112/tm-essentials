@@ -32,4 +32,4 @@ jobs:
     - name: Publish the TmEssentials package to github.com
       run: dotnet nuget push TmEssentials/bin/Release/*.nupkg -k $AUTH_TOKEN -s https://nuget.pkg.github.com/bigbang1112/index.json
       env:
-        AUTH_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
