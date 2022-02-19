@@ -22,4 +22,6 @@ public interface ITime : IComparable, IComparable<ITime>
     ITime Duration();
     ITime Multiply(float factor);
     ITime Negate();
+
+    string ToString(bool useHundredths);
 }
