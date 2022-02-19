@@ -125,7 +125,9 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime
     
     public static TimeSingle operator +(TimeSingle t) => t;
     public static TimeSingle operator +(TimeSingle t1, TimeSingle t2) => new(t1.TotalSeconds + t2.TotalSeconds);
+    public static TimeSingle operator +(TimeSingle t1, TimeSpan t2) => new(t1.TotalSeconds + (float)t2.TotalSeconds);
     public static TimeSingle operator -(TimeSingle t1, TimeSingle t2) => new(t1.TotalSeconds - t2.TotalSeconds);
+    public static TimeSingle operator -(TimeSingle t1, TimeSpan t2) => new(t1.TotalSeconds - (float)t2.TotalSeconds);
     public static TimeSingle operator -(TimeSingle t) => new(-t.TotalSeconds);
     public static TimeSingle operator *(float factor, TimeSingle t) => new(factor * t.TotalSeconds);
     public static TimeSingle operator *(TimeSingle t, float factor) => factor * t;
@@ -134,4 +136,5 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime
 
     public static implicit operator TimeSpan(TimeSingle t) => TimeSpan.FromSeconds(t.TotalSeconds);
     public static implicit operator TimeSingle(TimeSpan t) => FromSeconds((float)t.TotalSeconds);
+    public static implicit operator TimeSingle(TimeInt32 t) => FromMilliseconds(t.TotalMilliseconds);
 }
