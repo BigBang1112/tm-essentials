@@ -12,7 +12,7 @@ public static class TimeInt32Extensions
         return nullString;
     }
 
-    public static string ToTmString(this TimeSpan? time, bool useHundredths = false)
+    public static string ToTmString(this TimeInt32? time, bool useHundredths = false)
     {
         return ToTmString(time, useHundredths ? "-:--.--" : "-:--.---", useHundredths);
     }
