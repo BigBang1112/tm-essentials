@@ -73,7 +73,7 @@ internal static class TimeFormatter
 #endif
 
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        var array = new char[length];
+        Span<char> array = stackalloc char[length];
 
         WriteNumberAndPush(array, offset: 0, milliseconds, expectedLength: 3, msOffset: useHundredths ? 1 : 0);
 
@@ -165,7 +165,7 @@ internal static class TimeFormatter
     }
 
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-    private static void WriteNumberAndPush(char[] array, int offset, int number, int expectedLength, int msOffset = 0)
+    private static void WriteNumberAndPush(Span<char> array, int offset, int number, int expectedLength, int msOffset = 0)
     {
         var destinationOffset = array.Length - offset - 1;
 
