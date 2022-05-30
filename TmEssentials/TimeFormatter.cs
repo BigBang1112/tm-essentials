@@ -14,10 +14,13 @@ internal static class TimeFormatter
                                       float totalHours,
                                       float totalDays,
                                       bool isNegative,
-                                      bool useHundredths = false)
+                                      bool useHundredths = false,
+                                      bool useApostrophe = false)
     {
+        var colonSep = useApostrophe ? '\'' : ':';
+
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        var length = 7;
+        var length = 7 + (useApostrophe ? 1 : 0);
 #endif
         if (isNegative)
         {
@@ -79,23 +82,29 @@ internal static class TimeFormatter
 
         var msLength = useHundredths ? 2 : 3;
 
-        array[length - msLength - 1] = '.';
+        array[length - msLength - 1] = useApostrophe ? '\'' : '.';
+
+        if (useApostrophe)
+        {
+            msLength++;
+            array[length - msLength - 1] = '\'';
+        }
 
         WriteNumberAndPush(array, offset: msLength + 1, seconds, expectedLength: 2);
 
-        array[length - msLength - 4] = ':';
+        array[length - msLength - 4] = colonSep;
 
         WriteNumberAndPush(array, offset: msLength + 4, minutes, expectedLength: hours > 0 ? 2 : 1);
 
         if (hours > 0 || days > 0)
         {
-            array[length - msLength - 7] = ':';
+            array[length - msLength - 7] = colonSep;
 
             WriteNumberAndPush(array, offset: msLength + 7, hours, expectedLength: days > 0 ? 2 : 1);
 
             if (days > 0)
             {
-                array[length - msLength - 10] = ':';
+                array[length - msLength - 10] = colonSep;
 
                 days.TryFormat(array, out int daysCharsWritten);
 
@@ -120,13 +129,13 @@ internal static class TimeFormatter
 
 		formatBuilder.Append(minutes);
 
-		formatBuilder.Append(':');
+		formatBuilder.Append(colonSep);
 
 		if (seconds < 10)
 			formatBuilder.Append(0);
 		formatBuilder.Append(seconds);
 
-		formatBuilder.Append('.');
+		formatBuilder.Append(useApostrophe ? "''" : '.');
 
 		if (milliseconds < 100)
 			formatBuilder.Append(0);
@@ -142,7 +151,7 @@ internal static class TimeFormatter
 			if (minutes < 10)
 				formatBuilder.Insert(0, '0');
 
-			formatBuilder.Insert(0, ':');
+			formatBuilder.Insert(0, colonSep);
 			formatBuilder.Insert(0, hours);
 		}
 
@@ -151,7 +160,7 @@ internal static class TimeFormatter
 			if (hours < 10)
 				formatBuilder.Insert(0, '0');
 
-			formatBuilder.Insert(0, ':');
+			formatBuilder.Insert(0, colonSep);
 			formatBuilder.Insert(0, days);
 		}
 

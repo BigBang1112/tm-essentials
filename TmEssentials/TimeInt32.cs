@@ -31,9 +31,15 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime
 
     }
 
-    public string ToString(bool useHundredths)
+    /// <summary>
+    /// Converts the value of the current <see cref="TimeInt32"/> to a Trackmania familiar time format.
+    /// </summary>
+    /// <param name="useHundredths">If to use the hundredths instead of milliseconds (for better looks on TMUF for example)</param>
+    /// <param name="useApostrophe">If to use ' instead of a colon and '' instead of a dot (to resolve cases where colon is not allowed for example).</param>
+    /// <returns>A string representation of Trackmania time format.</returns>
+    public string ToString(bool useHundredths = false, bool useApostrophe = false)
     {
-        return TimeFormatter.ToTmString(Days, Hours, Minutes, Seconds, Milliseconds, TotalHours, TotalDays, IsNegative, useHundredths);
+        return TimeFormatter.ToTmString(Days, Hours, Minutes, Seconds, Milliseconds, TotalHours, TotalDays, IsNegative, useHundredths, useApostrophe);
     }
 
     public override string ToString()
@@ -126,9 +132,11 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime
     public static TimeInt32 operator +(TimeInt32 t) => t;
     public static TimeInt32 operator +(TimeInt32 t1, TimeInt32 t2) => new(t1.TotalMilliseconds + t2.TotalMilliseconds);
     public static TimeInt32 operator +(TimeInt32 t1, TimeSpan t2) => new(t1.TotalMilliseconds + (int)t2.TotalMilliseconds);
+
+    public static TimeInt32 operator -(TimeInt32 t) => new(-t.TotalMilliseconds);
     public static TimeInt32 operator -(TimeInt32 t1, TimeInt32 t2) => new(t1.TotalMilliseconds - t2.TotalMilliseconds);
     public static TimeInt32 operator -(TimeInt32 t1, TimeSpan t2) => new(t1.TotalMilliseconds - (int)t2.TotalMilliseconds);
-    public static TimeInt32 operator -(TimeInt32 t) => new(-t.TotalMilliseconds);
+
     public static TimeSingle operator *(float factor, TimeInt32 t) => new(factor * t.TotalSeconds);
     public static TimeInt32 operator *(int factor, TimeInt32 t) => new(factor * t.TotalMilliseconds);
     public static TimeSingle operator *(TimeInt32 t, float factor) => factor * t;
