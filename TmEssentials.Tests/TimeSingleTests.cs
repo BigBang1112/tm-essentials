@@ -92,8 +92,8 @@ public class TimeSingleTests
     [Theory]
     [InlineData(0, 0)]
     [InlineData(1, 0)]
-    [InlineData(5.6f, 600)]
-    [InlineData(11.12f, 120)]
+    [InlineData(5.5f, 500)]
+    [InlineData(11.1f, 100)]
     [InlineData(100.2455f, 245)]
     public void Milliseconds_ITime_ShouldBeCorrect(float totalSeconds, int expectedMilliseconds)
     {
@@ -184,10 +184,10 @@ public class TimeSingleTests
     }
 
     [Theory]
-    [InlineData(0, -2, -3, -4, -5)]
+    [InlineData(0, -2, -3, -4, -100)]
     [InlineData(0, 0, 0, 0, 0)]
-    [InlineData(0, 10, 15, 20, 24)]
-    [InlineData(0, 18, 7, 1, 8)]
+    [InlineData(0, 10, 15, 20, 100)]
+    [InlineData(0, 18, 7, 1, 100)]
     public void New_DaysHoursMinutesSecondsMilliseconds_ShouldBeEqual(int days, int hours, int minutes, int seconds, float milliseconds)
     {
         var timeSingle = new TimeSingle(days, hours, minutes, seconds, milliseconds);
