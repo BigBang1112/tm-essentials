@@ -23,5 +23,5 @@ public interface ITime : IComparable, IComparable<ITime>
     ITime Multiply(float factor);
     ITime Negate();
 
-    string ToString(bool useHundredths);
+    string ToString(bool useHundredths = false, bool useApostrophe = false);
 }

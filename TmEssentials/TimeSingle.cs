@@ -28,7 +28,7 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime
     public TimeSingle(int days, int hours, int minutes, int seconds, float milliseconds = 0)
          : this(milliseconds / 1_000 + seconds + minutes * 60 + hours * 3_600 + days * 86_400)
     {
-
+        
     }
 
     public static TimeSingle FromDays(float value) => new(value * 86_400);
@@ -108,9 +108,15 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime
 
     public TimeInt32 ToTimeInt32() => new((int)TotalMilliseconds);
 
-    public string ToString(bool useHundredths)
+    /// <summary>
+    /// Converts the value of the current <see cref="TimeSingle"/> to a Trackmania familiar time format.
+    /// </summary>
+    /// <param name="useHundredths">If to use the hundredths instead of milliseconds (for better looks on TMUF for example)</param>
+    /// <param name="useApostrophe">If to use ' instead of a colon and '' instead of a dot (to resolve cases where colon is not allowed for example).</param>
+    /// <returns>A string representation of Trackmania time format.</returns>
+    public string ToString(bool useHundredths = false, bool useApostrophe = false)
     {
-        return TimeFormatter.ToTmString(Days, Hours, Minutes, Seconds, (int)Milliseconds, TotalHours, TotalDays, IsNegative, useHundredths);
+        return TimeFormatter.ToTmString(Days, Hours, Minutes, Seconds, (int)Milliseconds, TotalHours, TotalDays, IsNegative, useHundredths, useApostrophe);
     }
 
     public override string ToString()
@@ -126,9 +132,11 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime
     public static TimeSingle operator +(TimeSingle t) => t;
     public static TimeSingle operator +(TimeSingle t1, TimeSingle t2) => new(t1.TotalSeconds + t2.TotalSeconds);
     public static TimeSingle operator +(TimeSingle t1, TimeSpan t2) => new(t1.TotalSeconds + (float)t2.TotalSeconds);
+
+    public static TimeSingle operator -(TimeSingle t) => new(-t.TotalSeconds);
     public static TimeSingle operator -(TimeSingle t1, TimeSingle t2) => new(t1.TotalSeconds - t2.TotalSeconds);
     public static TimeSingle operator -(TimeSingle t1, TimeSpan t2) => new(t1.TotalSeconds - (float)t2.TotalSeconds);
-    public static TimeSingle operator -(TimeSingle t) => new(-t.TotalSeconds);
+
     public static TimeSingle operator *(float factor, TimeSingle t) => new(factor * t.TotalSeconds);
     public static TimeSingle operator *(TimeSingle t, float factor) => factor * t;
     public static TimeSingle operator /(TimeSingle t, float divisor) => new(t.TotalSeconds / divisor);

@@ -11,11 +11,11 @@ public static class TextFormatter
     //
 
     private static readonly Regex deformatRegex =
-        new("(\\$[wnoitsgz><]|\\$[lh]\\[.+\\]|\\$[lh]|\\$[0-9a-f]{1,3})",
+        new(@"(\$[wnoitsgz><]|\$[lh]\[.+\]|\$[lh]|\$[0-9a-f]{1,3})",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     private static readonly Regex colorRegex =
-        new("\\$[0-9a-f]{1,3}",
+        new(@"\$[0-9a-f]{1,3}",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     private const string AnsiDefault = "\x1B[39m\x1B[22m";
