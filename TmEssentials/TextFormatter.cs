@@ -9,13 +9,14 @@ public static class TextFormatter
     //
     // Credits to reaby for the ANSII stuff (https://github.com/reaby)
     //
+    
+    // Doesn't work for dollar
+    private static readonly Regex deformatRegexOld =
+        new(@"(\$[0-9a-f]{1,3}|\$[lh]\[.+\]|\$[lh]|\$.)",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     private static readonly Regex deformatRegex =
         new(@"\$((\$)|[0-9a-f]{2,3}|[lh]\[.*?\]|.)",
-            RegexOptions.IgnoreCase | RegexOptions.Compiled);
-
-    private static readonly Regex colorRegex =
-        new(@"\$[0-9a-f]{1,3}",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     private const string AnsiDefault = "\x1B[39m\x1B[22m";
@@ -28,12 +29,12 @@ public static class TextFormatter
     public static string FormatAnsi(string input)
     {
         var output = new StringBuilder();
+        
+        var split = deformatRegexOld.Split(input);
 
-        var split = deformatRegex.Split(input);
-
-        foreach (string text in split)
+        foreach (var element in split)
         {
-            output.Append(ColorToAnsi(text));
+            AppendAnsiText(output, element);
         }
 
         output.Append(AnsiDefault);
@@ -41,26 +42,46 @@ public static class TextFormatter
         return output.ToString();
     }
 
-    private static string ColorToAnsi(string input)
+    private static void AppendAnsiText(StringBuilder output, string element)
     {
-        if (!input.StartsWith("$")) return input;
-        if (input.EndsWith("z")) return AnsiDefault;
-
-        if (!colorRegex.IsMatch(input))
+        if (element.Length == 0)
         {
-            return "";
+            return;
         }
-        
-        var colorInt16 = Convert.ToInt16(input.Replace("$", ""), 16);
+
+        if (element[0] != '$')
+        {
+            output.Append(element);
+            return;
+        }
+
+        if (element[element.Length - 1] == 'z')
+        {
+            output.Append(AnsiDefault);
+            return;
+        }
+
+        if (element.Length <= 3)
+        {
+            for (var i = 0; i < element.Length; i++)
+            {
+                if (element[i] < '0' || element[i] > 'F')
+                {
+                    return;
+                }
+            }
+        }
+
+        var colorInt16 = Convert.ToInt16(element.Substring(1), 16);
 
         var r = 0x11 * ((colorInt16 & 0xF00) >> 8);
         var g = 0x11 * ((colorInt16 & 0x0F0) >> 4);
         var b = 0x11 * (colorInt16 & 0x00F);
 
-        Color color = Color.FromArgb(r, g, b);
-        
+        var color = Color.FromArgb(r, g, b);
+
         var hue = color.GetHue();
-        
+
         if (color.GetSaturation() == 0)
         {
             hue = 0;
@@ -90,7 +111,7 @@ public static class TextFormatter
             {
                 boldAttr = 1;
             }
-            
+
             if (color.GetBrightness() > 0.9)
             {
                 boldAttr = 1;
@@ -98,6 +119,21 @@ public static class TextFormatter
             }
         }
 
-        return $"\x1B[{boldAttr};{colorAttr}m";
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        Span<char> span = stackalloc char[]
+        {
+            '\x1B',
+            '[',
+            (char)(boldAttr + 48),
+            ';',
+            '3',
+            (char)(colorAttr + 18),
+            'm'
+        };
+
+        output.Append(span);
+#else
+        output.Append($"\x1B[{boldAttr};{colorAttr}m");
+#endif
     }
 }

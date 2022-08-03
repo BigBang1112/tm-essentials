@@ -79,12 +79,11 @@ public class TextFormatterTests
     [Fact]
     public void FormatAnsi_FormatsCorrectly()
     {
-        var expectedBase64 = "G1sxOzMxbVQbWzE7MzFtTRtbMTszMW1VG1swOzMxbS4bWzA7MzVtSxtbMDszNW1yG1swOzM0bWEbWzA7MzRtehtbMTszNG15G1swOzM0bUMbWzA7MzRtbxtbMDszNG1sG1swOzM2bW8bWzA7MzZtchtbMDszNm1zG1swOzMybSAbWzA7MzJtdhtbMDszMm0wG1swOzMybS4bWzA7MzJtMRtbMzltG1syMm0=";
+        var expected = "\\u001b[1;31mT\\u001b[1;31mM\\u001b[1;31mU\\u001b[0;31m.\\u001b[0;35mK\\u001b[0;35mr\\u001b[0;34ma\\u001b[0;34mz\\u001b[1;34my\\u001b[0;34mC\\u001b[0;34mo\\u001b[0;34ml\\u001b[0;36mo\\u001b[0;36mr\\u001b[0;36ms\\u001b[0;32m \\u001b[0;32mv\\u001b[0;32m0\\u001b[0;32m.\\u001b[0;32m1\\u001b[39m\\u001b[22m";
 
-        var ansi = TextFormatter.FormatAnsi("$F00T$D01M$C13U$A14.$815K$727r$528a$329z$23By$03CC$03Co$04Bl$059o$068r$077s$085 $094v$0A30$0B1.$0C01");
-        
-        var actualBase64 = Convert.ToBase64String(Encoding.ASCII.GetBytes(ansi));
+        var actual = TextFormatter.FormatAnsi("$F00T$D01M$C13U$A14.$815K$727r$528a$329z$23By$03CC$03Co$04Bl$059o$068r$077s$085 $094v$0A30$0B1.$0C01")
+            .Replace("\x1B", "\\u001b"); // purely testing purposes
 
-        Assert.Equal(expectedBase64, actualBase64);
+        Assert.Equal(expected, actual);
     }
 }
