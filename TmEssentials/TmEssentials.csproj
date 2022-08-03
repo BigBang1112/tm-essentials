@@ -1,34 +1,34 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<Product>TmEssentials</Product>
-		<AssemblyName>TmEssentials</AssemblyName>
-		<AssemblyTitle>TmEssentials</AssemblyTitle>
-		<Authors>Petr Pivoňka (BigBang1112)</Authors>
-		<Description>A .NET library providing essential Trackmania features, like the time or text formatting.</Description>
-		<Copyright>Copyright © Petr 'BigBang1112' Pivoňka</Copyright>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<PackageTags>trackmania, tm, essentials</PackageTags>
+  <PropertyGroup>
+    <Product>TmEssentials</Product>
+    <AssemblyName>TmEssentials</AssemblyName>
+    <AssemblyTitle>TmEssentials</AssemblyTitle>
+    <Authors>Petr Pivoňka (BigBang1112)</Authors>
+    <Description>A .NET library providing essential Trackmania features, like the time or text formatting.</Description>
+    <Copyright>Copyright © Petr 'BigBang1112' Pivoňka</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>trackmania, tm, essentials</PackageTags>
 
-		<Version>2.2.0</Version>
-		<PackageReleaseNotes></PackageReleaseNotes>
+    <Version>2.2.0</Version>
+    <PackageReleaseNotes></PackageReleaseNotes>
 
-		<TargetFrameworks>net6.0;netstandard2.1;netstandard2.0;net462</TargetFrameworks>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
-		<LangVersion>10</LangVersion>
+    <TargetFrameworks>net7.0;net6.0;netstandard2.1;netstandard2.0;net462</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>preview</LangVersion>
 
-		<RepositoryType>git</RepositoryType>
-		<RepositoryUrl>https://github.com/BigBang1112/tm-essentials</RepositoryUrl>
-		<PackageProjectUrl>https://github.com/BigBang1112/tm-essentials</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/BigBang1112/tm-essentials</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/BigBang1112/tm-essentials</PackageProjectUrl>
 
-		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-		<NoWarn>1591</NoWarn>
-	</PropertyGroup>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+    <NoWarn>1591</NoWarn>
+  </PropertyGroup>
 
-	<ItemGroup>
-		<Using Remove="System.Net.Http" />
-	</ItemGroup>
+  <ItemGroup>
+    <Using Remove="System.Net.Http" />
+  </ItemGroup>
 </Project>

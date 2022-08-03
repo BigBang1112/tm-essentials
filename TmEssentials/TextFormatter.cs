@@ -4,19 +4,30 @@ using System.Text.RegularExpressions;
 
 namespace TmEssentials;
 
-public static class TextFormatter
+public static partial class TextFormatter
 {
+    private const string DeformatRegexPattern = @"\$((\$)|[0-9a-f]{2,3}|[lh]\[.*?\]|.)";
+    private const string ColorRegexPattern = @"\$[0-9a-f]{1,3}";
+    private const RegexOptions RegexOpts = RegexOptions.IgnoreCase | RegexOptions.Compiled;
+
     //
     // Credits to reaby for the ANSII stuff (https://github.com/reaby)
     //
 
-    private static readonly Regex deformatRegex =
-        new(@"\$((\$)|[0-9a-f]{2,3}|[lh]\[.*?\]|.)",
-            RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-    private static readonly Regex colorRegex =
-        new(@"\$[0-9a-f]{1,3}",
-            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+#if NET7_0_OR_GREATER
+    [RegexGenerator(DeformatRegexPattern, RegexOpts)]
+    private static partial Regex DeformatRegex();
+
+    [RegexGenerator(ColorRegexPattern, RegexOpts)]
+    private static partial Regex ColorRegex();
+
+    private static readonly Regex deformatRegex = DeformatRegex();
+    private static readonly Regex colorRegex = ColorRegex();
+#else
+    private static readonly Regex deformatRegex = new(DeformatRegexPattern, RegexOpts);
+    private static readonly Regex colorRegex = new(ColorRegexPattern, RegexOpts);
+#endif
 
     private const string AnsiDefault = "\x1B[39m\x1B[22m";
 
