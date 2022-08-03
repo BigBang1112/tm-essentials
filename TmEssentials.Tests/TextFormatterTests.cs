@@ -63,4 +63,14 @@ public class TextFormatterTests
 
         Assert.Equal(expected, actual);
     }
+
+    [Fact]
+    public void Deformat_DoubleDollar()
+    {
+        var expected = "$B$i$g$$$$n$$g1112";
+
+        var actual = TextFormatter.Deformat("$$B$$i$$g$$$B$$$a$$$$n$$$$g1112");
+
+        Assert.Equal(expected, actual);
+    }
 }
