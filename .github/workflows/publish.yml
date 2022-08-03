@@ -23,13 +23,17 @@ jobs:
       run: dotnet build -c Release --no-restore
     - name: Test
       run: dotnet test -c Release --no-build --verbosity normal
+      
     - name: Create the TmEssentials package
       run: dotnet pack TmEssentials -c Release
     - name: Publish the TmEssentials package to nuget.org
-      run: dotnet nuget push TmEssentials/bin/Release/*.nupkg -k $AUTH_TOKEN -s https://api.nuget.org/v3/index.json
-      env:
-        AUTH_TOKEN: ${{ secrets.NUGET_API_KEY }}
+      run: dotnet nuget push TmEssentials/bin/Release/*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
     - name: Publish the TmEssentials package to github.com
-      run: dotnet nuget push TmEssentials/bin/Release/*.nupkg -k $AUTH_TOKEN -s https://nuget.pkg.github.com/bigbang1112/index.json
-      env:
-        AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: dotnet nuget push TmEssentials/bin/Release/*.nupkg -k ${{ secrets.GITHUB_TOKEN }} -s https://nuget.pkg.github.com/bigbang1112/index.json
+    - name: Attach the TmEssentials package to the release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        file: TmEssentials/bin/Release/*.nupkg
+        file_glob: true
+        tag: ${{ github.ref }}
+        overwrite: true
