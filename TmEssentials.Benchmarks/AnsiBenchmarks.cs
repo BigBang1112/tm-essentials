@@ -6,7 +6,7 @@ namespace TmEssentials.Benchmarks;
 
 [MemoryDiagnoser]
 [Orderer(SummaryOrderPolicy.FastestToSlowest)]
-public class AnsiiBenchmarks
+public class AnsiBenchmarks
 {
     [Benchmark]
     public void FormatColorsWithAnsi()
