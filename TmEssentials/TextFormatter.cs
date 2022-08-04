@@ -55,7 +55,7 @@ public static class TextFormatter
             return;
         }
 
-        if (element[element.Length - 1] == 'z')
+        if (element[element.Length - 1] == 'z' || element[element.Length - 1] == 'g')
         {
             output.Append(AnsiDefault);
             return;
