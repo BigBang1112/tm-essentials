@@ -150,6 +150,8 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime
     public static bool operator >=(TimeInt32 t1, TimeInt32 t2) => t1.TotalMilliseconds >= t2.TotalMilliseconds;
     public static bool operator <(TimeInt32 t1, TimeInt32 t2) => t1.TotalMilliseconds < t2.TotalMilliseconds;
     public static bool operator <=(TimeInt32 t1, TimeInt32 t2) => t1.TotalMilliseconds <= t2.TotalMilliseconds;
+    public static bool operator ==(TimeInt32 t1, TimeSingle t2) => t1.TotalMilliseconds == t2.TotalMilliseconds;
+    public static bool operator !=(TimeInt32 t1, TimeSingle t2) => t1.TotalMilliseconds != t2.TotalMilliseconds;
 
     public static TimeInt32 operator +(TimeInt32 t) => t;
     public static TimeInt32 operator +(TimeInt32 t1, TimeInt32 t2) => new(t1.TotalMilliseconds + t2.TotalMilliseconds);

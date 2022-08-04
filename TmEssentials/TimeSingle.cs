@@ -136,6 +136,8 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime
     public static bool operator >=(TimeSingle t1, TimeSingle t2) => t1.TotalSeconds >= t2.TotalSeconds;
     public static bool operator <(TimeSingle t1, TimeSingle t2) => t1.TotalSeconds < t2.TotalSeconds;
     public static bool operator <=(TimeSingle t1, TimeSingle t2) => t1.TotalSeconds <= t2.TotalSeconds;
+    public static bool operator ==(TimeSingle t1, TimeInt32 t2) => t1.TotalSeconds == t2.TotalSeconds;
+    public static bool operator !=(TimeSingle t1, TimeInt32 t2) => t1.TotalSeconds != t2.TotalSeconds;
 
     public static TimeSingle operator +(TimeSingle t) => t;
     public static TimeSingle operator +(TimeSingle t1, TimeSingle t2) => new(t1.TotalSeconds + t2.TotalSeconds);
