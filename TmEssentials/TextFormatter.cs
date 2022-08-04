@@ -16,7 +16,7 @@ public static class TextFormatter
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     private static readonly Regex deformatRegex =
-        new(@"\$((\$)|[0-9a-f]{2,3}|[lh]\[.*?\]|.)",
+        new(@"\$((\$)|[0-9a-f]{2,3}|[lh]\[.*?\]|[lh]\[|.)",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     private const string AnsiDefault = "\x1B[39m\x1B[22m";
