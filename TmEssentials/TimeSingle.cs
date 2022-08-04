@@ -106,6 +106,10 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime
         return 0;
     }
 
+    /// <summary>
+    /// Converts this <see cref="TimeSingle"/> to its equal <see cref="TimeInt32"/> value.
+    /// </summary>
+    /// <returns>A <see cref="TimeInt32"/>.</returns>
     public TimeInt32 ToTimeInt32() => new((int)TotalMilliseconds);
 
     /// <summary>
@@ -119,6 +123,10 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime
         return TimeFormatter.ToTmString(Days, Hours, Minutes, Seconds, (int)Milliseconds, TotalHours, TotalDays, IsNegative, useHundredths, useApostrophe);
     }
 
+    /// <summary>
+    /// Converts the value of the current <see cref="TimeSingle"/> to a Trackmania familiar time format with milliseconds and without apostrophes.
+    /// </summary>
+    /// <returns>A string representation of Trackmania time format.</returns>
     public override string ToString()
     {
         return ToString(useHundredths: false);
@@ -128,7 +136,7 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime
     public static bool operator >=(TimeSingle t1, TimeSingle t2) => t1.TotalSeconds >= t2.TotalSeconds;
     public static bool operator <(TimeSingle t1, TimeSingle t2) => t1.TotalSeconds < t2.TotalSeconds;
     public static bool operator <=(TimeSingle t1, TimeSingle t2) => t1.TotalSeconds <= t2.TotalSeconds;
-    
+
     public static TimeSingle operator +(TimeSingle t) => t;
     public static TimeSingle operator +(TimeSingle t1, TimeSingle t2) => new(t1.TotalSeconds + t2.TotalSeconds);
     public static TimeSingle operator +(TimeSingle t1, TimeSpan t2) => new(t1.TotalSeconds + (float)t2.TotalSeconds);
