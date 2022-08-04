@@ -2,6 +2,11 @@
 
 public static class TimeSpanExtensions
 {
+    /// <summary>
+    /// Converts the <paramref name="timeSpan"/> to a truncated millisecond representation (floor rounding).
+    /// </summary>
+    /// <param name="timeSpan">A TimeSpan.</param>
+    /// <returns>Amount of milliseconds.</returns>
     public static int ToMilliseconds(this TimeSpan timeSpan)
     {
         return (int)timeSpan.TotalMilliseconds;

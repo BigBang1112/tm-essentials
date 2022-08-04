@@ -20,11 +20,25 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime
 
     float ITime.TotalMilliseconds => TotalMilliseconds;
 
+    /// <summary>
+    /// Creates a <see cref="TimeInt32"/> from hours, minutes, and seconds.
+    /// </summary>
+    /// <param name="hours">Hours.</param>
+    /// <param name="minutes">Minutes.</param>
+    /// <param name="seconds">Seconds.</param>
     public TimeInt32(int hours, int minutes, int seconds) : this(0, hours, minutes, seconds)
     {
 
     }
 
+    /// <summary>
+    /// Creates a <see cref="TimeInt32"/> from days, hours, minutes, seconds, and milliseconds.
+    /// </summary>
+    /// <param name="days">Days.</param>
+    /// <param name="hours">Hours.</param>
+    /// <param name="minutes">Minutes.</param>
+    /// <param name="seconds">Seconds.</param>
+    /// <param name="milliseconds">Milliseconds.</param>
     public TimeInt32(int days, int hours, int minutes, int seconds, int milliseconds = 0)
          : this(milliseconds + seconds * 1_000 + minutes * 60_000 + hours * 3_600_000 + days * 86_400_000)
     {
@@ -42,6 +56,10 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime
         return TimeFormatter.ToTmString(Days, Hours, Minutes, Seconds, Milliseconds, TotalHours, TotalDays, IsNegative, useHundredths, useApostrophe);
     }
 
+    /// <summary>
+    /// Converts the value of the current <see cref="TimeInt32"/> to a Trackmania familiar time format with milliseconds and without apostrophes.
+    /// </summary>
+    /// <returns>A string representation of Trackmania time format.</returns>
     public override string ToString()
     {
         return ToString(useHundredths: false);
@@ -122,12 +140,18 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime
         return 0; 
     }
 
+    /// <summary>
+    /// Converts this <see cref="TimeInt32"/> to its equal <see cref="TimeSingle"/> value.
+    /// </summary>
+    /// <returns>A <see cref="TimeSingle"/>.</returns>
     public TimeSingle ToTimeSingle() => new(TotalSeconds);
 
-    public static bool operator >(TimeInt32 t1, TimeInt32 t2) => t1.TotalSeconds > t2.TotalSeconds;
-    public static bool operator >=(TimeInt32 t1, TimeInt32 t2) => t1.TotalSeconds >= t2.TotalSeconds;
-    public static bool operator <(TimeInt32 t1, TimeInt32 t2) => t1.TotalSeconds < t2.TotalSeconds;
-    public static bool operator <=(TimeInt32 t1, TimeInt32 t2) => t1.TotalSeconds <= t2.TotalSeconds;
+    public static bool operator >(TimeInt32 t1, TimeInt32 t2) => t1.TotalMilliseconds > t2.TotalMilliseconds;
+    public static bool operator >=(TimeInt32 t1, TimeInt32 t2) => t1.TotalMilliseconds >= t2.TotalMilliseconds;
+    public static bool operator <(TimeInt32 t1, TimeInt32 t2) => t1.TotalMilliseconds < t2.TotalMilliseconds;
+    public static bool operator <=(TimeInt32 t1, TimeInt32 t2) => t1.TotalMilliseconds <= t2.TotalMilliseconds;
+    public static bool operator ==(TimeInt32 t1, TimeSingle t2) => t1.TotalMilliseconds == t2.TotalMilliseconds;
+    public static bool operator !=(TimeInt32 t1, TimeSingle t2) => t1.TotalMilliseconds != t2.TotalMilliseconds;
 
     public static TimeInt32 operator +(TimeInt32 t) => t;
     public static TimeInt32 operator +(TimeInt32 t1, TimeInt32 t2) => new(t1.TotalMilliseconds + t2.TotalMilliseconds);

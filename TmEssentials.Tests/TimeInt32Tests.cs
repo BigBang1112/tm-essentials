@@ -4,6 +4,46 @@ namespace TmEssentials.Tests;
 
 public class TimeInt32Tests
 {
+    [Fact]
+    public void Zero_IsZero()
+    {
+        var expected = new TimeInt32();
+        
+        var actual = TimeInt32.Zero;
+
+        Assert.Equal(expected, actual);
+    }
+    
+    [Fact]
+    public void Zero_IsMaxInt32Value()
+    {
+        var expected = new TimeInt32(int.MaxValue);
+
+        var actual = TimeInt32.MaxValue;
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void Zero_IsMinInt32Value()
+    {
+        var expected = new TimeInt32(int.MinValue);
+
+        var actual = TimeInt32.MinValue;
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void ToString_Override_UsesDefaultParamValues()
+    {
+        var expected = ((object)new TimeInt32(234567890)).ToString();
+
+        var actual = new TimeInt32(234567890).ToString(useHundredths: false, useApostrophe: false);
+
+        Assert.Equal(expected, actual);
+    }
+
     [Theory]
     [InlineData(0, 0)]
     [InlineData(1, 1)]
@@ -331,5 +371,33 @@ public class TimeInt32Tests
         var result = timeInt.Multiply(factor);
 
         Assert.Equal(expected: totalMillisecondsResult, actual: result.TotalMilliseconds);
+    }
+
+    [Theory]
+    [InlineData(0, 0)]
+    [InlineData(1, -1)]
+    [InlineData(5, -5)]
+    [InlineData(-8, 8)]
+    public void Negate_ShouldNegate(int totalMilliseconds, int totalMillisecondsResult)
+    {
+        var timeInt = new TimeInt32(totalMilliseconds);
+
+        var result = timeInt.Negate();
+
+        Assert.Equal(expected: totalMillisecondsResult, actual: result.TotalMilliseconds);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(5)]
+    [InlineData(-8)]
+    public void ToTimeSingle_ConvertsCorrectly(int totalMilliseconds)
+    {
+        var timeInt = new TimeInt32(totalMilliseconds);
+
+        var timeSingle = timeInt.ToTimeSingle();
+
+        Assert.Equal(expected: timeInt.TotalMilliseconds, actual: timeSingle.TotalMilliseconds);
     }
 }

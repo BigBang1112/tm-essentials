@@ -7,33 +7,34 @@ namespace TmEssentials;
 public static class TextFormatter
 {
     //
-    // Credits to reaby for the patterns (https://github.com/reaby)
+    // Credits to reaby for the ANSII stuff (https://github.com/reaby)
     //
-
-    private static readonly Regex deformatRegex =
-        new(@"(\$[wnoitsgz><]|\$[lh]\[.+\]|\$[lh]|\$[0-9a-f]{1,3})",
+    
+    // Doesn't work for dollar
+    private static readonly Regex deformatRegexOld =
+        new(@"(\$[0-9a-f]{1,3}|\$[lh]\[.+\]|\$[lh]|\$.)",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-    private static readonly Regex colorRegex =
-        new(@"\$[0-9a-f]{1,3}",
+    private static readonly Regex deformatRegex =
+        new(@"\$((\$)|[0-9a-f]{2,3}|[lh]\[.*?\]|.)",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     private const string AnsiDefault = "\x1B[39m\x1B[22m";
 
     public static string Deformat(string input)
     {
-        return deformatRegex.Replace(input, "");
+        return deformatRegex.Replace(input, "$2");
     }
 
     public static string FormatAnsi(string input)
     {
         var output = new StringBuilder();
+        
+        var split = deformatRegexOld.Split(input);
 
-        var split = deformatRegex.Split(input);
-
-        foreach (string text in split)
+        foreach (var element in split)
         {
-            output.Append(ColorToAnsi(text));
+            AppendAnsiText(output, element);
         }
 
         output.Append(AnsiDefault);
@@ -41,57 +42,98 @@ public static class TextFormatter
         return output.ToString();
     }
 
-    private static string ColorToAnsi(string input)
+    private static void AppendAnsiText(StringBuilder output, string element)
     {
-        if (!input.StartsWith("$")) return input;
-        if (input.EndsWith("z")) return AnsiDefault;
-
-        if (colorRegex.IsMatch(input))
+        if (element.Length == 0)
         {
-            var colorInt16 = Convert.ToInt16(input.Replace("$", ""), 16);
+            return;
+        }
 
-            var r = 0x11 * ((colorInt16 & 0xF00) >> 8);
-            var g = 0x11 * ((colorInt16 & 0x0F0) >> 4);
-            var b = 0x11 * (colorInt16 & 0x00F);
+        if (element[0] != '$')
+        {
+            output.Append(element);
+            return;
+        }
 
-            Color color = Color.FromArgb(r, g, b);
+        if (element[element.Length - 1] == 'z')
+        {
+            output.Append(AnsiDefault);
+            return;
+        }
 
-            int boldAttr = 0;
-            float hue = color.GetHue();
-            if (color.GetSaturation() == 0)
+        if (element.Length <= 3)
+        {
+            for (var i = 0; i < element.Length; i++)
             {
-                hue = 0;
+                if (element[i] < '0' || element[i] > 'F')
+                {
+                    return;
+                }
             }
+        }
 
-            int colorAttr;
-            if (hue < 30) colorAttr = 31; // red
-            else if (hue < 80) colorAttr = 33; // yellow
-            else if (hue < 160) colorAttr = 32; // green
-            else if (hue < 214) colorAttr = 36; // cyan
-            else if (hue < 284) colorAttr = 34; // blue
-            else if (hue < 333) colorAttr = 35; // magenta
-            else colorAttr = 31;
+        var colorInt16 = Convert.ToInt16(element.Substring(1), 16);
 
-            if (color.GetBrightness() < 0.1)
+        var r = 0x11 * ((colorInt16 & 0xF00) >> 8);
+        var g = 0x11 * ((colorInt16 & 0x0F0) >> 4);
+        var b = 0x11 * (colorInt16 & 0x00F);
+
+        var color = Color.FromArgb(r, g, b);
+
+        var hue = color.GetHue();
+
+        if (color.GetSaturation() == 0)
+        {
+            hue = 0;
+        }
+
+        var colorAttr = hue switch
+        {
+            < 30 => 31,// red
+            < 80 => 33,// yellow
+            < 160 => 32,// green
+            < 214 => 36,// cyan
+            < 284 => 34,// blue
+            < 333 => 35,// magenta
+            _ => 31,
+        };
+
+        var boldAttr = 0;
+
+        if (color.GetBrightness() < 0.1)
+        {
+            boldAttr = 1;
+            colorAttr = 30;
+        }
+        else
+        {
+            if (color.GetBrightness() > 0.43)
             {
                 boldAttr = 1;
-                colorAttr = 30;
-            }
-            else
-            {
-                if (color.GetBrightness() > 0.43)
-                {
-                    boldAttr = 1;
-                }
-                if (color.GetBrightness() > 0.9)
-                {
-                    boldAttr = 1;
-                    colorAttr = 37;
-                }
             }
 
-            return $"\x1B[{boldAttr};{colorAttr}m";
+            if (color.GetBrightness() > 0.9)
+            {
+                boldAttr = 1;
+                colorAttr = 37;
+            }
         }
-        return "";
+
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        Span<char> span = stackalloc char[]
+        {
+            '\x1B',
+            '[',
+            (char)(boldAttr + 48),
+            ';',
+            '3',
+            (char)(colorAttr + 18),
+            'm'
+        };
+
+        output.Append(span);
+#else
+        output.Append($"\x1B[{boldAttr};{colorAttr}m");
+#endif
     }
 }

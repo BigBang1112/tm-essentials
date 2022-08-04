@@ -3,6 +3,16 @@
 public static class TimeInt32Extensions
 {
     /// <summary>
+    /// Converts the value of the current <see cref="TimeInt32"/> to a Trackmania familiar time format.
+    /// </summary>
+    /// <remarks>This method just calls <see cref="TimeInt32.ToString(bool, bool)"/> and exists only for consistency.</remarks>
+    /// <returns>A string representation of Trackmania time format.</returns>
+    public static string ToTmString(this TimeInt32 time, bool useHundredths = false, bool useApostrophe = false)
+    {
+        return time.ToString(useHundredths, useApostrophe);
+    }
+
+    /// <summary>
     /// Converts the value of the current <see cref="TimeInt32"/> to a Trackmania familiar time format. If the value is null, <paramref name="nullString"/> will be used.
     /// </summary>
     /// <param name="time">A TimeSpan.</param>

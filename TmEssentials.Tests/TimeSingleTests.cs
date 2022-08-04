@@ -4,6 +4,46 @@ namespace TmEssentials.Tests;
 
 public class TimeSingleTests
 {
+    [Fact]
+    public void Zero_IsZero()
+    {
+        var expected = new TimeSingle();
+
+        var actual = TimeSingle.Zero;
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void Zero_IsMaxSingleValue()
+    {
+        var expected = new TimeSingle(float.MaxValue);
+
+        var actual = TimeSingle.MaxValue;
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void Zero_IsMinSingleValue()
+    {
+        var expected = new TimeSingle(float.MinValue);
+
+        var actual = TimeSingle.MinValue;
+
+        Assert.Equal(expected, actual);
+    }
+    
+    [Fact]
+    public void ToString_Override_UsesDefaultParamValues()
+    {
+        var expected = ((object)new TimeSingle(234567890)).ToString();
+
+        var actual = new TimeSingle(234567890).ToString(useHundredths: false, useApostrophe: false);
+
+        Assert.Equal(expected, actual);
+    }
+    
     [Theory]
     [InlineData(0, 0)]
     [InlineData(1, 1)]
@@ -345,5 +385,33 @@ public class TimeSingleTests
         var result = timeSingle.Multiply(totalSecondsFactor);
 
         Assert.Equal(expected: totalSecondsResult, actual: result.TotalSeconds);
+    }
+
+    [Theory]
+    [InlineData(0, 0)]
+    [InlineData(1, -1)]
+    [InlineData(5.5f, -5.5f)]
+    [InlineData(-8.5f, 8.5f)]
+    public void Negate_ShouldNegate(float totalSeconds, float totalSecondsResult)
+    {
+        var timeSingle = new TimeSingle(totalSeconds);
+
+        var result = timeSingle.Negate();
+
+        Assert.Equal(expected: totalSecondsResult, actual: result.TotalSeconds);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(5.5f)]
+    [InlineData(-8.5f)]
+    public void ToTimeInt32_ConvertsCorrectly(float totalSeconds)
+    {
+        var timeSingle = new TimeSingle(totalSeconds);
+
+        var timeInt = timeSingle.ToTimeInt32();
+
+        Assert.Equal(expected: timeSingle.TotalSeconds, actual: timeInt.TotalSeconds);
     }
 }
