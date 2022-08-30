@@ -46,7 +46,7 @@ internal static class TimeFormatter
         {
             length += 3;
 
-            if (hours > 10)
+            if (hours >= 10)
             {
                 length++;
             }
