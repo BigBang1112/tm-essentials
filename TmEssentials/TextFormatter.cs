@@ -1,23 +1,48 @@
-﻿using System.Drawing;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 using System.Text;
 using System.Text.RegularExpressions;
 
 namespace TmEssentials;
 
-public static class TextFormatter
+public static partial class TextFormatter
 {
     //
     // Credits to reaby for the ANSII stuff (https://github.com/reaby)
     //
-    
+
+#if NET7_0_OR_GREATER
+    [StringSyntax(StringSyntaxAttribute.Regex)]
+#endif
+    private const string DeformatRegexStr = @"\$((\$)|[0-9a-fA-F]{2,3}|[lh]\[.*?\]|[lh]\[|.)";
+
+#if NET7_0_OR_GREATER
+    [StringSyntax(StringSyntaxAttribute.Regex)]
+#endif
+    private const string DeformatRegexOldStr = @"(\$[0-9a-fA-F]{1,3}|\$[lh]\[.+\]|\$[lh]|\$.)";
+
+#if NET7_0_OR_GREATER
+    [GeneratedRegex(DeformatRegexStr)]
+    private static partial Regex DeformatRegex();
+
+    [GeneratedRegex(DeformatRegexOldStr)]
+    private static partial Regex DeformatRegexOld();
+#endif
+
     // Doesn't work for dollar
-    private static readonly Regex deformatRegexOld =
-        new(@"(\$[0-9a-f]{1,3}|\$[lh]\[.+\]|\$[lh]|\$.)",
-            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly Regex deformatRegexOld = 
+#if NET7_0_OR_GREATER
+        DeformatRegexOld();
+#else
+        new(DeformatRegexOldStr, RegexOptions.Compiled);
+#endif
 
     private static readonly Regex deformatRegex =
-        new(@"\$((\$)|[0-9a-f]{2,3}|[lh]\[.*?\]|[lh]\[|.)",
-            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+#if NET7_0_OR_GREATER
+        DeformatRegex();
+#else
+        new(DeformatRegexStr, RegexOptions.Compiled);
+#endif
 
     private const string AnsiDefault = "\x1B[39m\x1B[22m";
 

@@ -9,14 +9,16 @@
 		<Copyright>Copyright © Petr 'BigBang1112' Pivoňka</Copyright>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageTags>trackmania, tm, essentials</PackageTags>
+		<IsTrimamble>true</IsTrimamble>
+		<IsAotCompatible>true</IsAotCompatible>
 
-		<Version>2.3.2</Version>
+		<Version>2.3.33</Version>
 		<PackageReleaseNotes></PackageReleaseNotes>
 
-		<TargetFrameworks>net6.0;netstandard2.1;netstandard2.0;net462</TargetFrameworks>
+		<TargetFrameworks>net7.0;net6.0;netstandard2.1;netstandard2.0;net462</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<LangVersion>10</LangVersion>
+		<LangVersion>11</LangVersion>
 
 		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/BigBang1112/tm-essentials</RepositoryUrl>
