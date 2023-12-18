@@ -20,7 +20,7 @@ internal static class TimeFormatter
         var colonSep = useApostrophe ? '\'' : ':';
 
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        var length = 7 + (useApostrophe ? 1 : 0);
+        var length = (useApostrophe ? 8 : 7) + (useHundredths ? 0 : 1);
 #endif
         if (isNegative)
         {
@@ -39,9 +39,6 @@ internal static class TimeFormatter
         }
 
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        var msPush = useHundredths ? 0 : 1;
-        length += msPush;
-
         if (hours > 0)
         {
             length += 3;
@@ -73,12 +70,29 @@ internal static class TimeFormatter
             else if (days < 100000000) length += 9;
             else if (days < 1000000000) length += 10;
         }
-#endif
 
-#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         Span<char> array = stackalloc char[length];
 
-        WriteNumberAndPush(array, offset: 0, milliseconds, expectedLength: 3, msOffset: useHundredths ? 1 : 0);
+        if (useHundredths)
+        {
+            milliseconds /= 10;
+        }
+
+        if (milliseconds < 10)
+        {
+            milliseconds.TryFormat(array.Slice(length - 1), out int msCharsWritten);
+            array[length - 2] = '0';
+            array[length - 3] = '0';
+        }
+        else if (milliseconds < 100)
+        {
+            milliseconds.TryFormat(array.Slice(length - 2), out int msCharsWritten);
+            array[length - 3] = '0';
+        }
+        else
+        {
+            milliseconds.TryFormat(array.Slice(length - 3), out int msCharsWritten);
+        }
 
         var msLength = useHundredths ? 2 : 3;
 
@@ -90,30 +104,47 @@ internal static class TimeFormatter
             array[length - msLength - 1] = '\'';
         }
 
-        WriteNumberAndPush(array, offset: msLength + 1, seconds, expectedLength: 2);
+        if (seconds < 10)
+        {
+            seconds.TryFormat(array.Slice(length - msLength - 2), out int secondsCharsWritten);
+            array[length - msLength - 3] = '0';
+        }
+        else
+        {
+            seconds.TryFormat(array.Slice(length - msLength - 3), out int secondsCharsWritten);
+        }
 
         array[length - msLength - 4] = colonSep;
 
-        WriteNumberAndPush(array, offset: msLength + 4, minutes, expectedLength: hours > 0 ? 2 : 1);
+        minutes.TryFormat(array.Slice(length - msLength - (minutes < 10 ? 5 : 6)), out int minutesCharsWritten);
+
+        if (hours > 0 && minutes < 10)
+        {
+            array[length - msLength - 6] = '0';
+        }
 
         if (hours > 0 || days > 0)
         {
             array[length - msLength - 7] = colonSep;
 
-            WriteNumberAndPush(array, offset: msLength + 7, hours, expectedLength: days > 0 ? 2 : 1);
+            hours.TryFormat(array.Slice(length - msLength - (hours < 10 ? 8 : 9)), out int hoursCharsWritten);
+
+            if (days > 0 && hours < 10)
+            {
+                array[length - msLength - 9] = '0';
+            }
 
             if (days > 0)
             {
                 array[length - msLength - 10] = colonSep;
 
-                days.TryFormat(array, out int daysCharsWritten);
-
                 if (isNegative)
                 {
-                    for (var i = 0; i < daysCharsWritten; i++)
-                    {
-                        array[daysCharsWritten - i] = array[daysCharsWritten - 1 - i];
-                    }
+                    days.TryFormat(array.Slice(1), out int daysCharsWritten);
+                }
+                else
+                {
+                    days.TryFormat(array, out int daysCharsWritten);
                 }
             }
         }
@@ -172,35 +203,4 @@ internal static class TimeFormatter
 		return formatBuilder.ToString();
 #endif
     }
-
-#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-    private static void WriteNumberAndPush(Span<char> array, int offset, int number, int expectedLength, int msOffset = 0)
-    {
-        var destinationOffset = array.Length - offset - 1;
-
-        if (number > 0)
-        {
-            number.TryFormat(array, out int charsWritten);
-
-            charsWritten -= msOffset;
-
-            for (var i = 0; i < charsWritten; i++)
-            {
-                array[destinationOffset - i] = array[charsWritten - 1 - i];
-            }
-
-            for (var i = 0; i < expectedLength - charsWritten; i++)
-            {
-                array[destinationOffset - i - charsWritten] = '0';
-            }
-
-            return;
-        }
-
-        for (var i = 0; i < expectedLength; i++)
-        {
-            array[destinationOffset - i] = '0';
-        }
-    }
-#endif
 }
