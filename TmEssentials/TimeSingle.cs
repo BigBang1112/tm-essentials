@@ -5,7 +5,7 @@
 /// This struct offers accuracy and high performance for scenarios - time of keyframes in MediaTracker for example.
 /// Operators for comparing and arithmetic operations are included.
 /// </summary>
-/// <param name="TotalSeconds"></param>
+/// <param name="TotalSeconds">The total number of seconds.</param>
 public readonly record struct TimeSingle(float TotalSeconds) : ITime
 {
     /// <summary>

@@ -1,9 +1,30 @@
-﻿using Xunit;
+﻿using System;
+using Xunit;
 
 namespace TmEssentials.Tests;
 
 public class TimeSingleTests
 {
+    [Fact]
+    public void Constructor_WithTotalSeconds()
+    {
+        var expected = 2.3f;
+
+        var actual = new TimeSingle(expected).TotalSeconds;
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void Constructor_InitTotalSeconds()
+    {
+        var expected = 2.3f;
+
+        var actual = new TimeSingle() { TotalSeconds = expected }.TotalSeconds;
+
+        Assert.Equal(expected, actual);
+    }
+
     [Fact]
     public void Zero_IsZero()
     {
@@ -413,5 +434,287 @@ public class TimeSingleTests
         var timeInt = timeSingle.ToTimeInt32();
 
         Assert.Equal(expected: timeSingle.TotalSeconds, actual: timeInt.TotalSeconds);
+    }
+
+    [Fact]
+    public void GreaterThanOperator_TimeSingle_ReturnsCorrectResult()
+    {
+        var time1 = new TimeSingle(2.0f); // 2 seconds
+        var time2 = new TimeSingle(1.5f); // 1.5 seconds
+
+        Assert.True(time1 > time2);
+        Assert.False(time2 > time1);
+    }
+
+    [Fact]
+    public void GreaterThanOrEqualOperator_TimeSingle_ReturnsCorrectResult()
+    {
+        var time1 = new TimeSingle(2.0f);
+        var time2 = new TimeSingle(2.0f);
+        var time3 = new TimeSingle(1.5f);
+
+        Assert.True(time1 >= time2);
+        Assert.True(time1 >= time3);
+        Assert.False(time3 >= time1);
+    }
+
+    [Fact]
+    public void LessThanOperator_TimeSingle_ReturnsCorrectResult()
+    {
+        var time1 = new TimeSingle(1.5f);
+        var time2 = new TimeSingle(2.0f);
+
+        Assert.True(time1 < time2);
+        Assert.False(time2 < time1);
+    }
+
+    [Fact]
+    public void LessThanOrEqualOperator_TimeSingle_ReturnsCorrectResult()
+    {
+        var time1 = new TimeSingle(2.0f);
+        var time2 = new TimeSingle(2.0f);
+        var time3 = new TimeSingle(2.5f);
+
+        Assert.True(time1 <= time2);
+        Assert.True(time1 <= time3);
+        Assert.False(time3 <= time1);
+    }
+
+    [Fact]
+    public void EqualityOperator_TimeSingleAndTimeInt32_ReturnsCorrectResult()
+    {
+        var timeSingle = new TimeSingle(1.0f); // 1 second
+        var timeInt32 = new TimeInt32(1000); // 1000 milliseconds
+
+        Assert.True(timeSingle == timeInt32);
+    }
+
+    [Fact]
+    public void InequalityOperator_TimeSingleAndTimeInt32_ReturnsCorrectResult()
+    {
+        var timeSingle = new TimeSingle(1.5f); // 1.5 seconds
+        var timeInt32 = new TimeInt32(1000); // 1000 milliseconds
+
+        Assert.True(timeSingle != timeInt32);
+    }
+
+    [Fact]
+    public void UnaryPlusOperator_ReturnsSameValue()
+    {
+        var time = new TimeSingle(1.5f); // 1.5 seconds
+        var result = +time;
+
+        Assert.Equal(time.TotalSeconds, result.TotalSeconds, precision: 3);
+    }
+
+    [Fact]
+    public void AddTwoTimeSingle_ReturnsCorrectResult()
+    {
+        var time1 = new TimeSingle(1.0f); // 1 second
+        var time2 = new TimeSingle(2.5f); // 2.5 seconds
+        var expected = new TimeSingle(3.5f);
+
+        var result = time1 + time2;
+
+        Assert.Equal(expected.TotalSeconds, result.TotalSeconds, precision: 3);
+    }
+
+    [Fact]
+    public void AddTimeSingleAndTimeSpan_ReturnsCorrectResult()
+    {
+        var timeSingle = new TimeSingle(1.0f); // 1 second
+        var timeSpan = TimeSpan.FromSeconds(2.5); // 2.5 seconds
+        var expected = new TimeSingle(3.5f);
+
+        var result = timeSingle + timeSpan;
+
+        Assert.Equal(expected.TotalSeconds, result.TotalSeconds, precision: 3);
+    }
+
+    [Fact]
+    public void UnaryMinusOperator_ReturnsNegatedValue()
+    {
+        var time = new TimeSingle(1.5f); // 1.5 seconds
+        var expected = new TimeSingle(-1.5f);
+
+        var result = -time;
+
+        Assert.Equal(expected.TotalSeconds, result.TotalSeconds, precision: 3);
+    }
+
+    [Fact]
+    public void SubtractTwoTimeSingle_ReturnsCorrectResult()
+    {
+        var time1 = new TimeSingle(3.5f); // 3.5 seconds
+        var time2 = new TimeSingle(1.0f); // 1 second
+        var expected = new TimeSingle(2.5f);
+
+        var result = time1 - time2;
+
+        Assert.Equal(expected.TotalSeconds, result.TotalSeconds, precision: 3);
+    }
+
+    [Fact]
+    public void SubtractTimeSpanFromTimeSingle_ReturnsCorrectResult()
+    {
+        var timeSingle = new TimeSingle(3.5f); // 3.5 seconds
+        var timeSpan = TimeSpan.FromSeconds(1.0); // 1 second
+        var expected = new TimeSingle(2.5f);
+
+        var result = timeSingle - timeSpan;
+
+        Assert.Equal(expected.TotalSeconds, result.TotalSeconds, precision: 3);
+    }
+
+    [Fact]
+    public void MultiplyFloatAndTimeSingle_ReturnsTimeSingle()
+    {
+        var time = new TimeSingle(2.0f); // 2 seconds
+        float factor = 2.5f;
+        var expected = new TimeSingle(5.0f); // 5 seconds
+
+        var result = factor * time;
+
+        Assert.Equal(expected.TotalSeconds, result.TotalSeconds, precision: 3);
+    }
+
+    [Fact]
+    public void MultiplyTimeSingleAndFloat_ReturnsTimeSingle()
+    {
+        var time = new TimeSingle(1.5f); // 1.5 seconds
+        float factor = 2f;
+        var expected = new TimeSingle(3.0f); // 3 seconds
+
+        var result = time * factor;
+
+        Assert.Equal(expected.TotalSeconds, result.TotalSeconds, precision: 3);
+    }
+
+    [Fact]
+    public void DivideTimeSingleByFloat_ReturnsTimeSingle()
+    {
+        var time = new TimeSingle(3.0f); // 3 seconds
+        float divisor = 2f;
+        var expected = new TimeSingle(1.5f); // 1.5 seconds
+
+        var result = time / divisor;
+
+        Assert.Equal(expected.TotalSeconds, result.TotalSeconds, precision: 3);
+    }
+
+    [Fact]
+    public void DivideTimeSingleByTimeSingle_ReturnsFloat()
+    {
+        var time1 = new TimeSingle(3.0f); // 3 seconds
+        var time2 = new TimeSingle(1.5f); // 1.5 seconds
+        float expected = 2.0f; // 3 / 1.5
+
+        var result = time1 / time2;
+
+        Assert.Equal(expected, result, precision: 3);
+    }
+
+    [Fact]
+    public void ImplicitConversionFromTimeSingleToTimeSpan()
+    {
+        var timeSingle = new TimeSingle(1.5f); // 1.5 seconds
+        TimeSpan expected = TimeSpan.FromSeconds(1.5);
+
+        TimeSpan result = timeSingle;
+
+        Assert.Equal(expected, result);
+    }
+
+    [Fact]
+    public void ImplicitConversionFromTimeSpanToTimeSingle()
+    {
+        var timeSpan = TimeSpan.FromSeconds(2.0); // 2 seconds
+        var expected = new TimeSingle(2.0f);
+
+        TimeSingle result = timeSpan;
+
+        Assert.Equal(expected.TotalSeconds, result.TotalSeconds, precision: 3);
+    }
+
+    [Fact]
+    public void ImplicitConversionFromTimeInt32ToTimeSingle()
+    {
+        var timeInt32 = new TimeInt32(3000); // 3000 milliseconds
+        var expected = new TimeSingle(3.0f); // 3 seconds
+
+        TimeSingle result = timeInt32;
+
+        Assert.Equal(expected.TotalSeconds, result.TotalSeconds, precision: 3);
+    }
+
+    [Fact]
+    public void CompareTo_WithNull_ReturnsPositive()
+    {
+        var time = new TimeSingle(1); // Assuming this class implements ITime
+        int result = time.CompareTo(null);
+
+        Assert.Equal(1, result);
+    }
+
+    [Fact]
+    public void CompareTo_WithGreaterTotalSeconds_ReturnsNegative()
+    {
+        var time = new TimeSingle(1f);
+        var other = new TimeSingle(1.5f);
+
+        int result = time.CompareTo(other);
+
+        Assert.Equal(-1, result);
+    }
+
+    [Fact]
+    public void CompareTo_WithLesserTotalSeconds_ReturnsPositive()
+    {
+        var time = new TimeSingle(1.5f);
+        var other = new TimeSingle(1);
+
+        int result = time.CompareTo(other);
+
+        Assert.Equal(1, result);
+    }
+
+    [Fact]
+    public void CompareTo_WithEqualTotalSeconds_ReturnsZero()
+    {
+        var time = new TimeSingle(1);
+        var other = new TimeSingle(1);
+
+        int result = time.CompareTo(other);
+
+        Assert.Equal(0, result);
+    }
+
+    [Fact]
+    public void CompareToObject_WithNull_ReturnsPositive()
+    {
+        var time = new TimeSingle(1.0f); // Replace with your class that implements ITime
+        int result = time.CompareTo(default(object));
+
+        Assert.Equal(1, result);
+    }
+
+    [Fact]
+    public void CompareToObject_WithITimeObject_ReturnsCorrectComparison()
+    {
+        var time = new TimeSingle(1.0f);
+        object other = new TimeSingle(1.5f); // other implements ITime
+
+        int result = time.CompareTo(other);
+
+        Assert.Equal(-1, result);
+    }
+
+    [Fact]
+    public void CompareToObject_WithNonITimeObject_ThrowsArgumentException()
+    {
+        var time = new TimeSingle(1.0f);
+        object nonTimeObject = new Random(); // An object that does not implement ITime
+
+        Assert.Throws<ArgumentException>(() => time.CompareTo(nonTimeObject));
     }
 }

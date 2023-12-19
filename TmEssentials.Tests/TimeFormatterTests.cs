@@ -584,4 +584,64 @@ public class TimeFormatterTests
 
         Assert.Equal(expected, actual);
     }
+
+    [Fact]
+    public void ToTmString_Days3Digit()
+    {
+        var expected = "100:00:00:00.000";
+
+        var actual = new TimeSingle(100, 0, 0, 0, 0).ToTmString();
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void ToTmString_Days4Digit()
+    {
+        var expected = "1000:00:00:00.000";
+
+        var actual = new TimeSingle(1000, 0, 0, 0, 0).ToTmString();
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void ToTmString_Days5Digit()
+    {
+        var expected = "10000:00:00:00.000";
+
+        var actual = new TimeSpan(10000, 0, 0, 0, 0).ToTmString();
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void ToTmString_Days6Digit()
+    {
+        var expected = "100000:00:00:00.000";
+
+        var actual = new TimeSpan(100000, 0, 0, 0, 0).ToTmString();
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void ToTmString_Days7Digit()
+    {
+        var expected = "1000000:00:00:00.000";
+
+        var actual = new TimeSpan(1000000, 0, 0, 0, 0).ToTmString();
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void ToTmString_Days8Digit()
+    {
+        var expected = "10000000:00:00:00.000";
+
+        var actual = new TimeSpan(10000000, 0, 0, 0, 0).ToTmString();
+
+        Assert.Equal(expected, actual);
+    }
 }

@@ -32,4 +32,9 @@
 	<ItemGroup>
 		<Using Remove="System.Net.Http" />
 	</ItemGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="$(AssemblyName).Tests" />
+		<InternalsVisibleTo Include="$(AssemblyName).Benchmarks" />
+	</ItemGroup>
 </Project>

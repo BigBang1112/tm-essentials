@@ -1,4 +1,5 @@
-﻿using Xunit;
+﻿using System.Text;
+using Xunit;
 
 namespace TmEssentials.Tests;
 
@@ -83,5 +84,42 @@ public class TextFormatterTests
             .Replace("\x1B", "\\u001b"); // purely testing purposes
 
         Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void AppendAnsiText_WithEmptyElement_ShouldNotAppendAnything()
+    {
+        var output = new StringBuilder();
+        TextFormatter.AppendAnsiText(output, "");
+
+        Assert.Equal("", output.ToString());
+    }
+
+    [Fact]
+    public void AppendAnsiText_WithNonAnsiElement_ShouldAppendAsIs()
+    {
+        var output = new StringBuilder();
+        TextFormatter.AppendAnsiText(output, "Hello");
+
+        Assert.Equal("Hello", output.ToString());
+    }
+
+    [Fact]
+    public void AppendAnsiText_WithInvalidAnsiCode_ShouldNotAppendAnything()
+    {
+        var output = new StringBuilder();
+        TextFormatter.AppendAnsiText(output, "$G2");
+
+        Assert.Equal("", output.ToString());
+    }
+
+    [Fact]
+    public void AppendAnsiText_WithBrightColor_ShouldAppendBoldAnsiCode()
+    {
+        var output = new StringBuilder();
+        TextFormatter.AppendAnsiText(output, "$FFF"); // White
+
+        // Assuming the bold code for white is "\x1B[1;37m"
+        Assert.Equal("\x1B[1;37m", output.ToString());
     }
 }
