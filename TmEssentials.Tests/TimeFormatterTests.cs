@@ -10,7 +10,7 @@ public class TimeFormatterTests
     {
         var expected = "-:--.---";
 
-        var actual = default(TimeSpan?).ToTmString();
+        var actual = default(TimeInt32?).ToTmString();
 
         Assert.Equal(expected, actual);
     }
@@ -20,7 +20,27 @@ public class TimeFormatterTests
     {
         var expected = "-:--.--";
 
-        var actual = default(TimeSpan?).ToTmString(true);
+        var actual = default(TimeInt32?).ToTmString(true);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void ToTmString_00F()
+    {
+        var expected = "0:00.003";
+
+        var actual = TimeInt32.FromMilliseconds(3).ToTmString();
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void ToTmString_0FF()
+    {
+        var expected = "0:00.033";
+
+        var actual = TimeInt32.FromMilliseconds(33).ToTmString();
 
         Assert.Equal(expected, actual);
     }
@@ -30,7 +50,7 @@ public class TimeFormatterTests
     {
         var expected = "0:00.333";
 
-        var actual = TimeSpan.FromMilliseconds(333).ToTmString();
+        var actual = TimeInt32.FromMilliseconds(333).ToTmString();
 
         Assert.Equal(expected, actual);
     }
@@ -40,7 +60,7 @@ public class TimeFormatterTests
     {
         var expected = "0:00.33";
 
-        var actual = TimeSpan.FromMilliseconds(333).ToTmString(true);
+        var actual = TimeInt32.FromMilliseconds(333).ToTmString(true);
 
         Assert.Equal(expected, actual);
     }
@@ -50,7 +70,7 @@ public class TimeFormatterTests
     {
         var expected = "0:03.333";
 
-        var actual = TimeSpan.FromSeconds(3.333).ToTmString();
+        var actual = TimeInt32.FromSeconds(3.333f).ToTmString();
 
         Assert.Equal(expected, actual);
     }
@@ -60,7 +80,7 @@ public class TimeFormatterTests
     {
         var expected = "0:03.33";
 
-        var actual = TimeSpan.FromSeconds(3.333).ToTmString(true);
+        var actual = TimeInt32.FromSeconds(3.333f).ToTmString(true);
 
         Assert.Equal(expected, actual);
     }
@@ -70,7 +90,7 @@ public class TimeFormatterTests
     {
         var expected = "3:03.333";
 
-        var actual = new TimeSpan(0, 0, 3, 3, 333).ToTmString();
+        var actual = new TimeInt32(0, 0, 3, 3, 333).ToTmString();
 
         Assert.Equal(expected, actual);
     }
@@ -80,7 +100,7 @@ public class TimeFormatterTests
     {
         var expected = "3:03.33";
 
-        var actual = new TimeSpan(0, 0, 3, 3, 333).ToTmString(true);
+        var actual = new TimeInt32(0, 0, 3, 3, 333).ToTmString(true);
 
         Assert.Equal(expected, actual);
     }
@@ -90,7 +110,7 @@ public class TimeFormatterTests
     {
         var expected = "33:03.333";
 
-        var actual = new TimeSpan(0, 0, 33, 3, 333).ToTmString();
+        var actual = new TimeInt32(0, 0, 33, 3, 333).ToTmString();
 
         Assert.Equal(expected, actual);
     }
@@ -100,7 +120,7 @@ public class TimeFormatterTests
     {
         var expected = "33:03.33";
 
-        var actual = new TimeSpan(0, 0, 33, 3, 333).ToTmString(true);
+        var actual = new TimeInt32(0, 0, 33, 3, 333).ToTmString(true);
 
         Assert.Equal(expected, actual);
     }
@@ -110,7 +130,7 @@ public class TimeFormatterTests
     {
         var expected = "3:33:03.333";
 
-        var actual = new TimeSpan(0, 3, 33, 3, 333).ToTmString();
+        var actual = new TimeInt32(0, 3, 33, 3, 333).ToTmString();
 
         Assert.Equal(expected, actual);
     }
@@ -120,7 +140,7 @@ public class TimeFormatterTests
     {
         var expected = "3:33:03.33";
 
-        var actual = new TimeSpan(0, 3, 33, 3, 333).ToTmString(true);
+        var actual = new TimeInt32(0, 3, 33, 3, 333).ToTmString(true);
 
         Assert.Equal(expected, actual);
     }
@@ -130,7 +150,7 @@ public class TimeFormatterTests
     {
         var expected = "1:00:56:43.165";
 
-        var actual = new TimeSpan(1, hours: 0, 56, 43, 165).ToTmString();
+        var actual = new TimeInt32(1, hours: 0, 56, 43, 165).ToTmString();
 
         Assert.Equal(expected, actual);
     }
@@ -140,7 +160,7 @@ public class TimeFormatterTests
     {
         var expected = "1:15:56:43.165";
 
-        var actual = new TimeSpan(1, 15, 56, 43, 165).ToTmString();
+        var actual = new TimeInt32(1, 15, 56, 43, 165).ToTmString();
 
         Assert.Equal(expected, actual);
     }
@@ -150,7 +170,7 @@ public class TimeFormatterTests
     {
         var expected = "1:15:56:43.16";
 
-        var actual = new TimeSpan(1, 15, 56, 43, 165).ToTmString(true);
+        var actual = new TimeInt32(1, 15, 56, 43, 165).ToTmString(true);
 
         Assert.Equal(expected, actual);
     }
@@ -160,7 +180,7 @@ public class TimeFormatterTests
     {
         var expected = "-0:00.333";
 
-        var actual = (-TimeSpan.FromMilliseconds(333)).ToTmString();
+        var actual = (-TimeInt32.FromMilliseconds(333)).ToTmString();
 
         Assert.Equal(expected, actual);
     }
@@ -170,7 +190,7 @@ public class TimeFormatterTests
     {
         var expected = "-0:00.33";
 
-        var actual = (-TimeSpan.FromMilliseconds(333)).ToTmString(true);
+        var actual = (-TimeInt32.FromMilliseconds(333)).ToTmString(true);
 
         Assert.Equal(expected, actual);
     }
@@ -180,7 +200,7 @@ public class TimeFormatterTests
     {
         var expected = "-0:03.333";
 
-        var actual = (-TimeSpan.FromSeconds(3.333)).ToTmString();
+        var actual = (-TimeInt32.FromSeconds(3.333f)).ToTmString();
 
         Assert.Equal(expected, actual);
     }
@@ -190,7 +210,7 @@ public class TimeFormatterTests
     {
         var expected = "-0:03.33";
 
-        var actual = (-TimeSpan.FromSeconds(3.333)).ToTmString(true);
+        var actual = (-TimeInt32.FromSeconds(3.333f)).ToTmString(true);
 
         Assert.Equal(expected, actual);
     }
@@ -200,7 +220,7 @@ public class TimeFormatterTests
     {
         var expected = "-3:03.333";
 
-        var actual = (-new TimeSpan(0, 0, 3, 3, 333)).ToTmString();
+        var actual = (-new TimeInt32(0, 0, 3, 3, 333)).ToTmString();
 
         Assert.Equal(expected, actual);
     }
@@ -210,7 +230,7 @@ public class TimeFormatterTests
     {
         var expected = "-3:03.33";
 
-        var actual = (-new TimeSpan(0, 0, 3, 3, 333)).ToTmString(true);
+        var actual = (-new TimeInt32(0, 0, 3, 3, 333)).ToTmString(true);
 
         Assert.Equal(expected, actual);
     }
@@ -220,7 +240,7 @@ public class TimeFormatterTests
     {
         var expected = "-33:03.333";
 
-        var actual = (-new TimeSpan(0, 0, 33, 3, 333)).ToTmString();
+        var actual = (-new TimeInt32(0, 0, 33, 3, 333)).ToTmString();
 
         Assert.Equal(expected, actual);
     }
@@ -230,7 +250,7 @@ public class TimeFormatterTests
     {
         var expected = "-33:03.33";
 
-        var actual = (-new TimeSpan(0, 0, 33, 3, 333)).ToTmString(true);
+        var actual = (-new TimeInt32(0, 0, 33, 3, 333)).ToTmString(true);
 
         Assert.Equal(expected, actual);
     }
@@ -240,7 +260,7 @@ public class TimeFormatterTests
     {
         var expected = "-3:33:03.333";
 
-        var actual = (-new TimeSpan(0, 3, 33, 3, 333)).ToTmString();
+        var actual = (-new TimeInt32(0, 3, 33, 3, 333)).ToTmString();
 
         Assert.Equal(expected, actual);
     }
@@ -250,7 +270,7 @@ public class TimeFormatterTests
     {
         var expected = "-3:33:03.33";
 
-        var actual = (-new TimeSpan(0, 3, 33, 3, 333)).ToTmString(true);
+        var actual = (-new TimeInt32(0, 3, 33, 3, 333)).ToTmString(true);
 
         Assert.Equal(expected, actual);
     }
@@ -260,7 +280,7 @@ public class TimeFormatterTests
     {
         var expected = "-1:15:56:43.165";
 
-        var actual = (-new TimeSpan(1, 15, 56, 43, 165)).ToTmString();
+        var actual = (-new TimeInt32(1, 15, 56, 43, 165)).ToTmString();
 
         Assert.Equal(expected, actual);
     }
@@ -270,7 +290,7 @@ public class TimeFormatterTests
     {
         var expected = "-1:15:56:43.16";
 
-        var actual = (-new TimeSpan(1, 15, 56, 43, 165)).ToTmString(true);
+        var actual = (-new TimeInt32(1, 15, 56, 43, 165)).ToTmString(true);
 
         Assert.Equal(expected, actual);
     }
@@ -280,7 +300,7 @@ public class TimeFormatterTests
     {
         var expected = "-'--''---";
 
-        var actual = default(TimeSpan?).ToTmString(useApostrophe: true);
+        var actual = default(TimeInt32?).ToTmString(useApostrophe: true);
 
         Assert.Equal(expected, actual);
     }
@@ -290,7 +310,7 @@ public class TimeFormatterTests
     {
         var expected = "-'--''--";
 
-        var actual = default(TimeSpan?).ToTmString(true, useApostrophe: true);
+        var actual = default(TimeInt32?).ToTmString(true, useApostrophe: true);
 
         Assert.Equal(expected, actual);
     }
@@ -300,7 +320,7 @@ public class TimeFormatterTests
     {
         var expected = "0'00''333";
 
-        var actual = TimeSpan.FromMilliseconds(333).ToTmString(useApostrophe: true);
+        var actual = TimeInt32.FromMilliseconds(333).ToTmString(useApostrophe: true);
 
         Assert.Equal(expected, actual);
     }
@@ -310,7 +330,7 @@ public class TimeFormatterTests
     {
         var expected = "0'00''33";
 
-        var actual = TimeSpan.FromMilliseconds(333).ToTmString(true, useApostrophe: true);
+        var actual = TimeInt32.FromMilliseconds(333).ToTmString(true, useApostrophe: true);
 
         Assert.Equal(expected, actual);
     }
@@ -320,7 +340,7 @@ public class TimeFormatterTests
     {
         var expected = "0'03''333";
 
-        var actual = TimeSpan.FromSeconds(3.333).ToTmString(useApostrophe: true);
+        var actual = TimeInt32.FromSeconds(3.333f).ToTmString(useApostrophe: true);
 
         Assert.Equal(expected, actual);
     }
@@ -330,7 +350,7 @@ public class TimeFormatterTests
     {
         var expected = "0'03''33";
 
-        var actual = TimeSpan.FromSeconds(3.333).ToTmString(true, useApostrophe: true);
+        var actual = TimeInt32.FromSeconds(3.333f).ToTmString(true, useApostrophe: true);
 
         Assert.Equal(expected, actual);
     }
@@ -340,7 +360,7 @@ public class TimeFormatterTests
     {
         var expected = "3'03''333";
 
-        var actual = new TimeSpan(0, 0, 3, 3, 333).ToTmString(useApostrophe: true);
+        var actual = new TimeInt32(0, 0, 3, 3, 333).ToTmString(useApostrophe: true);
 
         Assert.Equal(expected, actual);
     }
@@ -350,7 +370,7 @@ public class TimeFormatterTests
     {
         var expected = "3'03''33";
 
-        var actual = new TimeSpan(0, 0, 3, 3, 333).ToTmString(true, useApostrophe: true);
+        var actual = new TimeInt32(0, 0, 3, 3, 333).ToTmString(true, useApostrophe: true);
 
         Assert.Equal(expected, actual);
     }
@@ -360,7 +380,7 @@ public class TimeFormatterTests
     {
         var expected = "33'03''333";
 
-        var actual = new TimeSpan(0, 0, 33, 3, 333).ToTmString(useApostrophe: true);
+        var actual = new TimeInt32(0, 0, 33, 3, 333).ToTmString(useApostrophe: true);
 
         Assert.Equal(expected, actual);
     }
@@ -370,7 +390,7 @@ public class TimeFormatterTests
     {
         var expected = "33'03''33";
 
-        var actual = new TimeSpan(0, 0, 33, 3, 333).ToTmString(true, useApostrophe: true);
+        var actual = new TimeInt32(0, 0, 33, 3, 333).ToTmString(true, useApostrophe: true);
 
         Assert.Equal(expected, actual);
     }
@@ -380,7 +400,7 @@ public class TimeFormatterTests
     {
         var expected = "3'33'03''333";
 
-        var actual = new TimeSpan(0, 3, 33, 3, 333).ToTmString(useApostrophe: true);
+        var actual = new TimeInt32(0, 3, 33, 3, 333).ToTmString(useApostrophe: true);
 
         Assert.Equal(expected, actual);
     }
@@ -390,7 +410,7 @@ public class TimeFormatterTests
     {
         var expected = "3'33'03''33";
 
-        var actual = new TimeSpan(0, 3, 33, 3, 333).ToTmString(true, useApostrophe: true);
+        var actual = new TimeInt32(0, 3, 33, 3, 333).ToTmString(true, useApostrophe: true);
 
         Assert.Equal(expected, actual);
     }
@@ -400,7 +420,7 @@ public class TimeFormatterTests
     {
         var expected = "1'00'56'43''165";
 
-        var actual = new TimeSpan(1, hours: 0, 56, 43, 165).ToTmString(useApostrophe: true);
+        var actual = new TimeInt32(1, hours: 0, 56, 43, 165).ToTmString(useApostrophe: true);
 
         Assert.Equal(expected, actual);
     }
@@ -410,7 +430,7 @@ public class TimeFormatterTests
     {
         var expected = "1'15'56'43''165";
 
-        var actual = new TimeSpan(1, 15, 56, 43, 165).ToTmString(useApostrophe: true);
+        var actual = new TimeInt32(1, 15, 56, 43, 165).ToTmString(useApostrophe: true);
 
         Assert.Equal(expected, actual);
     }
@@ -420,7 +440,7 @@ public class TimeFormatterTests
     {
         var expected = "1'15'56'43''16";
 
-        var actual = new TimeSpan(1, 15, 56, 43, 165).ToTmString(true, useApostrophe: true);
+        var actual = new TimeInt32(1, 15, 56, 43, 165).ToTmString(true, useApostrophe: true);
 
         Assert.Equal(expected, actual);
     }
@@ -430,7 +450,7 @@ public class TimeFormatterTests
     {
         var expected = "-0'00''333";
 
-        var actual = (-TimeSpan.FromMilliseconds(333)).ToTmString(useApostrophe: true);
+        var actual = (-TimeInt32.FromMilliseconds(333)).ToTmString(useApostrophe: true);
 
         Assert.Equal(expected, actual);
     }
@@ -440,7 +460,7 @@ public class TimeFormatterTests
     {
         var expected = "-0'00''33";
 
-        var actual = (-TimeSpan.FromMilliseconds(333)).ToTmString(true, useApostrophe: true);
+        var actual = (-TimeInt32.FromMilliseconds(333)).ToTmString(true, useApostrophe: true);
 
         Assert.Equal(expected, actual);
     }
@@ -450,7 +470,7 @@ public class TimeFormatterTests
     {
         var expected = "-0'03''333";
 
-        var actual = (-TimeSpan.FromSeconds(3.333)).ToTmString(useApostrophe: true);
+        var actual = (-TimeInt32.FromSeconds(3.333f)).ToTmString(useApostrophe: true);
 
         Assert.Equal(expected, actual);
     }
@@ -460,7 +480,7 @@ public class TimeFormatterTests
     {
         var expected = "-0'03''33";
 
-        var actual = (-TimeSpan.FromSeconds(3.333)).ToTmString(true, useApostrophe: true);
+        var actual = (-TimeInt32.FromSeconds(3.333f)).ToTmString(true, useApostrophe: true);
 
         Assert.Equal(expected, actual);
     }
@@ -470,7 +490,7 @@ public class TimeFormatterTests
     {
         var expected = "-3'03''333";
 
-        var actual = (-new TimeSpan(0, 0, 3, 3, 333)).ToTmString(useApostrophe: true);
+        var actual = (-new TimeInt32(0, 0, 3, 3, 333)).ToTmString(useApostrophe: true);
 
         Assert.Equal(expected, actual);
     }
@@ -480,7 +500,7 @@ public class TimeFormatterTests
     {
         var expected = "-3'03''33";
 
-        var actual = (-new TimeSpan(0, 0, 3, 3, 333)).ToTmString(true, useApostrophe: true);
+        var actual = (-new TimeInt32(0, 0, 3, 3, 333)).ToTmString(true, useApostrophe: true);
 
         Assert.Equal(expected, actual);
     }
@@ -490,7 +510,7 @@ public class TimeFormatterTests
     {
         var expected = "-33'03''333";
 
-        var actual = (-new TimeSpan(0, 0, 33, 3, 333)).ToTmString(useApostrophe: true);
+        var actual = (-new TimeInt32(0, 0, 33, 3, 333)).ToTmString(useApostrophe: true);
 
         Assert.Equal(expected, actual);
     }
@@ -500,7 +520,7 @@ public class TimeFormatterTests
     {
         var expected = "-33'03''33";
 
-        var actual = (-new TimeSpan(0, 0, 33, 3, 333)).ToTmString(true, useApostrophe: true);
+        var actual = (-new TimeInt32(0, 0, 33, 3, 333)).ToTmString(true, useApostrophe: true);
 
         Assert.Equal(expected, actual);
     }
@@ -510,7 +530,7 @@ public class TimeFormatterTests
     {
         var expected = "-3'33'03''333";
 
-        var actual = (-new TimeSpan(0, 3, 33, 3, 333)).ToTmString(useApostrophe: true);
+        var actual = (-new TimeInt32(0, 3, 33, 3, 333)).ToTmString(useApostrophe: true);
 
         Assert.Equal(expected, actual);
     }
@@ -520,7 +540,7 @@ public class TimeFormatterTests
     {
         var expected = "-3'33'03''33";
 
-        var actual = (-new TimeSpan(0, 3, 33, 3, 333)).ToTmString(true, useApostrophe: true);
+        var actual = (-new TimeInt32(0, 3, 33, 3, 333)).ToTmString(true, useApostrophe: true);
 
         Assert.Equal(expected, actual);
     }
@@ -530,7 +550,7 @@ public class TimeFormatterTests
     {
         var expected = "-1'15'56'43''165";
 
-        var actual = (-new TimeSpan(1, 15, 56, 43, 165)).ToTmString(useApostrophe: true);
+        var actual = (-new TimeInt32(1, 15, 56, 43, 165)).ToTmString(useApostrophe: true);
 
         Assert.Equal(expected, actual);
     }
@@ -540,7 +560,27 @@ public class TimeFormatterTests
     {
         var expected = "-1'15'56'43''16";
 
-        var actual = (-new TimeSpan(1, 15, 56, 43, 165)).ToTmString(true, useApostrophe: true);
+        var actual = (-new TimeInt32(1, 15, 56, 43, 165)).ToTmString(true, useApostrophe: true);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void ToTmString_Days1Digit()
+    {
+        var expected = "1:00:00:00.000";
+
+        var actual = new TimeInt32(1, 0, 0, 0, 0).ToTmString();
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void ToTmString_Days2Digit()
+    {
+        var expected = "10:00:00:00.000";
+
+        var actual = new TimeInt32(10, 0, 0, 0, 0).ToTmString();
 
         Assert.Equal(expected, actual);
     }

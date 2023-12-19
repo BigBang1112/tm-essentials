@@ -14,20 +14,31 @@ namespace TmEssentials.Tests;
 
 public class HttpClientExtensionsTests
 {
-    [Fact]
-    public async Task HeadAsync_ReturnsMessageWithHeadOnly()
+    private readonly MockHttpClient httpClient;
+
+    public HttpClientExtensionsTests()
     {
-        var date = DateTimeOffset.Now;
-        
-        var httpClient = new MockHttpClient((req, token) =>
+        httpClient = new MockHttpClient((req, token) =>
         {
             return new HttpResponseMessage(HttpStatusCode.OK)
             {
                 RequestMessage = req
             };
         });
-        
+    }
+
+    [Fact]
+    public async Task HeadAsync_String_ReturnsMessageWithHeadOnly()
+    {
         var response = await httpClient.HeadAsync("http://www.google.com");
+
+        Assert.Equal(expected: HttpMethod.Head, actual: response.RequestMessage.Method);
+    }
+
+    [Fact]
+    public async Task HeadAsync_Uri_ReturnsMessageWithHeadOnly()
+    {
+        var response = await httpClient.HeadAsync(new Uri("http://www.google.com"));
 
         Assert.Equal(expected: HttpMethod.Head, actual: response.RequestMessage.Method);
     }

@@ -49,36 +49,33 @@ internal static class TimeFormatter
         }
 
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        if (hours > 0)
+        var hasDays = days > 0;
+
+        if (hasDays || hours > 0)
         {
             length += 3;
 
-            if (hours >= 10)
+            if (hasDays || hours >= 10)
             {
                 length++;
+            }
+
+            if (hasDays)
+            {
+                if (days < 10) length += 2;
+                else if (days < 100) length += 3;
+                else if (days < 1000) length += 4;
+                else if (days < 10000) length += 5;
+                else if (days < 100000) length += 6;
+                else if (days < 1000000) length += 7;
+                else if (days < 10000000) length += 8;
+                else if (days < 100000000) length += 9;
+                else if (days < 1000000000) length += 10;
             }
         }
         else if (minutes >= 10)
         {
             length++;
-        }
-
-        if (days > 0)
-        {
-            if (hours == 0)
-            {
-                length += 3;
-            }
-
-            if (days < 10) length += 2;
-            else if (days < 100) length += 3;
-            else if (days < 1000) length += 4;
-            else if (days < 10000) length += 5;
-            else if (days < 100000) length += 6;
-            else if (days < 1000000) length += 7;
-            else if (days < 10000000) length += 8;
-            else if (days < 100000000) length += 9;
-            else if (days < 1000000000) length += 10;
         }
 
         Span<char> array = stackalloc char[length];
@@ -90,18 +87,18 @@ internal static class TimeFormatter
 
         if (milliseconds < 10)
         {
-            milliseconds.TryFormat(array.Slice(length - 1), out int msCharsWritten);
+            milliseconds.TryFormat(array.Slice(length - 1), out int _);
             array[length - 2] = '0';
             array[length - 3] = '0';
         }
         else if (milliseconds < 100)
         {
-            milliseconds.TryFormat(array.Slice(length - 2), out int msCharsWritten);
+            milliseconds.TryFormat(array.Slice(length - 2), out int _);
             array[length - 3] = '0';
         }
         else
         {
-            milliseconds.TryFormat(array.Slice(length - 3), out int msCharsWritten);
+            milliseconds.TryFormat(array.Slice(length - 3), out int _);
         }
 
         var msLength = useHundredths ? 2 : 3;
@@ -116,28 +113,28 @@ internal static class TimeFormatter
 
         if (seconds < 10)
         {
-            seconds.TryFormat(array.Slice(length - msLength - 2), out int secondsCharsWritten);
+            seconds.TryFormat(array.Slice(length - msLength - 2), out int _);
             array[length - msLength - 3] = '0';
         }
         else
         {
-            seconds.TryFormat(array.Slice(length - msLength - 3), out int secondsCharsWritten);
+            seconds.TryFormat(array.Slice(length - msLength - 3), out int _);
         }
 
         array[length - msLength - 4] = colonSep;
 
-        minutes.TryFormat(array.Slice(length - msLength - (minutes < 10 ? 5 : 6)), out int minutesCharsWritten);
-
-        if (hours > 0 && minutes < 10)
-        {
-            array[length - msLength - 6] = '0';
-        }
+        minutes.TryFormat(array.Slice(length - msLength - (minutes < 10 ? 5 : 6)), out int _);
 
         if (hours > 0 || days > 0)
         {
+            if (minutes < 10)
+            {
+                array[length - msLength - 6] = '0';
+            }
+
             array[length - msLength - 7] = colonSep;
 
-            hours.TryFormat(array.Slice(length - msLength - (hours < 10 ? 8 : 9)), out int hoursCharsWritten);
+            hours.TryFormat(array.Slice(length - msLength - (hours < 10 ? 8 : 9)), out int _);
 
             if (days > 0 && hours < 10)
             {
@@ -150,11 +147,11 @@ internal static class TimeFormatter
 
                 if (isNegative)
                 {
-                    days.TryFormat(array.Slice(1), out int daysCharsWritten);
+                    days.TryFormat(array.Slice(1), out int _);
                 }
                 else
                 {
-                    days.TryFormat(array, out int daysCharsWritten);
+                    days.TryFormat(array, out int _);
                 }
             }
         }
