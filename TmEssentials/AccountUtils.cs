@@ -35,6 +35,7 @@ public static class AccountUtils
             b[7], b[6],
             b[9], b[8],
             b[10], b[11], b[12], b[13], b[14], b[15]]);
+
 #endif
 
         return str.Replace('+', '-').Replace('/', '_').Replace("=", "");
