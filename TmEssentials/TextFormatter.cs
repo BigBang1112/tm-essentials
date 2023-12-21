@@ -5,10 +5,13 @@ using System.Text.RegularExpressions;
 
 namespace TmEssentials;
 
+/// <summary>
+/// Provides a set of methods for text formatting in Trackmania and Shootmania.
+/// </summary>
 public static partial class TextFormatter
 {
     //
-    // Credits to reaby for the ANSII stuff (https://github.com/reaby)
+    // Credits to reaby for the ANSI stuff (https://github.com/reaby)
     //
 
 #if NET7_0_OR_GREATER
@@ -44,13 +47,23 @@ public static partial class TextFormatter
         new(DeformatRegexStr, RegexOptions.Compiled);
 #endif
 
-    private const string AnsiDefault = "\x1B[39m\x1B[22m";
+    internal const string AnsiDefault = "\x1B[39m\x1B[22m";
 
+    /// <summary>
+    /// Deformats a string from Trackmania/Shootmania format.
+    /// </summary>
+    /// <param name="input">A string input.</param>
+    /// <returns>A deformatted string.</returns>
     public static string Deformat(string input)
     {
         return deformatRegex.Replace(input, "$2");
     }
 
+    /// <summary>
+    /// Formats a string to ANSI format.
+    /// </summary>
+    /// <param name="input"></param>
+    /// <returns></returns>
     public static string FormatAnsi(string input)
     {
         var output = new StringBuilder();
@@ -67,7 +80,7 @@ public static partial class TextFormatter
         return output.ToString();
     }
 
-    private static void AppendAnsiText(StringBuilder output, string element)
+    internal static void AppendAnsiText(StringBuilder output, string element)
     {
         if (element.Length == 0)
         {
@@ -145,8 +158,8 @@ public static partial class TextFormatter
         }
 
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        Span<char> span = stackalloc char[]
-        {
+        ReadOnlySpan<char> span =
+        [
             '\x1B',
             '[',
             (char)(boldAttr + 48),
@@ -154,7 +167,7 @@ public static partial class TextFormatter
             '3',
             (char)(colorAttr + 18),
             'm'
-        };
+        ];
 
         output.Append(span);
 #else

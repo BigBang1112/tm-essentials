@@ -1,5 +1,8 @@
 ﻿namespace TmEssentials;
 
+/// <summary>
+/// Provides extension methods for <see cref="TimeSpan"/> to enhance its functionality.
+/// </summary>
 public static class TimeSpanExtensions
 {
     /// <summary>
@@ -16,7 +19,7 @@ public static class TimeSpanExtensions
     /// Converts the value of the current <see cref="TimeSpan"/> to a Trackmania familiar time format.
     /// </summary>
     /// <param name="timeSpan">A TimeSpan.</param>
-    /// <param name="useHundredths">If to use the hundredths instead of milliseconds (for better looks on TMUF for example)</param>
+    /// <param name="useHundredths">If to use the hundredths instead of milliseconds (for better looks on TMUF for example).</param>
     /// <param name="useApostrophe">If to use ' instead of a colon and '' instead of a dot (to resolve cases where colon is not allowed for example).</param>
     /// <returns>A string representation of Trackmania time format.</returns>
     public static string ToTmString(this TimeSpan timeSpan, bool useHundredths = false, bool useApostrophe = false)
@@ -38,7 +41,7 @@ public static class TimeSpanExtensions
     /// </summary>
     /// <param name="timeSpan">A TimeSpan.</param>
     /// <param name="nullString">A string to use if <paramref name="timeSpan"/> is null.</param>
-    /// <param name="useHundredths">If to use the hundredths instead of milliseconds (for better looks on TMUF for example)</param>
+    /// <param name="useHundredths">If to use the hundredths instead of milliseconds (for better looks on TMUF for example).</param>
     /// <param name="useApostrophe">If to use ' instead of a colon and '' instead of a dot (to resolve cases where colon is not allowed for example).</param>
     /// <returns>A string representation of Trackmania time format.</returns>
     public static string ToTmString(this TimeSpan? timeSpan, string nullString, bool useHundredths = false, bool useApostrophe = false)
@@ -52,7 +55,7 @@ public static class TimeSpanExtensions
     /// Converts the value of the current <see cref="TimeSpan"/> to a Trackmania familiar time format. If the value is null, -:--.--- will be used, or -'--''--- when <paramref name="useApostrophe"/> is true.
     /// </summary>
     /// <param name="timeSpan">A TimeSpan.</param>
-    /// <param name="useHundredths">If to use the hundredths instead of milliseconds (for better looks on TMUF for example)</param>
+    /// <param name="useHundredths">If to use the hundredths instead of milliseconds (for better looks on TMUF for example).</param>
     /// <param name="useApostrophe">If to use ' instead of a colon and '' instead of a dot (to resolve cases where colon is not allowed for example).</param>
     /// <returns>A string representation of Trackmania time format.</returns>
     public static string ToTmString(this TimeSpan? timeSpan, bool useHundredths = false, bool useApostrophe = false)

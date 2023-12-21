@@ -12,13 +12,13 @@
 		<IsTrimamble>true</IsTrimamble>
 		<IsAotCompatible>true</IsAotCompatible>
 
-		<Version>2.3.3</Version>
+		<Version>2.4.0</Version>
 		<PackageReleaseNotes></PackageReleaseNotes>
 
-		<TargetFrameworks>net7.0;net6.0;netstandard2.1;netstandard2.0;net462</TargetFrameworks>
+		<TargetFrameworks>net8.0;net7.0;net6.0;netstandard2.1;netstandard2.0;net462</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<LangVersion>11</LangVersion>
+		<LangVersion>12</LangVersion>
 
 		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/BigBang1112/tm-essentials</RepositoryUrl>
@@ -27,10 +27,14 @@
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-		<NoWarn>1591</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<Using Remove="System.Net.Http" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="$(AssemblyName).Tests" />
+		<InternalsVisibleTo Include="$(AssemblyName).Benchmarks" />
 	</ItemGroup>
 </Project>

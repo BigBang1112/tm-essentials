@@ -1,5 +1,8 @@
 ﻿namespace TmEssentials;
 
+/// <summary>
+/// Provides extension methods for <see cref="TimeSingle"/> to enhance its functionality.
+/// </summary>
 public static class TimeSingleExtensions
 {
     /// <summary>

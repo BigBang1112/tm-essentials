@@ -13,13 +13,9 @@ namespace TmEssentials.Tests;
 
 #if NET6_0_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 
-public class MockHttpClient : HttpClient
+public class MockHttpClient(Func<HttpRequestMessage, CancellationToken, HttpResponseMessage> handler)
+    : HttpClient(CreateMockMessageHandler(handler).Object)
 {
-    public MockHttpClient(Func<HttpRequestMessage, CancellationToken, HttpResponseMessage> handler) : base(CreateMockMessageHandler(handler).Object)
-    {
-
-    }
-
     private static Mock<HttpMessageHandler> CreateMockMessageHandler(Func<HttpRequestMessage, CancellationToken, HttpResponseMessage> handler)
     {
         var mockHttpMessageHandler = new Mock<HttpMessageHandler>();

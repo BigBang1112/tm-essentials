@@ -1,5 +1,8 @@
 ﻿namespace TmEssentials;
 
+/// <summary>
+/// Provides extension methods for <see cref="TimeInt32"/> to enhance its functionality.
+/// </summary>
 public static class TimeInt32Extensions
 {
     /// <summary>
