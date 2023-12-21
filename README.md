@@ -112,7 +112,7 @@ AccountUtils.ToAccountId("v89i_w-eQKq5JBG5xwuKCQ") // "bfcf62ff-0f9e-40aa-b924-1
 `AccountUtils.ToLogin()`
 
 ```cs
-AccountUtils.ToLogin("bfcf62ff-0f9e-40aa-b924-11b9c70b8a09") // "v89i_w-eQKq5JBG5xwuKCQ"
+AccountUtils.ToLogin(Guid.Parse("bfcf62ff-0f9e-40aa-b924-11b9c70b8a09")) // "v89i_w-eQKq5JBG5xwuKCQ"
 ```
 
 ## .NET Standard 2+
