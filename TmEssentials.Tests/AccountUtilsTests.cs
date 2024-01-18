@@ -24,4 +24,12 @@ public class AccountUtilsTests
 
         Assert.Equal(expected: Guid.Parse("bfcf62ff-0f9e-40aa-b924-11b9c70b8a09"), actual: guid);
     }
+
+    [Fact]
+    public void ToAccountId_ThrowsException_WhenInvalidLogin()
+    {
+        var login = "řáčíšřýěščářýéí";
+
+        Assert.Throws<FormatException>(() => AccountUtils.ToAccountId(login));
+    }
 }
