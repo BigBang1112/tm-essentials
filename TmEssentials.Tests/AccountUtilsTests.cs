@@ -16,6 +16,12 @@ public class AccountUtilsTests
     }
 
     [Fact]
+    public void ToAccountId_Null_ThrowsArgumentNullException()
+    {
+        Assert.Throws<ArgumentNullException>(() => AccountUtils.ToAccountId(null));
+    }
+
+    [Fact]
     public void ToAccountId_ReturnsExpected()
     {
         var login = "v89i_w-eQKq5JBG5xwuKCQ";
@@ -23,5 +29,13 @@ public class AccountUtilsTests
         var guid = AccountUtils.ToAccountId(login);
 
         Assert.Equal(expected: Guid.Parse("bfcf62ff-0f9e-40aa-b924-11b9c70b8a09"), actual: guid);
+    }
+
+    [Fact]
+    public void ToAccountId_WhenInvalidLogin_ThrowsException()
+    {
+        var login = "řáčíšřýěščářýéí";
+
+        Assert.Throws<FormatException>(() => AccountUtils.ToAccountId(login));
     }
 }

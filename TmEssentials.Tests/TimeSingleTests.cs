@@ -717,4 +717,12 @@ public class TimeSingleTests
 
         Assert.Throws<ArgumentException>(() => time.CompareTo(nonTimeObject));
     }
+
+    [Fact]
+    public void Equals_WithNullITime_ReturnsFalse()
+    {
+        var time = new TimeSingle(1.0f);
+
+        Assert.False(time.Equals(null));
+    }
 }

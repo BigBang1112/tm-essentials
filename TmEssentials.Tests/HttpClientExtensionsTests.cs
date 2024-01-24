@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RichardSzalay.MockHttp;
+using System;
 using System.Net;
 
 #if NET6_0_OR_GREATER || NETCOREAPP3_1_OR_GREATER
@@ -14,17 +15,14 @@ namespace TmEssentials.Tests;
 
 public class HttpClientExtensionsTests
 {
-    private readonly MockHttpClient httpClient;
+    private readonly MockHttpMessageHandler mockHandler = new();
+    private readonly HttpClient httpClient;
 
     public HttpClientExtensionsTests()
     {
-        httpClient = new MockHttpClient((req, token) =>
-        {
-            return new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                RequestMessage = req
-            };
-        });
+        mockHandler.When("http://www.google.com")
+            .Respond(HttpStatusCode.OK);
+        httpClient = new HttpClient(mockHandler);
     }
 
     [Fact]

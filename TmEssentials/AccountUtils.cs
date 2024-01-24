@@ -5,6 +5,8 @@
 /// </summary>
 public static class AccountUtils
 {
+    private const int GuidByteLength = 16;
+
     /// <summary>
     /// Converts an account ID to a login representation.
     /// </summary>
@@ -29,13 +31,14 @@ public static class AccountUtils
 
 #if NET8_0_OR_GREATER
 
-        Span<byte> span = stackalloc byte[16];
+        Span<byte> span = stackalloc byte[GuidByteLength];
 
-        accountId.TryWriteBytes(span, bigEndian: true, out int len);
+        // False whenever the span is lower than 16 bytes.
+        _ = accountId.TryWriteBytes(span, bigEndian: true, out int len);
 
 #else
         
-        Span<byte> b = stackalloc byte[16];
+        Span<byte> b = stackalloc byte[GuidByteLength];
 
         accountId.TryWriteBytes(b);
 
@@ -83,8 +86,15 @@ public static class AccountUtils
     /// </summary>
     /// <param name="login">The login to be converted.</param>
     /// <returns>An account ID of the login.</returns>
+    /// <exception cref="ArgumentNullException">Login is null.</exception>
+    /// <exception cref="FormatException">Login is invalid.</exception>
     public static Guid ToAccountId(string login)
     {
+        if (login is null)
+        {
+            throw new ArgumentNullException(nameof(login));
+        }
+
         var base64 = login.Replace('-', '+').Replace('_', '/');
 
         switch (base64.Length % 4)
@@ -110,9 +120,12 @@ public static class AccountUtils
         ]);
 #else
 
-        Span<byte> b = stackalloc byte[16];
+        Span<byte> b = stackalloc byte[GuidByteLength];
 
-        _ = Convert.TryFromBase64String(base64, b, out var _);
+        if (!Convert.TryFromBase64String(base64, b, out var _))
+        {
+            throw new FormatException("Invalid login.");
+        }
 
 #if NET8_0_OR_GREATER
 

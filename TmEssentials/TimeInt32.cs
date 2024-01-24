@@ -208,7 +208,18 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime
             return -1;
         }
         
-        return 0; 
+        return 0;
+    }
+
+    /// <inheritdoc />
+    public bool Equals(ITime? other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        return TotalMilliseconds == other.TotalMilliseconds;
     }
 
     /// <summary>

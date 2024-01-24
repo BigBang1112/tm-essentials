@@ -17,7 +17,7 @@ public static partial class TextFormatter
 #if NET7_0_OR_GREATER
     [StringSyntax(StringSyntaxAttribute.Regex)]
 #endif
-    private const string DeformatRegexStr = @"\$((\$)|[0-9a-fA-F]{2,3}|[lh]\[.*?\]|[lh]\[|.)";
+    private const string DeformatRegexStr = @"\$(?:(\$)|[0-9a-fA-F]{2,3}|[lh]\[.*?\]|[lh]\[|.)";
 
 #if NET7_0_OR_GREATER
     [StringSyntax(StringSyntaxAttribute.Regex)]
@@ -54,9 +54,24 @@ public static partial class TextFormatter
     /// </summary>
     /// <param name="input">A string input.</param>
     /// <returns>A deformatted string.</returns>
+    /// <exception cref="ArgumentNullException">Input is null.</exception>
+    /// <exception cref="RegexMatchTimeoutException">Regex match timeout.</exception>
     public static string Deformat(string input)
     {
-        return deformatRegex.Replace(input, "$2");
+        return deformatRegex.Replace(input, "$1");
+    }
+
+    /// <summary>
+    /// Deformats a string from Trackmania/Shootmania format.
+    /// </summary>
+    /// <param name="input">A string input.</param>
+    /// <param name="maxReplacementCount">The maximum number of deformat actions (replacements) to make.</param>
+    /// <returns>A deformatted string.</returns>
+    /// <exception cref="ArgumentNullException">Input is null.</exception>
+    /// <exception cref="RegexMatchTimeoutException">Regex match timeout.</exception>
+    public static string Deformat(string input, int maxReplacementCount)
+    {
+        return deformatRegex.Replace(input, "$1", maxReplacementCount);
     }
 
     /// <summary>
@@ -64,8 +79,15 @@ public static partial class TextFormatter
     /// </summary>
     /// <param name="input"></param>
     /// <returns></returns>
+    /// <exception cref="ArgumentNullException">Input is null.</exception>
+    /// <exception cref="RegexMatchTimeoutException">Regex match timeout.</exception>
     public static string FormatAnsi(string input)
     {
+        if (input is null)
+        {
+            throw new ArgumentNullException(nameof(input));
+        }
+
         var output = new StringBuilder();
         
         var split = deformatRegexOld.Split(input);
