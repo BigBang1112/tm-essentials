@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using Xunit;
 
 namespace TmEssentials.Tests;
@@ -83,6 +84,12 @@ public class TextFormatterTests
         var actual = TextFormatter.Deformat("$<B$wi$ng$oB$ia$tn$sg$g1$z112$>", maxReplacementCount: 2);
 
         Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void FormatAnsi_NullArgument_ThrowsArgumentNullException()
+    {
+        Assert.Throws<ArgumentNullException>(() => TextFormatter.FormatAnsi(null));
     }
 
     [Fact]

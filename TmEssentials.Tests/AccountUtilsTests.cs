@@ -16,6 +16,12 @@ public class AccountUtilsTests
     }
 
     [Fact]
+    public void ToAccountId_Null_ThrowsArgumentNullException()
+    {
+        Assert.Throws<ArgumentNullException>(() => AccountUtils.ToAccountId(null));
+    }
+
+    [Fact]
     public void ToAccountId_ReturnsExpected()
     {
         var login = "v89i_w-eQKq5JBG5xwuKCQ";
@@ -26,7 +32,7 @@ public class AccountUtilsTests
     }
 
     [Fact]
-    public void ToAccountId_ThrowsException_WhenInvalidLogin()
+    public void ToAccountId_WhenInvalidLogin_ThrowsException()
     {
         var login = "řáčíšřýěščářýéí";
 

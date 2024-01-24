@@ -727,4 +727,12 @@ public class TimeInt32Tests
 
         Assert.Throws<ArgumentException>(() => time.CompareTo(nonTimeObject));
     }
+
+    [Fact]
+    public void Equals_WithNullITime_ReturnsFalse()
+    {
+        var time = new TimeInt32(1000);
+
+        Assert.False(time.Equals(null));
+    }
 }
