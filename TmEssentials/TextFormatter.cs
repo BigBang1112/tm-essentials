@@ -17,7 +17,7 @@ public static partial class TextFormatter
 #if NET7_0_OR_GREATER
     [StringSyntax(StringSyntaxAttribute.Regex)]
 #endif
-    private const string DeformatRegexStr = @"\$((\$)|[0-9a-fA-F]{2,3}|[lh]\[.*?\]|[lh]\[|.)";
+    private const string DeformatRegexStr = @"\$(?:(\$)|[0-9a-fA-F]{2,3}|[lh]\[.*?\]|[lh]\[|.)";
 
 #if NET7_0_OR_GREATER
     [StringSyntax(StringSyntaxAttribute.Regex)]
@@ -56,7 +56,7 @@ public static partial class TextFormatter
     /// <returns>A deformatted string.</returns>
     public static string Deformat(string input)
     {
-        return deformatRegex.Replace(input, "$2");
+        return deformatRegex.Replace(input, "$1");
     }
 
     /// <summary>
@@ -67,7 +67,7 @@ public static partial class TextFormatter
     /// <returns>A deformatted string.</returns>
     public static string Deformat(string input, int maxReplacementCount)
     {
-        return deformatRegex.Replace(input, "$2", maxReplacementCount);
+        return deformatRegex.Replace(input, "$1", maxReplacementCount);
     }
 
     /// <summary>
