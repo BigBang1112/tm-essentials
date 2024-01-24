@@ -54,6 +54,8 @@ public static partial class TextFormatter
     /// </summary>
     /// <param name="input">A string input.</param>
     /// <returns>A deformatted string.</returns>
+    /// <exception cref="ArgumentNullException">Input is null.</exception>
+    /// <exception cref="RegexMatchTimeoutException">Regex match timeout.</exception>
     public static string Deformat(string input)
     {
         return deformatRegex.Replace(input, "$1");
@@ -65,6 +67,8 @@ public static partial class TextFormatter
     /// <param name="input">A string input.</param>
     /// <param name="maxReplacementCount">The maximum number of deformat actions (replacements) to make.</param>
     /// <returns>A deformatted string.</returns>
+    /// <exception cref="ArgumentNullException">Input is null.</exception>
+    /// <exception cref="RegexMatchTimeoutException">Regex match timeout.</exception>
     public static string Deformat(string input, int maxReplacementCount)
     {
         return deformatRegex.Replace(input, "$1", maxReplacementCount);
@@ -75,8 +79,15 @@ public static partial class TextFormatter
     /// </summary>
     /// <param name="input"></param>
     /// <returns></returns>
+    /// <exception cref="ArgumentNullException">Input is null.</exception>
+    /// <exception cref="RegexMatchTimeoutException">Regex match timeout.</exception>
     public static string FormatAnsi(string input)
     {
+        if (input is null)
+        {
+            throw new ArgumentNullException(nameof(input));
+        }
+
         var output = new StringBuilder();
         
         var split = deformatRegexOld.Split(input);

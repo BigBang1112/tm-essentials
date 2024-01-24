@@ -86,9 +86,15 @@ public static class AccountUtils
     /// </summary>
     /// <param name="login">The login to be converted.</param>
     /// <returns>An account ID of the login.</returns>
+    /// <exception cref="ArgumentNullException">Login is null.</exception>
     /// <exception cref="FormatException">Login is invalid.</exception>
     public static Guid ToAccountId(string login)
     {
+        if (login is null)
+        {
+            throw new ArgumentNullException(nameof(login));
+        }
+
         var base64 = login.Replace('-', '+').Replace('_', '/');
 
         switch (base64.Length % 4)
