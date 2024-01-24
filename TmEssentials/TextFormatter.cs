@@ -60,6 +60,17 @@ public static partial class TextFormatter
     }
 
     /// <summary>
+    /// Deformats a string from Trackmania/Shootmania format.
+    /// </summary>
+    /// <param name="input">A string input.</param>
+    /// <param name="maxReplacementCount">The maximum number of deformat actions (replacements) to make.</param>
+    /// <returns>A deformatted string.</returns>
+    public static string Deformat(string input, int maxReplacementCount)
+    {
+        return deformatRegex.Replace(input, "$2", maxReplacementCount);
+    }
+
+    /// <summary>
     /// Formats a string to ANSI format.
     /// </summary>
     /// <param name="input"></param>

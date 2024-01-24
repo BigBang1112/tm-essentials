@@ -76,6 +76,16 @@ public class TextFormatterTests
     }
 
     [Fact]
+    public void Deformat_MaxReplacementCountSetTo2()
+    {
+        var expected = "Bi$ng$oB$ia$tn$sg$g1$z112$>";
+
+        var actual = TextFormatter.Deformat("$<B$wi$ng$oB$ia$tn$sg$g1$z112$>", maxReplacementCount: 2);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
     public void FormatAnsi_FormatsCorrectly()
     {
         var expected = "\\u001b[1;31mT\\u001b[1;31mM\\u001b[1;31mU\\u001b[0;31m.\\u001b[0;35mK\\u001b[0;35mr\\u001b[0;34ma\\u001b[0;34mz\\u001b[1;34my\\u001b[0;34mC\\u001b[0;34mo\\u001b[0;34ml\\u001b[0;36mo\\u001b[0;36mr\\u001b[0;36ms\\u001b[0;32m \\u001b[0;32mv\\u001b[0;32m0\\u001b[0;32m.\\u001b[0;32m1\\u001b[39m\\u001b[22m";
