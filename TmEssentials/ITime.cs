@@ -5,7 +5,7 @@
 /// This interface allows for the manipulation and comparison of time values, 
 /// including support for basic arithmetic operations and conversions.
 /// </summary>
-public interface ITime : IComparable, IComparable<ITime>
+public interface ITime : IComparable, IComparable<ITime>, IEquatable<ITime>
 {
     /// <summary>
     /// Gets the number of whole days.

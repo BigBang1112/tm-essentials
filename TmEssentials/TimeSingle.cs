@@ -191,6 +191,17 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime
         return 0;
     }
 
+    /// <inheritdoc />
+    public bool Equals(ITime? other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        return TotalSeconds == other.TotalSeconds;
+    }
+
     /// <summary>
     /// Converts this <see cref="TimeSingle"/> to its equal <see cref="TimeInt32"/> value.
     /// </summary>
