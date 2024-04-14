@@ -1,34 +1,52 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<Product>TmEssentials</Product>
-		<AssemblyName>TmEssentials</AssemblyName>
-		<AssemblyTitle>TmEssentials</AssemblyTitle>
-		<Authors>Petr Pivoňka (BigBang1112)</Authors>
+		<PackageId>TmEssentials</PackageId>
+		<Version>2.4.2</Version>
+		<Authors>BigBang1112</Authors>
 		<Description>A .NET library providing essential Trackmania features, like the time or text formatting.</Description>
-		<Copyright>Copyright © Petr 'BigBang1112' Pivoňka</Copyright>
+		<Copyright>Copyright (c) 2024 Petr Pivoňka</Copyright>
+		<PackageProjectUrl>https://github.com/BigBang1112/gbx-net</PackageProjectUrl>
+		<PackageIcon>logo_icon_outline.png</PackageIcon>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageTags>trackmania, tm, essentials, maniaplanet, time, account, formatting</PackageTags>
+		<PackageReleaseNotes></PackageReleaseNotes>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<PackageTags>trackmania, tm, essentials</PackageTags>
 		<IsTrimamble>true</IsTrimamble>
 		<IsAotCompatible>true</IsAotCompatible>
+	</PropertyGroup>
 
-		<Version>2.4.1</Version>
-		<PackageReleaseNotes></PackageReleaseNotes>
-
+	<PropertyGroup>
 		<TargetFrameworks>net8.0;net7.0;net6.0;netstandard2.1;netstandard2.0;net462</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<LangVersion>12</LangVersion>
-
-		<RepositoryType>git</RepositoryType>
-		<RepositoryUrl>https://github.com/BigBang1112/tm-essentials</RepositoryUrl>
-		<PackageProjectUrl>https://github.com/BigBang1112/tm-essentials</PackageProjectUrl>
+		<IsTrimmable Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net6.0'))">true</IsTrimmable>
+		<IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net7.0'))">true</IsAotCompatible>
 
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
 	</PropertyGroup>
 
+	<ItemGroup>
+		<None Include="../logo_icon_outline.png" Pack="true" PackagePath="\" />
+		<None Include="../README.md" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+	
 	<ItemGroup>
 		<Using Remove="System.Net.Http" />
 	</ItemGroup>
