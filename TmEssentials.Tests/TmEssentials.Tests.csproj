@@ -7,7 +7,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
 		<PackageReference Include="RichardSzalay.MockHttp" Version="7.0.0" />
 		<PackageReference Include="xunit" Version="2.9.0" />
 		<PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
@@ -21,7 +21,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="17.8.0" Condition="$(TargetFramework.StartsWith('net4')) AND '$(OS)' == 'Unix'" />
+		<PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="17.10.0" Condition="$(TargetFramework.StartsWith('net4')) AND '$(OS)' == 'Unix'" />
 	</ItemGroup>
 
 	<ItemGroup>
