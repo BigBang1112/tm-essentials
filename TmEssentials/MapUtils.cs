@@ -14,8 +14,14 @@ public static class MapUtils
     /// </summary>
     /// <param name="random">Instance of <see cref="Random"/> to use for generating the UID.</param>
     /// <returns>A random map UID.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="random"/> is null.</exception>
     public static string GenerateMapUid(Random random)
     {
+        if (random is null)
+        {
+            throw new ArgumentNullException(nameof(random));
+        }
+
         // Official string used for modern map UIDs
         const string chars = "_0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
