@@ -17,7 +17,7 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
-    - uses: actions/checkout@v4.1.2
+    - uses: actions/checkout@v4
   
     - name: Set release information
       run: gh release edit ${{ github.ref_name }} -n "$(echo -e '***[Pre-release is being automatically created, please wait...](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})***\n\n${{ github.event.release.body }}')"
@@ -41,7 +41,6 @@ jobs:
     
     - name: Code Coverage Report
       uses: irongut/CodeCoverageSummary@v1.3.0
-      if: matrix.os == 'ubuntu-latest'
       with:
         filename: coverage/**/coverage.cobertura.xml
         badge: true
