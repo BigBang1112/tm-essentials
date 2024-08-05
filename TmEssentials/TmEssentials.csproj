@@ -2,11 +2,11 @@
 
 	<PropertyGroup>
 		<PackageId>TmEssentials</PackageId>
-		<Version>2.5.0</Version>
+		<Version>2.5.1</Version>
 		<Authors>BigBang1112</Authors>
 		<Description>A .NET library providing essential Trackmania features, like the time or text formatting.</Description>
 		<Copyright>Copyright (c) 2024 Petr Pivoňka</Copyright>
-		<PackageProjectUrl>https://github.com/BigBang1112/gbx-net</PackageProjectUrl>
+		<PackageProjectUrl>https://github.com/BigBang1112/tm-essentials</PackageProjectUrl>
 		<PackageIcon>logo_icon_outline.png</PackageIcon>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageTags>trackmania, tm, essentials, maniaplanet, time, account, formatting</PackageTags>
