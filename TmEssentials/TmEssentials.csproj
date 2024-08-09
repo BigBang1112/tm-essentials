@@ -10,10 +10,8 @@
 		<PackageIcon>logo_icon_outline.png</PackageIcon>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageTags>trackmania, tm, essentials, maniaplanet, time, account, formatting</PackageTags>
-		<PackageReleaseNotes>Added MapUtils.GenerateMapUid()</PackageReleaseNotes>
+		<PackageReleaseNotes></PackageReleaseNotes>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<IsTrimamble>true</IsTrimamble>
-		<IsAotCompatible>true</IsAotCompatible>
 	</PropertyGroup>
 
 	<PropertyGroup>
