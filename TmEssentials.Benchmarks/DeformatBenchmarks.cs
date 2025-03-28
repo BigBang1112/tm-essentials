@@ -8,37 +8,37 @@ namespace TmEssentials.Benchmarks;
 public class DeformatBenchmarks
 {
     [Benchmark]
-    public void DeformatLinks()
+    public static void DeformatLinks()
     {
         TextFormatter.Deformat("$l[https://google.com]My nickname$l");
     }
 
     [Benchmark]
-    public void DeformatColors()
+    public static void DeformatColors()
     {
         TextFormatter.Deformat("$F00T$D01M$C13U$A14.$815K$727r$528a$329z$23By$03CC$03Co$04Bl$059o$068r$077s$085 $094v$0A30$0B1.$0C01");
     }
 
     [Benchmark]
-    public void DeformatColors2()
+    public static void DeformatColors2()
     {
         TextFormatter.Deformat("$abcC$f0o$del$befo$abr$aaas");
     }
 
     [Benchmark]
-    public void DeformatColors1()
+    public static void DeformatColors1()
     {
         TextFormatter.Deformat("$abcC$fo$dl$befo$ar$aas");
     }
 
     [Benchmark]
-    public void DeformatManialink()
+    public static void DeformatManialink()
     {
         TextFormatter.Deformat("$h[bigbang1112]BigBang1112$h");
     }
 
     [Benchmark]
-    public void DeformatSimpleFormatters()
+    public static void DeformatSimpleFormatters()
     {
         TextFormatter.Deformat("$<B$wi$ng$oB$ia$tn$sg$g1$z112$>");
     }

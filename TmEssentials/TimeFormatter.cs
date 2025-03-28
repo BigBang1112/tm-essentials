@@ -2,30 +2,40 @@
 using System.Text;
 #endif
 
+#if NET6_0_OR_GREATER
 using System.Runtime.InteropServices;
+#endif
 
 namespace TmEssentials;
 
 internal static class TimeFormatter
 {
+    public static readonly string[] TimeFormats =
+    [
+        @"s\.FFFFFFF",
+        @"m\:ss\.FFFFFFF",
+        @"h\:mm\:ss\.FFFFFFF",
+        @"d\:hh\:mm\:ss\.FFFFFFF"
+    ];
+
 #if NET6_0_OR_GREATER
     [UnmanagedCallersOnly(EntryPoint = "totmstring")]
-    internal static nint ToTmString(uint time)
+    public static nint ToTmString(uint time)
     {
         return Marshal.StringToCoTaskMemUTF8(new TimeInt32((int)time).ToString());
     }
 #endif
 
-    internal static string ToTmString(int days,
-                                      int hours,
-                                      int minutes,
-                                      int seconds,
-                                      int milliseconds,
-                                      float totalHours,
-                                      float totalDays,
-                                      bool isNegative,
-                                      bool useHundredths = false,
-                                      bool useApostrophe = false)
+    public static string ToTmString(int days,
+                                    int hours,
+                                    int minutes,
+                                    int seconds,
+                                    int milliseconds,
+                                    float totalHours,
+                                    float totalDays,
+                                    bool isNegative,
+                                    bool useHundredths = false,
+                                    bool useApostrophe = false)
     {
         var colonSep = useApostrophe ? '\'' : ':';
 

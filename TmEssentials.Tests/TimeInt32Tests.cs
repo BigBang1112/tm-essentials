@@ -708,15 +708,18 @@ public class TimeInt32Tests
         Assert.Equal(1, result);
     }
 
-    [Fact]
-    public void CompareTo_WithITimeObject_ReturnsCorrectComparison()
+    [Theory]
+    [InlineData(1000, 1500, -1)]
+    [InlineData(1500, 1000, 1)]
+    [InlineData(1000, 1000, 0)]
+    public void CompareTo_WithITimeObject_ReturnsCorrectComparison(int timeInt, int otherInt, int expected)
     {
-        var time = new TimeInt32(1000);
-        object other = new TimeInt32(1500); // other implements ITime
+        var time = new TimeInt32(timeInt);
+        object other = new TimeInt32(otherInt); // other implements ITime
 
         int result = time.CompareTo(other);
 
-        Assert.Equal(-1, result);
+        Assert.Equal(expected, result);
     }
 
     [Fact]
@@ -728,11 +731,133 @@ public class TimeInt32Tests
         Assert.Throws<ArgumentException>(() => time.CompareTo(nonTimeObject));
     }
 
+    [Theory]
+    [InlineData(1000, 1.5f, -1)]
+    [InlineData(1500, 1f, 1)]
+    [InlineData(1000, 1f, 0)]
+    public void CompareTo_WithTimeSingle_ReturnsCorrectComparison(int timeInt, float otherFloat, int expected)
+    {
+        var time = new TimeInt32(timeInt);
+        var other = new TimeSingle(otherFloat);
+
+        int result = time.CompareTo(other);
+
+        Assert.Equal(expected, result);
+    }
+
     [Fact]
     public void Equals_WithNullITime_ReturnsFalse()
     {
         var time = new TimeInt32(1000);
 
         Assert.False(time.Equals(null));
+    }
+
+    [Fact]
+    public void Equals_WithTimeSingle_ReturnsFalse()
+    {
+        var time = new TimeInt32(1000);
+        var other = new TimeSingle(2f);
+        Assert.False(time.Equals(other));
+    }
+
+    [Fact]
+    public void TryParse_WithValidString_ReturnsTrue()
+    {
+        var time = new TimeInt32(1000);
+        var str = time.ToString();
+        var result = TimeInt32.TryParse(str, out var parsed);
+        Assert.True(result);
+        Assert.Equal(time, parsed);
+    }
+
+    [Fact]
+    public void TryParse_WithInvalidString_ReturnsFalse()
+    {
+        var str = "invalid";
+        var result = TimeInt32.TryParse(str, out var parsed);
+        Assert.False(result);
+        Assert.Equal(TimeInt32.Zero, parsed);
+    }
+
+    [Fact]
+    public void TryParse_WithNullString_ReturnsFalse()
+    {
+        var result = TimeInt32.TryParse(null, out var parsed);
+        Assert.False(result);
+        Assert.Equal(TimeInt32.Zero, parsed);
+    }
+
+    [Fact]
+    public void Parse_WithValidString_ReturnsTimeInt32()
+    {
+        var time = new TimeInt32(1000);
+        var str = time.ToString();
+        var parsed = TimeInt32.Parse(str);
+        Assert.Equal(time, parsed);
+    }
+
+    [Fact]
+    public void Parse_WithInvalidString_ThrowsFormatException()
+    {
+        var str = "invalid";
+        Assert.Throws<FormatException>(() => TimeInt32.Parse(str));
+    }
+
+    [Fact]
+    public void TryParse_WithValidSpan_ReturnsTrue()
+    {
+        var time = new TimeInt32(1000);
+        var str = time.ToString();
+        var result = TimeInt32.TryParse(str.AsSpan(), out var parsed);
+        Assert.True(result);
+        Assert.Equal(time, parsed);
+    }
+
+    [Fact]
+    public void TryParse_WithInvalidSpan_ReturnsFalse()
+    {
+        var str = "invalid";
+        var result = TimeInt32.TryParse(str.AsSpan(), out var parsed);
+        Assert.False(result);
+        Assert.Equal(TimeInt32.Zero, parsed);
+    }
+
+    [Fact]
+    public void TryParse_WithEmptySpan_ReturnsFalse()
+    {
+        var result = TimeInt32.TryParse(ReadOnlySpan<char>.Empty, out var parsed);
+        Assert.False(result);
+        Assert.Equal(TimeInt32.Zero, parsed);
+    }
+
+    [Fact]
+    public void Parse_WithValidSpan_ReturnsTimeInt32()
+    {
+        var time = new TimeInt32(1000);
+        var str = time.ToString();
+        var parsed = TimeInt32.Parse(str.AsSpan());
+        Assert.Equal(time, parsed);
+    }
+
+    [Fact]
+    public void Parse_WithInvalidSpan_ThrowsFormatException()
+    {
+        var str = "invalid";
+        Assert.Throws<FormatException>(() => TimeInt32.Parse(str.AsSpan()));
+    }
+
+    [Theory]
+    [InlineData("1.876", 1876)]
+    [InlineData("00:00.00", 0)]
+    [InlineData("0:00.69", 690)]
+    [InlineData("0:01.00", 1000)]
+    [InlineData("0:43.256", 43256)]
+    [InlineData("1:00.000", 60000)]
+    [InlineData("1:50.011", 110011)]
+    public void Parse_VariousTimes_ReturnsTimeInt32(string str, int expected)
+    {
+        var parsed = TimeInt32.Parse(str);
+        Assert.Equal(expected, parsed.TotalMilliseconds);
     }
 }

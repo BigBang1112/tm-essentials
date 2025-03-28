@@ -1,4 +1,8 @@
-﻿namespace TmEssentials;
+﻿#if NET5_0_OR_GREATER || NET21_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
+
+namespace TmEssentials;
 
 /// <summary>
 /// Represents a time interval as a 32-bit integer, with <paramref name="TotalMilliseconds"/> as the unit.
@@ -6,7 +10,11 @@
 /// Operators for comparing and arithmetic operations are included.
 /// </summary>
 /// <param name="TotalMilliseconds">The total number of milliseconds.</param>
-public readonly record struct TimeInt32(int TotalMilliseconds) : ITime
+public readonly record struct TimeInt32(int TotalMilliseconds) : ITime,
+    IComparable<TimeInt32>, IComparable<TimeSingle>, IEquatable<TimeSingle>
+#if NET7_0_OR_GREATER
+    , IParsable<TimeInt32>, ISpanParsable<TimeInt32>
+#endif
 {
     /// <summary>
     /// Represents a zero time interval.
@@ -187,7 +195,11 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime
         return CompareTo(time);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Compares this instance to a specified <see cref="ITime"/> instance.
+    /// </summary>
+    /// <param name="other"></param>
+    /// <returns></returns>
     public int CompareTo(ITime? other)
     {
         if (other is null)
@@ -195,20 +207,37 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime
             return 1;
         }
 
-        var milliseconds = TotalMilliseconds;
-        var otherMilliseconds = other.TotalMilliseconds;
-
-        if (milliseconds > otherMilliseconds)
+        if (TotalMilliseconds > other.TotalMilliseconds)
         {
             return 1;
         }
 
-        if (milliseconds < otherMilliseconds)
+        if (TotalMilliseconds < other.TotalMilliseconds)
         {
             return -1;
         }
-        
+
         return 0;
+    }
+
+    /// <summary>
+    /// Compares this instance to a specified <see cref="TimeInt32"/> instance.
+    /// </summary>
+    /// <param name="other">A <see cref="TimeInt32"/> instance to compare.</param>
+    /// <returns>A signed number indicating the relative values of this instance and <paramref name="other"/>.</returns>
+    public int CompareTo(TimeInt32 other)
+    {
+        return TotalMilliseconds.CompareTo(other.TotalMilliseconds);
+    }
+
+    /// <summary>
+    /// Compares this instance to a specified <see cref="TimeSingle"/> instance.
+    /// </summary>
+    /// <param name="other">A <see cref="TimeSingle"/> instance to compare.</param>
+    /// <returns>A signed number indicating the relative values of this instance and <paramref name="other"/>.</returns>
+    public int CompareTo(TimeSingle other)
+    {
+        return TotalSeconds.CompareTo(other.TotalSeconds);
     }
 
     /// <inheritdoc />
@@ -222,11 +251,115 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime
         return TotalMilliseconds == other.TotalMilliseconds;
     }
 
+    /// <inheritdoc />
+    public bool Equals(TimeSingle other)
+    {
+        return TotalSeconds == other.TotalSeconds;
+    }
+
     /// <summary>
     /// Converts this <see cref="TimeInt32"/> to its equal <see cref="TimeSingle"/> value.
     /// </summary>
     /// <returns>A <see cref="TimeSingle"/>.</returns>
     public TimeSingle ToTimeSingle() => new(TotalSeconds);
+
+    /// <inheritdoc />
+    public static bool TryParse(
+#if NET5_0_OR_GREATER || NET21_OR_GREATER
+        [NotNullWhen(true)]
+#endif
+        string? s, IFormatProvider? provider,
+#if NET5_0_OR_GREATER || NET21_OR_GREATER
+        [MaybeNullWhen(false)] 
+#endif
+        out TimeInt32 result)
+    {
+        if (TimeSpan.TryParseExact(s, TimeFormatter.TimeFormats, provider, out var timeSpan))
+        {
+            result = (TimeInt32)timeSpan;
+            return true;
+        }
+
+        result = default;
+        return false;
+    }
+
+    /// <summary>
+    /// Tries to parse a string into a value.
+    /// </summary>
+    /// <param name="s">The string to parse.</param>
+    /// <param name="result">When this method returns, contains the result of successfully parsing <paramref name="s"/> or an undefined value on failure.</param>
+    /// <returns><see langword="true"/> if <paramref name="s"/> was successfully parsed; otherwise, <see langword="false"/>.</returns>
+    public static bool TryParse(string s, out TimeInt32 result) => TryParse(s, null, out result);
+
+    /// <inheritdoc />
+    public static TimeInt32 Parse(string s, IFormatProvider? provider)
+    {
+        if (TryParse(s, provider, out var result))
+        {
+            return result;
+        }
+
+        throw new FormatException("Input string was not in a correct format.");
+    }
+
+    /// <summary>
+    /// Parses a string into a value.
+    /// </summary>
+    /// <param name="s">The string to parse.</param>
+    /// <returns>The result of parsing <paramref name="s"/>.</returns>
+    public static TimeInt32 Parse(string s) => Parse(s, null);
+
+    /// <inheritdoc />
+    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider,
+#if NET5_0_OR_GREATER || NET21_OR_GREATER
+        [MaybeNullWhen(false)]
+#endif
+        out TimeInt32 result)
+    {
+#if NET5_0_OR_GREATER || NET21_OR_GREATER
+        if (TimeSpan.TryParseExact(s, TimeFormatter.TimeFormats, provider, out var timeSpan))
+#else
+        if (TimeSpan.TryParseExact(s.ToString(), TimeFormatter.TimeFormats, provider, out var timeSpan))
+#endif
+        {
+            result = (TimeInt32)timeSpan;
+            return true;
+        }
+
+        result = default;
+        return false;
+    }
+
+    /// <summary>
+    /// Tries to parse a span of characters into a value.
+    /// </summary>
+    /// <param name="s">The span of characters to parse.</param>
+    /// <param name="result">When this method returns, contains the result of successfully parsing <paramref name="s"/>, or an undefined value on failure.</param>
+    /// <returns><see langword="true"/> if <paramref name="s"/> was successfully parsed; otherwise, <see langword="false"/>.</returns>
+    public static bool TryParse(ReadOnlySpan<char> s,
+#if NET5_0_OR_GREATER || NET21_OR_GREATER
+        [MaybeNullWhen(false)]
+#endif
+        out TimeInt32 result) => TryParse(s, null, out result);
+
+    /// <inheritdoc />
+    public static TimeInt32 Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+    {
+        if (TryParse(s, provider, out var result))
+        {
+            return result;
+        }
+
+        throw new FormatException("Input string was not in a correct format.");
+    }
+
+    /// <summary>
+    /// Parses a span of characters into a value.
+    /// </summary>
+    /// <param name="s">The span of characters to parse.</param>
+    /// <returns>The result of parsing <paramref name="s"/>.</returns>
+    public static TimeInt32 Parse(ReadOnlySpan<char> s) => Parse(s, null);
 
     /// <summary>
     /// Compares two <see cref="TimeInt32"/> instances to determine if the first is greater than the second.
