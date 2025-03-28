@@ -6,3 +6,4 @@ csharp_style_prefer_index_operator = false
 #dotnet_style_require_accessibility_modifiers = always
 dotnet_diagnostic.IDE0040.severity = warning
 dotnet_diagnostic.IDE0305.severity = none
+dotnet_diagnostic.CA1510.severity = none
