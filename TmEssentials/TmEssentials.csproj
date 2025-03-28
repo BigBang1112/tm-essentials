@@ -2,10 +2,10 @@
 
 	<PropertyGroup>
 		<PackageId>TmEssentials</PackageId>
-		<Version>2.5.1</Version>
+		<Version>2.5.2</Version>
 		<Authors>BigBang1112</Authors>
 		<Description>A .NET library providing essential Trackmania features, like the time or text formatting.</Description>
-		<Copyright>Copyright (c) 2024 Petr Pivoňka</Copyright>
+		<Copyright>Copyright (c) 2025 Petr Pivoňka</Copyright>
 		<PackageProjectUrl>https://github.com/BigBang1112/tm-essentials</PackageProjectUrl>
 		<PackageIcon>logo_icon_outline.png</PackageIcon>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
@@ -15,10 +15,10 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<TargetFrameworks>net8.0;net7.0;net6.0;netstandard2.1;netstandard2.0;net462</TargetFrameworks>
+		<TargetFrameworks>net9.0;net8.0;net7.0;net6.0;netstandard2.1;netstandard2.0;net462</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<LangVersion>12</LangVersion>
+		<LangVersion>13</LangVersion>
 		<IsTrimmable Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net6.0'))">true</IsTrimmable>
 		<IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net7.0'))">true</IsAotCompatible>
 
