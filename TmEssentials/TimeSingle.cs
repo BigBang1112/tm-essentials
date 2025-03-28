@@ -1,4 +1,8 @@
-﻿namespace TmEssentials;
+﻿#if NET5_0_OR_GREATER || NET21_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
+
+namespace TmEssentials;
 
 /// <summary>
 /// Represents a time interval as a 32-bit floating-point number, with <paramref name="TotalSeconds"/> as the unit.
@@ -6,7 +10,11 @@
 /// Operators for comparing and arithmetic operations are included.
 /// </summary>
 /// <param name="TotalSeconds">The total number of seconds.</param>
-public readonly record struct TimeSingle(float TotalSeconds) : ITime
+public readonly record struct TimeSingle(float TotalSeconds) : ITime,
+    IComparable<TimeSingle>, IComparable<TimeInt32>, IEquatable<TimeInt32>
+#if NET7_0_OR_GREATER
+    , IParsable<TimeSingle>, ISpanParsable<TimeSingle>
+#endif
 {
     /// <summary>
     /// Represents a zero time interval.
@@ -56,7 +64,6 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime
     /// <param name="seconds">The number of seconds.</param>
     public TimeSingle(int hours, int minutes, int seconds) : this(0, hours, minutes, seconds)
     {
-
     }
 
     /// <summary>
@@ -70,7 +77,26 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime
     public TimeSingle(int days, int hours, int minutes, int seconds, float milliseconds = 0)
          : this(milliseconds / 1_000 + seconds + minutes * 60 + hours * 3_600 + days * 86_400)
     {
-        
+    }
+
+    /// <summary>
+    /// Converts the value of the current <see cref="TimeSingle"/> to a Trackmania familiar time format.
+    /// </summary>
+    /// <param name="useHundredths">If to use the hundredths instead of milliseconds (for better looks on TMUF for example)</param>
+    /// <param name="useApostrophe">If to use ' instead of a colon and '' instead of a dot (to resolve cases where colon is not allowed for example).</param>
+    /// <returns>A string representation of Trackmania time format.</returns>
+    public string ToString(bool useHundredths = false, bool useApostrophe = false)
+    {
+        return TimeFormatter.ToTmString(Days, Hours, Minutes, Seconds, (int)Milliseconds, TotalHours, TotalDays, IsNegative, useHundredths, useApostrophe);
+    }
+
+    /// <summary>
+    /// Converts the value of the current <see cref="TimeSingle"/> to a Trackmania familiar time format with milliseconds and without apostrophes.
+    /// </summary>
+    /// <returns>A string representation of Trackmania time format.</returns>
+    public override string ToString()
+    {
+        return ToString(useHundredths: false);
     }
 
     /// <summary>
@@ -175,20 +201,27 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime
             return 1;
         }
 
-        var seconds = TotalSeconds;
-        var otherSeconds = other.TotalSeconds;
+        return TotalSeconds.CompareTo(other.TotalSeconds);
+    }
 
-        if (seconds > otherSeconds)
-        {
-            return 1;
-        }
+    /// <summary>
+    /// Compares this instance to a specified <see cref="TimeSingle"/> instance.
+    /// </summary>
+    /// <param name="other">A <see cref="TimeSingle"/> instance to compare.</param>
+    /// <returns>A signed number indicating the relative values of this instance and <paramref name="other"/>.</returns>
+    public int CompareTo(TimeSingle other)
+    {
+        return TotalSeconds.CompareTo(other.TotalSeconds);
+    }
 
-        if (seconds < otherSeconds)
-        {
-            return -1;
-        }
-
-        return 0;
+    /// <summary>
+    /// Compares this instance to a specified <see cref="TimeInt32"/> instance.
+    /// </summary>
+    /// <param name="other">A <see cref="TimeInt32"/> instance to compare.</param>
+    /// <returns>A signed number indicating the relative values of this instance and <paramref name="other"/>.</returns>
+    public int CompareTo(TimeInt32 other)
+    {
+        return TotalSeconds.CompareTo(other.TotalSeconds);
     }
 
     /// <inheritdoc />
@@ -202,30 +235,80 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime
         return TotalSeconds == other.TotalSeconds;
     }
 
+    /// <inheritdoc />
+    public bool Equals(TimeInt32 other)
+    {
+        return TotalSeconds == other.TotalSeconds;
+    }
+
     /// <summary>
     /// Converts this <see cref="TimeSingle"/> to its equal <see cref="TimeInt32"/> value.
     /// </summary>
     /// <returns>A <see cref="TimeInt32"/>.</returns>
     public TimeInt32 ToTimeInt32() => new((int)TotalMilliseconds);
 
-    /// <summary>
-    /// Converts the value of the current <see cref="TimeSingle"/> to a Trackmania familiar time format.
-    /// </summary>
-    /// <param name="useHundredths">If to use the hundredths instead of milliseconds (for better looks on TMUF for example)</param>
-    /// <param name="useApostrophe">If to use ' instead of a colon and '' instead of a dot (to resolve cases where colon is not allowed for example).</param>
-    /// <returns>A string representation of Trackmania time format.</returns>
-    public string ToString(bool useHundredths = false, bool useApostrophe = false)
+    /// <inheritdoc />
+    public static TimeSingle Parse(string s, IFormatProvider? provider)
     {
-        return TimeFormatter.ToTmString(Days, Hours, Minutes, Seconds, (int)Milliseconds, TotalHours, TotalDays, IsNegative, useHundredths, useApostrophe);
+        if (TryParse(s, provider, out var result))
+        {
+            return result;
+        }
+
+        throw new FormatException("Input string was not in a correct format.");
     }
 
-    /// <summary>
-    /// Converts the value of the current <see cref="TimeSingle"/> to a Trackmania familiar time format with milliseconds and without apostrophes.
-    /// </summary>
-    /// <returns>A string representation of Trackmania time format.</returns>
-    public override string ToString()
+    /// <inheritdoc />
+    public static bool TryParse(
+#if NET5_0_OR_GREATER || NET21_OR_GREATER
+        [NotNullWhen(true)]
+#endif
+        string? s, IFormatProvider? provider,
+#if NET5_0_OR_GREATER || NET21_OR_GREATER
+        [MaybeNullWhen(false)] 
+#endif
+        out TimeSingle result)
     {
-        return ToString(useHundredths: false);
+        if (TimeSpan.TryParseExact(s, TimeFormatter.TimeFormats, provider, out var timeSpan))
+        {
+            result = (TimeSingle)timeSpan;
+            return true;
+        }
+
+        result = default;
+        return false;
+    }
+
+    /// <inheritdoc />
+    public static TimeSingle Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+    {
+        if (TryParse(s, provider, out var result))
+        {
+            return result;
+        }
+
+        throw new FormatException("Input string was not in a correct format.");
+    }
+
+    /// <inheritdoc />
+    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider,
+#if NET5_0_OR_GREATER || NET21_OR_GREATER
+        [MaybeNullWhen(false)]
+#endif
+        out TimeSingle result)
+    {
+#if NET5_0_OR_GREATER || NET21_OR_GREATER
+        if (TimeSpan.TryParseExact(s, TimeFormatter.TimeFormats, provider, out var timeSpan))
+#else
+        if (TimeSpan.TryParseExact(s.ToString(), TimeFormatter.TimeFormats, provider, out var timeSpan))
+#endif
+        {
+            result = (TimeSingle)timeSpan;
+            return true;
+        }
+
+        result = default;
+        return false;
     }
 
     /// <summary>

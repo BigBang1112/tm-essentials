@@ -1,4 +1,8 @@
-﻿namespace TmEssentials;
+﻿#if NET5_0_OR_GREATER || NET21_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
+
+namespace TmEssentials;
 
 /// <summary>
 /// Represents a time interval as a 32-bit integer, with <paramref name="TotalMilliseconds"/> as the unit.
@@ -8,6 +12,9 @@
 /// <param name="TotalMilliseconds">The total number of milliseconds.</param>
 public readonly record struct TimeInt32(int TotalMilliseconds) : ITime,
     IComparable<TimeInt32>, IComparable<TimeSingle>, IEquatable<TimeSingle>
+#if NET7_0_OR_GREATER
+    , IParsable<TimeInt32>, ISpanParsable<TimeInt32>
+#endif
 {
     /// <summary>
     /// Represents a zero time interval.
@@ -245,6 +252,70 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime,
     /// </summary>
     /// <returns>A <see cref="TimeSingle"/>.</returns>
     public TimeSingle ToTimeSingle() => new(TotalSeconds);
+
+    /// <inheritdoc />
+    public static TimeInt32 Parse(string s, IFormatProvider? provider)
+    {
+        if (TryParse(s, provider, out var result))
+        {
+            return result;
+        }
+
+        throw new FormatException("Input string was not in a correct format.");
+    }
+
+    /// <inheritdoc />
+    public static bool TryParse(
+#if NET5_0_OR_GREATER || NET21_OR_GREATER
+        [NotNullWhen(true)]
+#endif
+        string? s, IFormatProvider? provider,
+#if NET5_0_OR_GREATER || NET21_OR_GREATER
+        [MaybeNullWhen(false)] 
+#endif
+        out TimeInt32 result)
+    {
+        if (TimeSpan.TryParseExact(s, TimeFormatter.TimeFormats, provider, out var timeSpan))
+        {
+            result = (TimeInt32)timeSpan;
+            return true;
+        }
+
+        result = default;
+        return false;
+    }
+
+    /// <inheritdoc />
+    public static TimeInt32 Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+    {
+        if (TryParse(s, provider, out var result))
+        {
+            return result;
+        }
+
+        throw new FormatException("Input string was not in a correct format.");
+    }
+
+    /// <inheritdoc />
+    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider,
+#if NET5_0_OR_GREATER || NET21_OR_GREATER
+        [MaybeNullWhen(false)]
+#endif
+        out TimeInt32 result)
+    {
+#if NET5_0_OR_GREATER || NET21_OR_GREATER
+        if (TimeSpan.TryParseExact(s, TimeFormatter.TimeFormats, provider, out var timeSpan))
+#else
+        if (TimeSpan.TryParseExact(s.ToString(), TimeFormatter.TimeFormats, provider, out var timeSpan))
+#endif
+        {
+            result = (TimeInt32)timeSpan;
+            return true;
+        }
+
+        result = default;
+        return false;
+    }
 
     /// <summary>
     /// Compares two <see cref="TimeInt32"/> instances to determine if the first is greater than the second.
