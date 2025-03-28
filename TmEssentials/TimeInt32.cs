@@ -6,7 +6,8 @@
 /// Operators for comparing and arithmetic operations are included.
 /// </summary>
 /// <param name="TotalMilliseconds">The total number of milliseconds.</param>
-public readonly record struct TimeInt32(int TotalMilliseconds) : ITime
+public readonly record struct TimeInt32(int TotalMilliseconds) : ITime,
+    IComparable<TimeInt32>, IComparable<TimeSingle>, IEquatable<TimeSingle>
 {
     /// <summary>
     /// Represents a zero time interval.
@@ -187,7 +188,11 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime
         return CompareTo(time);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Compares this instance to a specified <see cref="ITime"/> instance.
+    /// </summary>
+    /// <param name="other"></param>
+    /// <returns></returns>
     public int CompareTo(ITime? other)
     {
         if (other is null)
@@ -195,20 +200,27 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime
             return 1;
         }
 
-        var milliseconds = TotalMilliseconds;
-        var otherMilliseconds = other.TotalMilliseconds;
+        return TotalMilliseconds.CompareTo(other.TotalMilliseconds);
+    }
 
-        if (milliseconds > otherMilliseconds)
-        {
-            return 1;
-        }
+    /// <summary>
+    /// Compares this instance to a specified <see cref="TimeInt32"/> instance.
+    /// </summary>
+    /// <param name="other">A <see cref="TimeInt32"/> instance to compare.</param>
+    /// <returns>A signed number indicating the relative values of this instance and <paramref name="other"/>.</returns>
+    public int CompareTo(TimeInt32 other)
+    {
+        return TotalMilliseconds.CompareTo(other.TotalMilliseconds);
+    }
 
-        if (milliseconds < otherMilliseconds)
-        {
-            return -1;
-        }
-        
-        return 0;
+    /// <summary>
+    /// Compares this instance to a specified <see cref="TimeSingle"/> instance.
+    /// </summary>
+    /// <param name="other">A <see cref="TimeSingle"/> instance to compare.</param>
+    /// <returns>A signed number indicating the relative values of this instance and <paramref name="other"/>.</returns>
+    public int CompareTo(TimeSingle other)
+    {
+        return TotalSeconds.CompareTo(other.TotalSeconds);
     }
 
     /// <inheritdoc />
@@ -220,6 +232,12 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime
         }
 
         return TotalMilliseconds == other.TotalMilliseconds;
+    }
+
+    /// <inheritdoc />
+    public bool Equals(TimeSingle other)
+    {
+        return TotalSeconds == other.TotalSeconds;
     }
 
     /// <summary>
