@@ -248,17 +248,6 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime,
     public TimeInt32 ToTimeInt32() => new((int)TotalMilliseconds);
 
     /// <inheritdoc />
-    public static TimeSingle Parse(string s, IFormatProvider? provider)
-    {
-        if (TryParse(s, provider, out var result))
-        {
-            return result;
-        }
-
-        throw new FormatException("Input string was not in a correct format.");
-    }
-
-    /// <inheritdoc />
     public static bool TryParse(
 #if NET5_0_OR_GREATER || NET21_OR_GREATER
         [NotNullWhen(true)]
@@ -279,8 +268,16 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime,
         return false;
     }
 
+    /// <summary>
+    /// Tries to parse a string into a value.
+    /// </summary>
+    /// <param name="s">The string to parse.</param>
+    /// <param name="result">When this method returns, contains the result of successfully parsing <paramref name="s"/> or an undefined value on failure.</param>
+    /// <returns><see langword="true"/> if <paramref name="s"/> was successfully parsed; otherwise, <see langword="false"/>.</returns>
+    public static bool TryParse(string s, out TimeSingle result) => TryParse(s, null, out result);
+
     /// <inheritdoc />
-    public static TimeSingle Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+    public static TimeSingle Parse(string s, IFormatProvider? provider)
     {
         if (TryParse(s, provider, out var result))
         {
@@ -289,6 +286,13 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime,
 
         throw new FormatException("Input string was not in a correct format.");
     }
+
+    /// <summary>
+    /// Parses a string into a value.
+    /// </summary>
+    /// <param name="s">The string to parse.</param>
+    /// <returns>The result of parsing <paramref name="s"/>.</returns>
+    public static TimeSingle Parse(string s) => Parse(s, null);
 
     /// <inheritdoc />
     public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider,
@@ -310,6 +314,36 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime,
         result = default;
         return false;
     }
+
+    /// <summary>
+    /// Tries to parse a span of characters into a value.
+    /// </summary>
+    /// <param name="s">The span of characters to parse.</param>
+    /// <param name="result">When this method returns, contains the result of successfully parsing <paramref name="s"/>, or an undefined value on failure.</param>
+    /// <returns><see langword="true"/> if <paramref name="s"/> was successfully parsed; otherwise, <see langword="false"/>.</returns>
+    public static bool TryParse(ReadOnlySpan<char> s,
+#if NET5_0_OR_GREATER || NET21_OR_GREATER
+        [MaybeNullWhen(false)]
+#endif
+        out TimeSingle result) => TryParse(s, null, out result);
+
+    /// <inheritdoc />
+    public static TimeSingle Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+    {
+        if (TryParse(s, provider, out var result))
+        {
+            return result;
+        }
+
+        throw new FormatException("Input string was not in a correct format.");
+    }
+
+    /// <summary>
+    /// Parses a span of characters into a value.
+    /// </summary>
+    /// <param name="s">The span of characters to parse.</param>
+    /// <returns>The result of parsing <paramref name="s"/>.</returns>
+    public static TimeSingle Parse(ReadOnlySpan<char> s) => Parse(s, null);
 
     /// <summary>
     /// Compares two <see cref="TimeSingle"/> instances to determine if the first is greater than the second.
