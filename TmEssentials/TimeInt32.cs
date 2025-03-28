@@ -207,7 +207,17 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime,
             return 1;
         }
 
-        return TotalMilliseconds.CompareTo(other.TotalMilliseconds);
+        if (TotalMilliseconds > other.TotalMilliseconds)
+        {
+            return 1;
+        }
+
+        if (TotalMilliseconds < other.TotalMilliseconds)
+        {
+            return -1;
+        }
+
+        return 0;
     }
 
     /// <summary>
