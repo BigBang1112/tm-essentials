@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/.github/" />
+  <Folder Name="/.github/workflows/">
+    <File Path=".github/workflows/dotnet.yml" />
+    <File Path=".github/workflows/publish.yml" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="TmEssentials.Benchmarks/TmEssentials.Benchmarks.csproj" />
+  <Project Path="TmEssentials.Razor/TmEssentials.Razor.csproj" />
+  <Project Path="TmEssentials.Tests/TmEssentials.Tests.csproj" />
+  <Project Path="TmEssentials/TmEssentials.csproj" />
+</Solution>
