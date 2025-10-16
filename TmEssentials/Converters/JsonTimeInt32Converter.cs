@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace TmEssentials;
+namespace TmEssentials.Converters;
 
 /// <summary>
 /// Converts a <see cref="TimeInt32"/> to and from JSON using System.Text.Json.
