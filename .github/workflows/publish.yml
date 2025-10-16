@@ -9,19 +9,24 @@ permissions:
   packages: write
 
 jobs:  
-  build-and-publish:
-    name: Build and Publish
+  build:
+    name: Build
     runs-on: ubuntu-latest
     
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      RELEASE_BODY: ${{ github.event.release.body }}
 
     steps:
     - uses: actions/checkout@v4
   
     - name: Set release information
-      run: gh release edit ${{ github.ref_name }} -n "$(echo -e '***[Pre-release is being automatically created, please wait...](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})***\n\n${{ github.event.release.body }}')"
-    
+      run: |
+        FINAL_BODY="***[Release is being automatically created, please wait...](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})***
+          
+        $RELEASE_BODY"
+        gh release edit ${{ github.ref_name }} -n "$FINAL_BODY"
+          
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
@@ -35,7 +40,7 @@ jobs:
       run: dotnet restore
       
     - name: Build
-      run: dotnet build -c Release --no-restore /p:ContinuousIntegrationBuild=true
+      run: dotnet build -c Release --no-restore -p:ContinuousIntegrationBuild=true
       
     - name: Test
       run: dotnet test -c Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
@@ -52,15 +57,61 @@ jobs:
         indicators: true
         output: both
         thresholds: '60 80'
-      
-    - name: Publish TmEssentials package to nuget.org
-      run: dotnet nuget push TmEssentials/bin/Release/*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
-    
-    - name: Publish TmEssentials package to github.com
-      run: dotnet nuget push TmEssentials/bin/Release/*.nupkg -k ${{ secrets.GITHUB_TOKEN }} -s https://nuget.pkg.github.com/bigbang1112/index.json
-    
-    - name: Upload TmEssentials package to this release
-      run: gh release upload ${{ github.ref_name }} TmEssentials/bin/Release/*.nupkg
+        
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: build
+        path: |
+          TmEssentials*/bin/Release/*.*nupkg
 
-    - name: Set release information
-      run: gh release edit ${{ github.ref_name }} -n "$(echo -e '${{ github.event.release.body }}\n\nAssets were automatically generated using the [publish workflow](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}).')"
+  publish:    
+    needs: build
+    
+    strategy:
+      matrix:
+        lib:
+        - TmEssentials
+        - TmEssentials.Razor
+    
+    name: Publish ${{ matrix.lib }}
+    runs-on: ubuntu-latest
+    
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Download a Build Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: build
+        
+    - name: Publish ${{ matrix.lib }} package to nuget.org
+      run: dotnet nuget push ${{ matrix.lib }}/bin/Release/*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
+
+    - name: Publish ${{ matrix.lib }} nupkg to github.com
+      run: dotnet nuget push ${{ matrix.lib }}/bin/Release/*.nupkg -k ${{ secrets.GITHUB_TOKEN }} -s https://nuget.pkg.github.com/bigbang1112/index.json --skip-duplicate
+    
+    - name: Upload ${{ matrix.lib }} nupkg to this release
+      run: gh release upload ${{ github.ref_name }} ${{ matrix.lib }}/bin/Release/*.nupkg
+
+  finalize-description:
+    needs: publish
+    
+    runs-on: ubuntu-latest
+    name: Finalize release description
+    
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      RELEASE_BODY: ${{ github.event.release.body }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set release information
+        run: |
+          FINAL_BODY="${RELEASE_BODY}
+          
+          Assets were automatically generated using the [publish workflow](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})."
+          gh release edit ${{ github.ref_name }} -n "$FINAL_BODY"
