@@ -8,7 +8,6 @@
         <Copyright>Copyright (c) 2025 Petr Pivoňka</Copyright>
         <PackageProjectUrl>https://github.com/BigBang1112/tm-essentials</PackageProjectUrl>
         <PackageIcon>logo_icon_outline.png</PackageIcon>
-        <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageTags>trackmania, tm, essentials, maniaplanet, formatting</PackageTags>
         <PackageReleaseNotes></PackageReleaseNotes>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
