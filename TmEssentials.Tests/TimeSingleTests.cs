@@ -850,4 +850,43 @@ public class TimeSingleTests
         var parsed = TimeSingle.Parse(str);
         Assert.Equal(expected, parsed.TotalSeconds);
     }
+
+    [Theory]
+    [InlineData("-1.876", -1.876f)]
+    [InlineData("-0:00.69", -0.690f)]
+    [InlineData("-0:01.00", -1.000f)]
+    [InlineData("-0:43.256", -43.256f)]
+    [InlineData("-1:00.000", -60.000f)]
+    [InlineData("-1:50.011", -110.011f)]
+    [InlineData("-1:23:45.678", -5025.678f)] // 1h 23m 45s 678ms = 5025.678s
+    public void Parse_NegativeTimes_ReturnsNegativeTimeSingle(string str, float expected)
+    {
+        var parsed = TimeSingle.Parse(str);
+        Assert.Equal(expected, parsed.TotalSeconds, precision: 3);
+    }
+
+    [Fact]
+    public void TryParse_WithNegativeTime_ReturnsTrue()
+    {
+        var result = TimeSingle.TryParse("-1:23.456", out var parsed);
+        Assert.True(result);
+        Assert.Equal(-83.456f, parsed.TotalSeconds, precision: 3);
+    }
+
+    [Fact]
+    public void Parse_WithNegativeTime_ReturnsNegativeTimeSingle()
+    {
+        var parsed = TimeSingle.Parse("-2:15.789");
+        Assert.Equal(-135.789f, parsed.TotalSeconds, precision: 3);
+        Assert.True(parsed.IsNegative);
+    }
+
+    [Fact]
+    public void ToString_NegativeTime_IncludesNegativeSign()
+    {
+        var negativeTime = new TimeSingle(-83.456f); // -1:23.456
+        var timeString = negativeTime.ToString();
+        Assert.StartsWith("-", timeString);
+        Assert.Equal("-1:23.456", timeString);
+    }
 }
