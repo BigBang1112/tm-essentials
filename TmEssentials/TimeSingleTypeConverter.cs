@@ -23,22 +23,22 @@ public class TimeSingleTypeConverter : TypeConverter
     /// <inheritdoc />
     public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
     {
-        if (value is string stringValue)
+        if (value is not string stringValue)
         {
-            if (string.IsNullOrWhiteSpace(stringValue))
-            {
-                return TimeSingle.Zero;
-            }
-
-            if (TimeSingle.TryParse(stringValue, culture, out var result))
-            {
-                return result;
-            }
-
-            throw new FormatException($"Unable to parse '{stringValue}' as TimeSingle.");
+            return base.ConvertFrom(context, culture, value);
         }
 
-        return base.ConvertFrom(context, culture, value);
+        if (string.IsNullOrWhiteSpace(stringValue))
+        {
+            return TimeSingle.Zero;
+        }
+
+        if (TimeSingle.TryParse(stringValue, culture, out var result))
+        {
+            return result;
+        }
+
+        throw new FormatException($"Unable to parse '{stringValue}' as TimeSingle.");
     }
 
     /// <inheritdoc />
