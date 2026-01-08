@@ -4,6 +4,9 @@
     <File Path=".github/workflows/dotnet.yml" />
     <File Path=".github/workflows/publish.yml" />
   </Folder>
+  <Folder Name="/Samples/">
+    <Project Path="Samples/BlazorSample/BlazorSample.csproj" Id="64a58ca4-5567-4aa1-baab-aa7590f319ac" />
+  </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".editorconfig" />
     <File Path="LICENSE" />

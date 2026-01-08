@@ -2,10 +2,10 @@
 
     <PropertyGroup>
         <PackageId>TmEssentials.Razor</PackageId>
-        <Version>1.0.0</Version>
+        <Version>1.1.0</Version>
         <Authors>BigBang1112</Authors>
         <Description>Essential Trackmania features for Blazor, includes text formatting.</Description>
-        <Copyright>Copyright (c) 2025 Petr Pivoňka</Copyright>
+        <Copyright>Copyright (c) 2026 Petr Pivoňka</Copyright>
         <PackageProjectUrl>https://github.com/BigBang1112/tm-essentials</PackageProjectUrl>
         <PackageIcon>logo_icon_outline.png</PackageIcon>
         <PackageTags>trackmania, tm, essentials, maniaplanet, formatting</PackageTags>
@@ -18,10 +18,10 @@
     </ItemGroup>
 
     <PropertyGroup>
-        <TargetFrameworks>net9.0;net8.0</TargetFrameworks>
+        <TargetFrameworks>net10.0;net9.0;net8.0</TargetFrameworks>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <LangVersion>13</LangVersion>
+        <LangVersion>14</LangVersion>
         <IsTrimmable>true</IsTrimmable>
         <IsAotCompatible>true</IsAotCompatible>
 
@@ -45,6 +45,10 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
         </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.1" />
     </ItemGroup>
     
     <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">

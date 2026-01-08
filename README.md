@@ -2,7 +2,7 @@
 
 [![Nuget](https://img.shields.io/nuget/v/TmEssentials?style=for-the-badge&logo=nuget)](https://www.nuget.org/packages/TmEssentials/)
 [![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/BigBang1112/tm-essentials?include_prereleases&style=for-the-badge&logo=github)](https://github.com/BigBang1112/tm-essentials/releases)
-[![Code Coverage](https://img.shields.io/badge/Code%20Coverage-91%25-success?style=for-the-badge)](https://github.com/BigBang1112/tm-essentials)
+[![Code Coverage](https://img.shields.io/badge/Code%20Coverage-87%25-success?style=for-the-badge)](https://github.com/BigBang1112/tm-essentials)
 
 A super light-weight library that provides formatting features.
 
@@ -16,6 +16,8 @@ A super light-weight library that provides formatting features.
 - Consistency is partially covered by the `ITime` interface.
 - Implicitly modified `ToString()` to use a Trackmania-familiar format.
 - `ToTmString()` extension methods for consistency reasons (due to nullable value types).
+- Parse methods are available.
+- Supports `TypeConverter` for input binding scenarios.
 
 Example usage of `TimeInt32`:
 
