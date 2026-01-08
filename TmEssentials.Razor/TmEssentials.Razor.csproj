@@ -5,7 +5,7 @@
         <Version>1.1.0</Version>
         <Authors>BigBang1112</Authors>
         <Description>Essential Trackmania features for Blazor, includes text formatting.</Description>
-        <Copyright>Copyright (c) 2025 Petr Pivoňka</Copyright>
+        <Copyright>Copyright (c) 2026 Petr Pivoňka</Copyright>
         <PackageProjectUrl>https://github.com/BigBang1112/tm-essentials</PackageProjectUrl>
         <PackageIcon>logo_icon_outline.png</PackageIcon>
         <PackageTags>trackmania, tm, essentials, maniaplanet, formatting</PackageTags>

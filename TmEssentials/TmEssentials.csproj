@@ -5,7 +5,7 @@
 		<Version>2.6.0</Version>
 		<Authors>BigBang1112</Authors>
 		<Description>A .NET library providing essential Trackmania features, like the time or text formatting.</Description>
-		<Copyright>Copyright (c) 2025 Petr Pivoňka</Copyright>
+		<Copyright>Copyright (c) 2026 Petr Pivoňka</Copyright>
 		<PackageProjectUrl>https://github.com/BigBang1112/tm-essentials</PackageProjectUrl>
 		<PackageIcon>logo_icon_outline.png</PackageIcon>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
