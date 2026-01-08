@@ -12,6 +12,12 @@
     [Parameter]
     public string? Text { get; set; }
 
+    [Parameter]
+    public bool AllowLinks { get; set; }
+
+    [Parameter]
+    public bool AllowManialinks { get; set; }
+
     private string FormatText(string input)
     {
         if (string.IsNullOrEmpty(input))
@@ -21,12 +27,19 @@
         var styleStack = new Stack<Style>();
         var currentStyle = new Style();
         var textBuffer = new StringBuilder();
+        var linkStack = new Stack<LinkInfo>();
 
         void FlushBuffer()
         {
             if (textBuffer.Length > 0)
             {
-                segments.Add(new Segment { Text = textBuffer.ToString(), Style = currentStyle.Clone() });
+                var segment = new Segment { Text = textBuffer.ToString(), Style = currentStyle.Clone() };
+                if (linkStack.Count > 0)
+                {
+                    var linkInfo = linkStack.Peek();
+                    segment.LinkUrl = linkInfo.IsManialink ? $"maniaplanet:///:{linkInfo.Url}" : linkInfo.Url;
+                }
+                segments.Add(segment);
                 textBuffer.Clear();
             }
         }
@@ -55,7 +68,80 @@
                     continue;
                 }
 
-                // Links ($l/$h or $l[text]/$h[text]) will be deformatted
+                // Check for link closing tag first
+                if (linkStack.Count > 0 && (code == 'l' || code == 'h'))
+                {
+                    FlushBuffer();
+                    linkStack.Pop();
+                    
+                    // Check if there are brackets with content after the closing tag
+                    if (i + 2 < input.Length && input[i + 2] == '[')
+                    {
+                        int closingBracket = input.IndexOf(']', i + 3);
+                        if (closingBracket != -1)
+                        {
+                            // Keep the brackets and content as regular text
+                            string bracketContent = input.Substring(i + 2, closingBracket - (i + 2) + 1);
+                            textBuffer.Append(bracketContent);
+                            i = closingBracket;
+                        }
+                        else
+                        {
+                            i++;
+                        }
+                    }
+                    else
+                    {
+                        i++;
+                    }
+                    continue;
+                }
+
+                // Links ($l) and manialinks ($h)
+                if ((code == 'l' && AllowLinks) || (code == 'h' && AllowManialinks))
+                {
+                    FlushBuffer();
+                    
+                    // Check if it's bracketed format: $l[url]text$l or $h[url]text$h
+                    if (i + 2 < input.Length && input[i + 2] == '[')
+                    {
+                        int urlStart = i + 3;
+                        int urlEnd = input.IndexOf(']', urlStart);
+                        if (urlEnd != -1)
+                        {
+                            string url = input.Substring(urlStart, urlEnd - urlStart);
+                            linkStack.Push(new LinkInfo { Url = url, IsManialink = code == 'h' });
+                            i = urlEnd;
+                        }
+                        else
+                        {
+                            i++;
+                        }
+                    }
+                    else
+                    {
+                        // Simple format: $lurl$l or $hurl$h (or until end)
+                        int urlStart = i + 2;
+                        int urlEnd = input.IndexOf($"${code}", urlStart);
+                        if (urlEnd == -1)
+                            urlEnd = input.Length;
+                        
+                        string url = input.Substring(urlStart, urlEnd - urlStart);
+                        
+                        var linkSegment = new Segment 
+                        { 
+                            Text = url, 
+                            Style = currentStyle.Clone(),
+                            LinkUrl = code == 'h' ? $"maniaplanet:///:{url}" : url
+                        };
+                        segments.Add(linkSegment);
+                        
+                        i = urlEnd + (urlEnd < input.Length && urlEnd + 1 < input.Length && input[urlEnd + 1] == code ? 1 : -1);
+                    }
+                    continue;
+                }
+
+                // Links ($l/$h) will be deformatted if links are disabled
                 if (code == 'l' || code == 'h')
                 {
                     // if next is not [, continue
@@ -93,13 +179,17 @@
                     case 'z':
                         currentStyle.Bold = currentStyle.Italic = currentStyle.Uppercase =
                         currentStyle.DropShadow = currentStyle.Wide = currentStyle.Narrow = false;
+                        linkStack.Clear();
                         break;
                     case '<':
                         styleStack.Push(currentStyle.Clone());
                         break;
                     case '>':
                         if (styleStack.Count > 0)
+                        {
                             currentStyle = styleStack.Pop();
+                            linkStack.Clear(); // Clear links when popping style stack
+                        }
                         break;
                     default:
                         // Unknown or unhandled control: do not display
@@ -124,10 +214,21 @@
         {
             string style = seg.Style.ToCss();
             string encoded = WebUtility.HtmlEncode(seg.Text);
-            if (string.IsNullOrEmpty(style))
+            
+            if (!string.IsNullOrEmpty(seg.LinkUrl))
+            {
+                string linkStyle = string.IsNullOrEmpty(style) ? "" : $" style=\"{style}\"";
+                string encodedUrl = WebUtility.HtmlEncode(seg.LinkUrl);
+                sb.Append($"<a href=\"{encodedUrl}\"{linkStyle}>{encoded}</a>");
+            }
+            else if (string.IsNullOrEmpty(style))
+            {
                 sb.Append(encoded);
+            }
             else
+            {
                 sb.Append($"<span style=\"{style}\">{encoded}</span>");
+            }
         }
 
         return sb.ToString();
@@ -137,10 +238,17 @@
                                   (c >= 'a' && c <= 'f') ||
                                   (c >= 'A' && c <= 'F');
 
+    private sealed class LinkInfo
+    {
+        public string Url { get; set; } = string.Empty;
+        public bool IsManialink { get; set; }
+    }
+
     private sealed class Segment
     {
         public string Text { get; set; } = string.Empty;
         public Style Style { get; set; } = new Style();
+        public string? LinkUrl { get; set; }
     }
 
     private sealed class Style
