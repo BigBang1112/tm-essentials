@@ -16,6 +16,8 @@ A super light-weight library that provides formatting features.
 - Consistency is partially covered by the `ITime` interface.
 - Implicitly modified `ToString()` to use a Trackmania-familiar format.
 - `ToTmString()` extension methods for consistency reasons (due to nullable value types).
+- Parse methods are available.
+- Supports `TypeConverter` for input binding scenarios.
 
 Example usage of `TimeInt32`:
 
