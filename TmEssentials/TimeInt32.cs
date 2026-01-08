@@ -278,7 +278,7 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime,
     {
         if (TimeSpan.TryParseExact(s, TimeFormatter.TimeFormats, provider, out var timeSpan))
         {
-            result = (TimeInt32)timeSpan;
+            result = (TimeInt32)(s?.Length > 0 && s[0] == '-' ? -timeSpan : timeSpan);
             return true;
         }
 
@@ -325,7 +325,7 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime,
         if (TimeSpan.TryParseExact(s.ToString(), TimeFormatter.TimeFormats, provider, out var timeSpan))
 #endif
         {
-            result = (TimeInt32)timeSpan;
+            result = (TimeInt32)(s.Length > 0 && s[0] == '-' ? -timeSpan : timeSpan);
             return true;
         }
 

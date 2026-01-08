@@ -262,7 +262,7 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime,
     {
         if (TimeSpan.TryParseExact(s, TimeFormatter.TimeFormats, provider, out var timeSpan))
         {
-            result = (TimeSingle)timeSpan;
+            result = (TimeSingle)(s?.Length > 0 && s[0] == '-' ? -timeSpan : timeSpan);
             return true;
         }
 
@@ -309,7 +309,7 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime,
         if (TimeSpan.TryParseExact(s.ToString(), TimeFormatter.TimeFormats, provider, out var timeSpan))
 #endif
         {
-            result = (TimeSingle)timeSpan;
+            result = (TimeSingle)(s.Length > 0 && s[0] == '-' ? -timeSpan : timeSpan);
             return true;
         }
 

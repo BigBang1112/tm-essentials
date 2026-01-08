@@ -16,7 +16,12 @@ internal static class TimeFormatter
         @"s\.FFFFFFF",
         @"m\:ss\.FFFFFFF",
         @"h\:mm\:ss\.FFFFFFF",
-        @"d\:hh\:mm\:ss\.FFFFFFF"
+        @"d\:hh\:mm\:ss\.FFFFFFF",
+        @"\-FFFFFFF",
+        @"\-s\.FFFFFFF",
+        @"\-m\:ss\.FFFFFFF",
+        @"\-h\:mm\:ss\.FFFFFFF",
+        @"\-d\:hh\:mm\:ss\.FFFFFFF"
     ];
 
 #if NET6_0_OR_GREATER
