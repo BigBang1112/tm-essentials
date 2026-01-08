@@ -12,6 +12,7 @@ internal static class TimeFormatter
 {
     public static readonly string[] TimeFormats =
     [
+        @"FFFFFFF",
         @"s\.FFFFFFF",
         @"m\:ss\.FFFFFFF",
         @"h\:mm\:ss\.FFFFFFF",

@@ -1,6 +1,7 @@
 ﻿#if NET5_0_OR_GREATER || NET21_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 #endif
+using System.ComponentModel;
 
 namespace TmEssentials;
 
@@ -10,6 +11,7 @@ namespace TmEssentials;
 /// Operators for comparing and arithmetic operations are included.
 /// </summary>
 /// <param name="TotalMilliseconds">The total number of milliseconds.</param>
+[TypeConverter(typeof(TimeInt32TypeConverter))]
 public readonly record struct TimeInt32(int TotalMilliseconds) : ITime,
     IComparable<TimeInt32>, IComparable<TimeSingle>, IEquatable<TimeSingle>
 #if NET7_0_OR_GREATER

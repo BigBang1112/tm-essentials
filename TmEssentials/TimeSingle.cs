@@ -1,6 +1,7 @@
 ﻿#if NET5_0_OR_GREATER || NET21_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 #endif
+using System.ComponentModel;
 
 namespace TmEssentials;
 
@@ -10,6 +11,7 @@ namespace TmEssentials;
 /// Operators for comparing and arithmetic operations are included.
 /// </summary>
 /// <param name="TotalSeconds">The total number of seconds.</param>
+[TypeConverter(typeof(TimeSingleTypeConverter))]
 public readonly record struct TimeSingle(float TotalSeconds) : ITime,
     IComparable<TimeSingle>, IComparable<TimeInt32>, IEquatable<TimeInt32>
 #if NET7_0_OR_GREATER
