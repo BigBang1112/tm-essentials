@@ -169,12 +169,12 @@
                 FlushBuffer();
                 switch (code)
                 {
-                    case 'o': currentStyle.Bold = true; break;
-                    case 'i': currentStyle.Italic = true; break;
-                    case 't': currentStyle.Uppercase = true; break;
-                    case 's': currentStyle.DropShadow = true; break;
-                    case 'w': currentStyle.Wide = true; break;
-                    case 'n': currentStyle.Narrow = true; break;
+                    case 'o': currentStyle.Bold = !currentStyle.Bold; break;
+                    case 'i': currentStyle.Italic = !currentStyle.Italic; break;
+                    case 't': currentStyle.Uppercase = !currentStyle.Uppercase; break;
+                    case 's': currentStyle.DropShadow = !currentStyle.DropShadow; break;
+                    case 'w': currentStyle.Wide = !currentStyle.Wide; break;
+                    case 'n': currentStyle.Narrow = !currentStyle.Narrow; break;
                     case 'g': currentStyle.Color = null; break;
                     case 'z':
                         currentStyle.Bold = currentStyle.Italic = currentStyle.Uppercase =

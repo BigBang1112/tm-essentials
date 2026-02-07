@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <PackageId>TmEssentials.Razor</PackageId>
-        <Version>1.1.0</Version>
+        <Version>1.1.1</Version>
         <Authors>BigBang1112</Authors>
         <Description>Essential Trackmania features for Blazor, includes text formatting.</Description>
         <Copyright>Copyright (c) 2026 Petr Pivoňka</Copyright>
