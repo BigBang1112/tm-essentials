@@ -146,40 +146,77 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime,
     public static TimeInt32 FromTicks(long value) => new((int)(value / 10_000));
 
     /// <inheritdoc />
-    public ITime Add(ITime time)
-    {
-        return new TimeInt32(TotalMilliseconds + (int)time.TotalMilliseconds);
-    }
+    ITime ITime.Add(ITime time) => Add(time);
+
+    /// <summary>
+    /// Adds a specified time interval to the current instance, returning a new <see cref="TimeInt32"/> that represents the sum of the two intervals.
+    /// </summary>
+    /// <param name="time">The time interval to add.</param>
+    /// <returns>A new <see cref="TimeInt32"/> instance representing the sum of the two intervals.</returns>
+    public TimeInt32 Add(ITime time) => new(TotalMilliseconds + (int)time.TotalMilliseconds);
+
+    /// <summary>
+    /// Adds a specified time interval to the current instance, returning a new <see cref="TimeInt32"/> that represents the sum of the two intervals.
+    /// </summary>
+    /// <param name="time">The time interval to add.</param>
+    /// <returns>A new <see cref="TimeInt32"/> instance representing the sum of the two intervals.</returns>
+    public TimeInt32 Add(TimeInt32 time) => new(TotalMilliseconds + time.TotalMilliseconds);
 
     /// <inheritdoc />
-    public ITime Divide(float divisor)
-    {
-        return this / divisor;
-    }
+    ITime ITime.Divide(float divisor) => Divide(divisor);
+
+    /// <summary>
+    /// Divides the current time interval by a specified divisor, returning a new <see cref="TimeSingle"/> that represents the quotient of the division.
+    /// </summary>
+    /// <param name="divisor">The divisor to divide the time interval by.</param>
+    /// <returns>A new <see cref="TimeSingle"/> instance representing the quotient of the division.</returns>
+    public TimeSingle Divide(float divisor) => this / divisor;
 
     /// <inheritdoc />
-    public float Divide(ITime time)
-    {
-        return TotalSeconds / time.TotalSeconds;
-    }
+    public float Divide(ITime time) => TotalSeconds / time.TotalSeconds;
+
+    /// <summary>
+    /// Divides the current time interval by another <see cref="TimeInt32"/> instance, returning a float that represents how many times the divisor interval fits into the current interval.
+    /// </summary>
+    /// <param name="time">The time interval to divide by.</param>
+    /// <returns>A float representing how many times the divisor interval fits into the current interval.</returns>
+    public float Divide(TimeInt32 time) => this / time;
 
     /// <inheritdoc />
-    public ITime Duration()
-    {
-        return new TimeInt32(TotalMilliseconds >= 0 ? TotalMilliseconds : -TotalMilliseconds);
-    }
+    ITime ITime.Duration() => Duration();
+
+    /// <summary>
+    /// Returns a new instance representing the absolute duration of the current time interval.
+    /// </summary>
+    /// <returns>A <see cref="TimeInt32"/> value whose magnitude is equal to the absolute value of the current interval's total milliseconds.</returns>
+    public TimeInt32 Duration() => new(TotalMilliseconds >= 0 ? TotalMilliseconds : -TotalMilliseconds);
 
     /// <inheritdoc />
-    public ITime Multiply(float factor)
-    {
-        return this * factor;
-    }
+    ITime ITime.Multiply(float factor) => Multiply(factor);
+
+    /// <summary>
+    /// Multiplies the current time interval by a specified factor, resulting in a new <see cref="TimeSingle"/> instance.
+    /// </summary>
+    /// <param name="factor">The factor to multiply by.</param>
+    /// <returns>A new <see cref="TimeSingle"/> instance representing the scaled time interval.</returns>
+    public TimeSingle Multiply(float factor) => this * factor;
+
+    /// <summary>
+    /// Returns a new instance of <see cref="TimeInt32"/> whose value is the product of the current instance and the
+    /// specified factor.
+    /// </summary>
+    /// <param name="factor">The multiplier to apply to the current value.</param>
+    /// <returns>A new <see cref="TimeInt32"/> representing the result of multiplying the current value by <paramref name="factor"/>.</returns>
+    public TimeInt32 Multiply(int factor) => this * factor;
 
     /// <inheritdoc />
-    public ITime Negate()
-    {
-        return -this;
-    }
+    ITime ITime.Negate() => Negate();
+
+    /// <summary>
+    /// Returns a new <see cref="TimeInt32"/> instance that represents the negation of the current time interval (i.e., the same duration with the opposite sign).
+    /// </summary>
+    /// <returns>A new <see cref="TimeInt32"/> instance representing the negated time interval.</returns>
+    public TimeInt32 Negate() => -this;
 
     /// <inheritdoc />
     public int CompareTo(object? obj)

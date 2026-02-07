@@ -144,40 +144,69 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime,
     public static TimeSingle FromTicks(long value) => new(value / 10_000 / 1_000f);
     
     /// <inheritdoc />
-    public ITime Add(ITime time)
-    {
-        return new TimeSingle(TotalSeconds + time.TotalSeconds);
-    }
+    ITime ITime.Add(ITime time) => new TimeSingle(TotalSeconds + time.TotalSeconds);
+
+    /// <summary>
+    /// Adds the TotalSeconds of another <see cref="ITime"/> instance to this instance and returns the result as a new <see cref="TimeSingle"/> instance.
+    /// </summary>
+    /// <param name="time">The <see cref="ITime"/> instance to add.</param>
+    /// <returns>A new <see cref="TimeSingle"/> instance representing the sum of this instance and the specified <paramref name="time"/>.</returns>
+    public TimeSingle Add(ITime time) => new(TotalSeconds + time.TotalSeconds);
+
+    /// <summary>
+    /// Adds the TotalSeconds of another <see cref="TimeSingle"/> instance to this instance and returns the result as a new <see cref="TimeSingle"/> instance.
+    /// </summary>
+    /// <param name="time">The <see cref="TimeSingle"/> instance to add.</param>
+    /// <returns>A new <see cref="TimeSingle"/> instance representing the sum of this instance and the specified <paramref name="time"/>.</returns>
+    public TimeSingle Add(TimeSingle time) => new(TotalSeconds + time.TotalSeconds);
 
     /// <inheritdoc />
-    public ITime Divide(float divisor)
-    {
-        return this / divisor;
-    }
+    ITime ITime.Divide(float divisor) => Divide(divisor);
+
+    /// <summary>
+    /// Divides the TotalSeconds of this instance by a specified float divisor and returns the result as a new <see cref="TimeSingle"/> instance.
+    /// </summary>
+    /// <param name="divisor">The float divisor.</param>
+    /// <returns>A new <see cref="TimeSingle"/> instance representing the result of the division.</returns>
+    public TimeSingle Divide(float divisor) => new(TotalSeconds / divisor);
 
     /// <inheritdoc />
-    public float Divide(ITime time)
-    {
-        return TotalSeconds / time.TotalSeconds;
-    }
+    public float Divide(ITime time) => TotalSeconds / time.TotalSeconds;
+
+    /// <summary>
+    /// Divides the TotalSeconds of this instance by the TotalSeconds of another <see cref="TimeSingle"/> instance and returns the result as a float.
+    /// </summary>
+    /// <param name="time">The <see cref="TimeSingle"/> instance to divide by.</param>
+    /// <returns>A float representing the result of the division.</returns>
+    public float Divide(TimeSingle time) => this / time;
 
     /// <inheritdoc />
-    public ITime Duration()
-    {
-        return new TimeSingle(TotalSeconds >= 0 ? TotalSeconds : -TotalSeconds);
-    }
+    ITime ITime.Duration() => Duration();
+
+    /// <summary>
+    /// Returns a new <see cref="TimeSingle"/> instance whose TotalSeconds is the absolute value of the TotalSeconds of this instance.
+    /// </summary>
+    /// <returns>A new <see cref="TimeSingle"/> instance representing the duration.</returns>
+    public TimeSingle Duration() => new(TotalSeconds >= 0 ? TotalSeconds : -TotalSeconds);
 
     /// <inheritdoc />
-    public ITime Multiply(float factor)
-    {
-        return this * factor;
-    }
+    ITime ITime.Multiply(float factor) => Multiply(factor);
+
+    /// <summary>
+    /// Multiplies the TotalSeconds of this instance by a specified float factor and returns the result as a new <see cref="TimeSingle"/> instance.
+    /// </summary>
+    /// <param name="factor">The float factor.</param>
+    /// <returns>A new <see cref="TimeSingle"/> instance representing the result of the multiplication.</returns>
+    public TimeSingle Multiply(float factor) => this * factor;
 
     /// <inheritdoc />
-    public ITime Negate()
-    {
-        return -this;
-    }
+    ITime ITime.Negate() => Negate();
+
+    /// <summary>
+    /// Returns a new <see cref="TimeSingle"/> instance whose TotalSeconds is the negation of the TotalSeconds of this instance.
+    /// </summary>
+    /// <returns>A new <see cref="TimeSingle"/> instance representing the negation.</returns>
+    public TimeSingle Negate() => -this;
 
     /// <inheritdoc />
     public int CompareTo(object? obj)

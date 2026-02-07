@@ -5,7 +5,9 @@
 /// </summary>
 public static class AccountUtils
 {
+#if NETSTANDARD2_1 || NET8_0_OR_GREATER
     private const int GuidByteLength = 16;
+#endif
 
     /// <summary>
     /// Converts an account ID to a login representation.
