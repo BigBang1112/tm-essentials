@@ -6,12 +6,14 @@ namespace TmEssentials.Tests;
 
 public class TextFormatterTests
 {
-    [Fact]
-    public void Deformat_Links()
+    [Theory]
+    [InlineData("$l[https://google.com]My nickname$l")]
+    [InlineData("$L[https://google.com]My nickname$l")]
+    public void Deformat_Links(string texts)
     {
         var expected = "My nickname";
 
-        var actual = TextFormatter.Deformat("$l[https://google.com]My nickname$l");
+        var actual = TextFormatter.Deformat(texts);
 
         Assert.Equal(expected, actual);
     }

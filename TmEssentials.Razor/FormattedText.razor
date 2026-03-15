@@ -48,7 +48,7 @@
         {
             if (input[i] == '$' && i + 1 < input.Length)
             {
-                char code = input[i + 1];
+                char code = char.ToLowerInvariant(input[i + 1]);
 
                 // Literal $$
                 if (code == '$')
@@ -122,12 +122,12 @@
                     {
                         // Simple format: $lurl$l or $hurl$h (or until end)
                         int urlStart = i + 2;
-                        int urlEnd = input.IndexOf($"${code}", urlStart);
+                        int urlEnd = FindClosingTag(input, urlStart, code);
                         if (urlEnd == -1)
                             urlEnd = input.Length;
-                        
+
                         string url = input.Substring(urlStart, urlEnd - urlStart);
-                        
+
                         var linkSegment = new Segment 
                         { 
                             Text = url, 
@@ -135,8 +135,9 @@
                             LinkUrl = code == 'h' ? $"maniaplanet:///:{url}" : url
                         };
                         segments.Add(linkSegment);
-                        
-                        i = urlEnd + (urlEnd < input.Length && urlEnd + 1 < input.Length && input[urlEnd + 1] == code ? 1 : -1);
+
+                        // Skip the closing tag if found
+                        i = urlEnd < input.Length && urlEnd + 1 < input.Length ? urlEnd + 1 : urlEnd - 1;
                     }
                     continue;
                 }
@@ -237,6 +238,25 @@
     private bool IsHex(char c) => (c >= '0' && c <= '9') ||
                                   (c >= 'a' && c <= 'f') ||
                                   (c >= 'A' && c <= 'F');
+
+    private int FindClosingTag(string input, int startIndex, char code)
+    {
+        string pattern1 = $"${code}";
+        string pattern2 = $"${char.ToUpperInvariant(code)}";
+
+        for (int i = startIndex; i < input.Length - 1; i++)
+        {
+            if (input[i] == '$' && i + 1 < input.Length)
+            {
+                char nextChar = input[i + 1];
+                if (nextChar == code || nextChar == char.ToUpperInvariant(code))
+                {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
 
     private sealed class LinkInfo
     {
