@@ -17,12 +17,12 @@ public static partial class TextFormatter
 #if NET7_0_OR_GREATER
     [StringSyntax(StringSyntaxAttribute.Regex)]
 #endif
-    private const string DeformatRegexStr = @"\$(?:(\$)|[0-9a-fA-F]{2,3}|[lh]\[.*?\]|[lh]\[|.)";
+    private const string DeformatRegexStr = @"\$(?:(\$)|[0-9a-fA-F]{2,3}|[lhLH]\[.*?\]|[lhLH]\[|.)";
 
 #if NET7_0_OR_GREATER
     [StringSyntax(StringSyntaxAttribute.Regex)]
 #endif
-    private const string DeformatRegexOldStr = @"(\$[0-9a-fA-F]{1,3}|\$[lh]\[.+\]|\$[lh]|\$.)";
+    private const string DeformatRegexOldStr = @"(\$[0-9a-fA-F]{1,3}|\$[lhLH]\[.+\]|\$[lhLH]|\$.)";
 
 #if NET7_0_OR_GREATER
     [GeneratedRegex(DeformatRegexStr)]
