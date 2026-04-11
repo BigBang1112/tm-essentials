@@ -1,12 +1,13 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
+using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 
 namespace TmEssentials;
 
 /// <summary>
-/// Provides a set of methods for text formatting in Trackmania and Shootmania.
+/// Provides a set of methods for text formatting in Nadeo games.
 /// </summary>
 public static partial class TextFormatter
 {
@@ -50,7 +51,7 @@ public static partial class TextFormatter
     internal const string AnsiDefault = "\x1B[39m\x1B[22m";
 
     /// <summary>
-    /// Deformats a string from Trackmania/Shootmania format.
+    /// Deformats a string from Nadeo format.
     /// </summary>
     /// <param name="input">A string input.</param>
     /// <returns>A deformatted string.</returns>
@@ -195,5 +196,291 @@ public static partial class TextFormatter
 #else
         output.Append($"\x1B[{boldAttr};{colorAttr}m");
 #endif
+    }
+
+    /// <summary>
+    /// Formats a Nadeo string into a HTML format.
+    /// </summary>
+    /// <param name="input">The input Nadeo string.</param>
+    /// <param name="allowLinks">Whether standard links ($l) should be processed.</param>
+    /// <param name="allowManialinks">Whether manialinks ($h) should be processed.</param>
+    /// <returns>A Nadeo string formatted as HTML.</returns>
+    public static string FormatHtml(string? input, bool allowLinks = false, bool allowManialinks = false)
+    {
+        if (input is null or "")
+        {
+            return string.Empty;
+        }
+
+        var segments = new List<Segment>();
+        var styleStack = new Stack<Style>();
+        var currentStyle = new Style();
+        var textBuffer = new StringBuilder();
+        var linkStack = new Stack<LinkInfo>();
+
+        void FlushBuffer()
+        {
+            if (textBuffer.Length > 0)
+            {
+                var segment = new Segment { Text = textBuffer.ToString(), Style = currentStyle.Clone() };
+                if (linkStack.Count > 0)
+                {
+                    var linkInfo = linkStack.Peek();
+                    segment.LinkUrl = linkInfo.IsManialink ? $"maniaplanet:///:{linkInfo.Url}" : linkInfo.Url;
+                }
+                segments.Add(segment);
+                textBuffer.Clear();
+            }
+        }
+
+        for (int i = 0; i < input.Length; i++)
+        {
+            if (input[i] == '$' && i + 1 < input.Length)
+            {
+                char code = char.ToLowerInvariant(input[i + 1]);
+
+                // Literal $$
+                if (code == '$')
+                {
+                    textBuffer.Append('$');
+                    i++;
+                    continue;
+                }
+
+                // Color code: 3 hex digits
+                if (i + 3 < input.Length && IsHex(input[i + 1]) && IsHex(input[i + 2]) && IsHex(input[i + 3]))
+                {
+                    FlushBuffer();
+                    string hex3 = input.Substring(i + 1, 3);
+                    currentStyle.Color = $"#{hex3[0]}{hex3[1]}{hex3[2]}";
+                    i += 3;
+                    continue;
+                }
+
+                // Check for link closing tag first
+                if (linkStack.Count > 0 && (code == 'l' || code == 'h'))
+                {
+                    FlushBuffer();
+                    linkStack.Pop();
+
+                    // Check if there are brackets with content after the closing tag
+                    if (i + 2 < input.Length && input[i + 2] == '[')
+                    {
+                        int closingBracket = input.IndexOf(']', i + 3);
+                        if (closingBracket != -1)
+                        {
+                            // Keep the brackets and content as regular text
+                            string bracketContent = input.Substring(i + 2, closingBracket - (i + 2) + 1);
+                            textBuffer.Append(bracketContent);
+                            i = closingBracket;
+                        }
+                        else
+                        {
+                            i++;
+                        }
+                    }
+                    else
+                    {
+                        i++;
+                    }
+                    continue;
+                }
+
+                // Links ($l) and manialinks ($h)
+                if ((code == 'l' && allowLinks) || (code == 'h' && allowManialinks))
+                {
+                    FlushBuffer();
+
+                    // Check if it's bracketed format: $l[url]text$l or $h[url]text$h
+                    if (i + 2 < input.Length && input[i + 2] == '[')
+                    {
+                        int urlStart = i + 3;
+                        int urlEnd = input.IndexOf(']', urlStart);
+                        if (urlEnd != -1)
+                        {
+                            string url = input.Substring(urlStart, urlEnd - urlStart);
+                            linkStack.Push(new LinkInfo { Url = url, IsManialink = code == 'h' });
+                            i = urlEnd;
+                        }
+                        else
+                        {
+                            i++;
+                        }
+                    }
+                    else
+                    {
+                        // Simple format: $lurl$l or $hurl$h (or until end)
+                        int urlStart = i + 2;
+                        int urlEnd = FindClosingTag(input, urlStart, code);
+                        if (urlEnd == -1)
+                            urlEnd = input.Length;
+
+                        string url = input.Substring(urlStart, urlEnd - urlStart);
+
+                        var linkSegment = new Segment
+                        {
+                            Text = url,
+                            Style = currentStyle.Clone(),
+                            LinkUrl = code == 'h' ? $"maniaplanet:///:{url}" : url
+                        };
+                        segments.Add(linkSegment);
+
+                        // Skip the closing tag if found
+                        i = urlEnd < input.Length && urlEnd + 1 < input.Length ? urlEnd + 1 : urlEnd - 1;
+                    }
+                    continue;
+                }
+
+                // Links ($l/$h) will be deformatted if links are disabled
+                if (code == 'l' || code == 'h')
+                {
+                    // if next is not [, continue
+                    if (i + 2 >= input.Length || input[i + 2] != '[')
+                    {
+                        FlushBuffer();
+                        i++;
+                        continue;
+                    }
+
+                    // if next is [, find the closing ]
+                    int closingBracket = input.IndexOf(']', i + 2);
+                    if (closingBracket == -1)
+                    {
+                        FlushBuffer();
+                        i++;
+                        continue;
+                    }
+
+                    i = closingBracket;
+                    continue;
+                }
+
+                // Other control codes
+                FlushBuffer();
+                switch (code)
+                {
+                    case 'o': currentStyle.Bold = !currentStyle.Bold; break;
+                    case 'i': currentStyle.Italic = !currentStyle.Italic; break;
+                    case 't': currentStyle.Uppercase = !currentStyle.Uppercase; break;
+                    case 's': currentStyle.DropShadow = !currentStyle.DropShadow; break;
+                    case 'w': currentStyle.Wide = !currentStyle.Wide; break;
+                    case 'n': currentStyle.Narrow = !currentStyle.Narrow; break;
+                    case 'g': currentStyle.Color = null; break;
+                    case 'z':
+                        currentStyle.Bold = currentStyle.Italic = currentStyle.Uppercase =
+                        currentStyle.DropShadow = currentStyle.Wide = currentStyle.Narrow = false;
+                        linkStack.Clear();
+                        break;
+                    case '<':
+                        styleStack.Push(currentStyle.Clone());
+                        break;
+                    case '>':
+                        if (styleStack.Count > 0)
+                        {
+                            currentStyle = styleStack.Pop();
+                            linkStack.Clear(); // Clear links when popping style stack
+                        }
+                        break;
+                    default:
+                        // Unknown or unhandled control: do not display
+                        break;
+                }
+                i++;
+            }
+            else
+            {
+                char c = input[i];
+                if (currentStyle.Uppercase)
+                    c = char.ToUpperInvariant(c);
+                textBuffer.Append(c);
+            }
+        }
+
+        FlushBuffer();
+
+        // Build HTML with inline styles
+        var sb = new StringBuilder();
+        foreach (var seg in segments)
+        {
+            string style = seg.Style.ToCss();
+            string encoded = WebUtility.HtmlEncode(seg.Text);
+
+            if (!string.IsNullOrEmpty(seg.LinkUrl))
+            {
+                string linkStyle = string.IsNullOrEmpty(style) ? "" : $" style=\"{style}\"";
+                string encodedUrl = WebUtility.HtmlEncode(seg.LinkUrl);
+                sb.Append($"<a href=\"{encodedUrl}\"{linkStyle}>{encoded}</a>");
+            }
+            else if (string.IsNullOrEmpty(style))
+            {
+                sb.Append(encoded);
+            }
+            else
+            {
+                sb.Append($"<span style=\"{style}\">{encoded}</span>");
+            }
+        }
+
+        return sb.ToString();
+    }
+
+    private static bool IsHex(char c) => (c >= '0' && c <= '9') ||
+                                         (c >= 'a' && c <= 'f') ||
+                                         (c >= 'A' && c <= 'F');
+
+    private static int FindClosingTag(string input, int startIndex, char code)
+    {
+        for (int i = startIndex; i < input.Length - 1; i++)
+        {
+            if (input[i] == '$' && i + 1 < input.Length)
+            {
+                char nextChar = input[i + 1];
+                if (nextChar == code || nextChar == char.ToUpperInvariant(code))
+                {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    private sealed class LinkInfo
+    {
+        public string Url { get; set; } = string.Empty;
+        public bool IsManialink { get; set; }
+    }
+
+    private sealed class Segment
+    {
+        public string Text { get; set; } = string.Empty;
+        public Style Style { get; set; } = new Style();
+        public string? LinkUrl { get; set; }
+    }
+
+    private sealed class Style
+    {
+        public bool Bold { get; set; }
+        public bool Italic { get; set; }
+        public bool Uppercase { get; set; }
+        public bool DropShadow { get; set; }
+        public bool Wide { get; set; }
+        public bool Narrow { get; set; }
+        public string? Color { get; set; }
+
+        // Note: Clone() uses MemberwiseClone(), which performs a shallow copy.
+        // If reference-type properties are added to Style, this may cause bugs.
+        public Style Clone() => (Style)MemberwiseClone();
+
+        public string ToCss()
+        {
+            var parts = new List<string>();
+            if (Color is not null) parts.Add($"color:{Color}");
+            if (Bold) parts.Add("font-weight:bold");
+            if (Italic) parts.Add("font-style:italic");
+            if (Uppercase) parts.Add("text-transform:uppercase");
+            if (DropShadow) parts.Add("text-shadow:1px 1px 2px black");
+            if (Narrow) parts.Add("letter-spacing:-0.05em");
+            return string.Join(";", parts);
+        }
     }
 }

@@ -72,9 +72,7 @@ Console.WriteLine(formattedNoTimeUsingApostrophe); // Output: -'--''---
 - Same formatting features like `TimeInt32`/`TimeSingle` has but on `TimeSpan`.
 - `TimeSpanExtensions.ToMilliseconds()` - Total milliseconds as integer value with truncated ticks.
 
-## Text formatting
-
-Currently only deformat.
+## Deformat
 
 Credits to [Tom](https://github.com/ThaumicTom) and [Stefan Baumann](https://github.com/stefan-baumann) for their effective Regex pattern.
 
@@ -88,7 +86,11 @@ Console.WriteLine(deformatted);
 // Output: TMU.KrazyColors v0.1
 ```
 
-## ANSI formatting of Trackmania string
+## HTML formatting
+
+`TextFormatter.FormatHtml()`
+
+## ANSI formatting
 
 Credits to [reaby](https://github.com/reaby) for the solution.
 
