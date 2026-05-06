@@ -1,12 +1,12 @@
 using System.ComponentModel;
 using System.Globalization;
 
-namespace TmEssentials;
+namespace TmEssentials.Converters;
 
 /// <summary>
-/// Provides a type converter for <see cref="TimeInt32"/> to convert between string and TimeInt32 values.
+/// Provides a type converter for <see cref="TimeSingle"/> to convert between string and TimeSingle values.
 /// </summary>
-public class TimeInt32TypeConverter : TypeConverter
+public class TimeSingleTypeConverter : TypeConverter
 {
     /// <inheritdoc />
     public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
@@ -30,23 +30,23 @@ public class TimeInt32TypeConverter : TypeConverter
 
         if (string.IsNullOrWhiteSpace(stringValue))
         {
-            return TimeInt32.Zero;
+            return TimeSingle.Zero;
         }
 
-        if (TimeInt32.TryParse(stringValue, culture, out var result))
+        if (TimeSingle.TryParse(stringValue, culture, out var result))
         {
             return result;
         }
 
-        throw new FormatException($"Unable to parse '{stringValue}' as TimeInt32.");
+        throw new FormatException($"Unable to parse '{stringValue}' as TimeSingle.");
     }
 
     /// <inheritdoc />
     public override object? ConvertTo(ITypeDescriptorContext? context, CultureInfo? culture, object? value, Type destinationType)
     {
-        if (destinationType == typeof(string) && value is TimeInt32 timeInt32)
+        if (destinationType == typeof(string) && value is TimeSingle timeSingle)
         {
-            return timeInt32.ToString();
+            return timeSingle.ToString();
         }
 
         return base.ConvertTo(context, culture, value, destinationType);
