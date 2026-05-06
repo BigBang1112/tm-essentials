@@ -644,4 +644,186 @@ public class TimeFormatterTests
 
         Assert.Equal(expected, actual);
     }
+
+    [Fact]
+    public void ToTmString_Compact_00F()
+    {
+        var expected = "0.003";
+
+        var actual = TimeInt32.FromMilliseconds(3).ToTmString(compact: true);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void ToTmString_Compact_0FF()
+    {
+        var expected = "0.033";
+
+        var actual = TimeInt32.FromMilliseconds(33).ToTmString(compact: true);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void ToTmString_Compact_FFF()
+    {
+        var expected = "0.333";
+
+        var actual = TimeInt32.FromMilliseconds(333).ToTmString(compact: true);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void ToTmString_Compact_SSFFF()
+    {
+        var expected = "3.333";
+
+        var actual = TimeInt32.FromSeconds(3.333f).ToTmString(compact: true);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void ToTmString_Compact_59SFFF()
+    {
+        var expected = "59.999";
+
+        var actual = new TimeInt32(0, 0, 0, 59, 999).ToTmString(compact: true);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void ToTmString_Compact_FF()
+    {
+        var expected = "0.33";
+
+        var actual = TimeInt32.FromMilliseconds(333).ToTmString(useHundredths: true, compact: true);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void ToTmString_Compact_SSFF()
+    {
+        var expected = "3.33";
+
+        var actual = TimeInt32.FromSeconds(3.333f).ToTmString(useHundredths: true, compact: true);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void ToTmString_Compact_Negative_FFF()
+    {
+        var expected = "-0.333";
+
+        var actual = (-TimeInt32.FromMilliseconds(333)).ToTmString(compact: true);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void ToTmString_Compact_Negative_SSFFF()
+    {
+        var expected = "-3.333";
+
+        var actual = (-TimeInt32.FromSeconds(3.333f)).ToTmString(compact: true);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void ToTmString_Compact_Negative_FF()
+    {
+        var expected = "-0.33";
+
+        var actual = (-TimeInt32.FromMilliseconds(333)).ToTmString(useHundredths: true, compact: true);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void ToTmString_Compact_Negative_SSFF()
+    {
+        var expected = "-3.33";
+
+        var actual = (-TimeInt32.FromSeconds(3.333f)).ToTmString(useHundredths: true, compact: true);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void ToTmString_Compact_FallbackToNormal_MSSFFF()
+    {
+        // compact does not apply when time >= 1 minute
+        var expected = "3:03.333";
+
+        var actual = new TimeInt32(0, 0, 3, 3, 333).ToTmString(compact: true);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void ToTmString_Compact_FallbackToNormal_HMMSSFFF()
+    {
+        // compact does not apply when time >= 1 hour
+        var expected = "3:33:03.333";
+
+        var actual = new TimeInt32(0, 3, 33, 3, 333).ToTmString(compact: true);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void ToTmString_Compact_Apostrophe_FFF()
+    {
+        var expected = "0''333";
+
+        var actual = TimeInt32.FromMilliseconds(333).ToTmString(useApostrophe: true, compact: true);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void ToTmString_Compact_Apostrophe_SSFFF()
+    {
+        var expected = "3''333";
+
+        var actual = TimeInt32.FromSeconds(3.333f).ToTmString(useApostrophe: true, compact: true);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void ToTmString_Compact_Apostrophe_FF()
+    {
+        var expected = "0''33";
+
+        var actual = TimeInt32.FromMilliseconds(333).ToTmString(useHundredths: true, useApostrophe: true, compact: true);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void ToTmString_Compact_Apostrophe_SSFF()
+    {
+        var expected = "3''33";
+
+        var actual = TimeInt32.FromSeconds(3.333f).ToTmString(useHundredths: true, useApostrophe: true, compact: true);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void ToTmString_Compact_Apostrophe_Negative_SSFFF()
+    {
+        var expected = "-3''333";
+
+        var actual = (-TimeInt32.FromSeconds(3.333f)).ToTmString(useApostrophe: true, compact: true);
+
+        Assert.Equal(expected, actual);
+    }
 }

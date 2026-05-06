@@ -10,9 +10,9 @@ public static class TimeSingleExtensions
     /// </summary>
     /// <remarks>This method just calls <see cref="TimeSingle.ToString(bool, bool)"/> and exists only for consistency.</remarks>
     /// <returns>A string representation of Trackmania time format.</returns>
-    public static string ToTmString(this TimeSingle time, bool useHundredths = false, bool useApostrophe = false)
+    public static string ToTmString(this TimeSingle time, bool useHundredths = false, bool useApostrophe = false, bool compact = false)
     {
-        return time.ToString(useHundredths, useApostrophe);
+        return time.ToString(useHundredths, useApostrophe, compact);
     }
     
     /// <summary>
@@ -23,11 +23,11 @@ public static class TimeSingleExtensions
     /// <param name="useHundredths">If to use the hundredths instead of milliseconds (for better looks on TMUF for example)</param>
     /// <param name="useApostrophe">If to use ' instead of a colon and '' instead of a dot (to resolve cases where colon is not allowed for example).</param>
     /// <returns>A string representation of Trackmania time format.</returns>
-    public static string ToTmString(this TimeSingle? time, string nullString, bool useHundredths = false, bool useApostrophe = false)
+    public static string ToTmString(this TimeSingle? time, string nullString, bool useHundredths = false, bool useApostrophe = false, bool compact = false)
     {
         if (time.HasValue)
         {
-            return time.Value.ToString(useHundredths, useApostrophe);
+            return time.Value.ToString(useHundredths, useApostrophe, compact);
         }
 
         return nullString;
@@ -40,11 +40,11 @@ public static class TimeSingleExtensions
     /// <param name="useHundredths">If to use the hundredths instead of milliseconds (for better looks on TMUF for example)</param>
     /// <param name="useApostrophe">If to use ' instead of a colon and '' instead of a dot (to resolve cases where colon is not allowed for example).</param>
     /// <returns>A string representation of Trackmania time format.</returns>
-    public static string ToTmString(this TimeSingle? time, bool useHundredths = false, bool useApostrophe = false)
+    public static string ToTmString(this TimeSingle? time, bool useHundredths = false, bool useApostrophe = false, bool compact = false)
     {
         var nullStr = useHundredths
             ? (useApostrophe ? "-'--''--" : "-:--.--")
             : (useApostrophe ? "-'--''---" : "-:--.---");
-        return ToTmString(time, nullStr, useHundredths, useApostrophe);
+        return ToTmString(time, nullStr, useHundredths, useApostrophe, compact);
     }
 }

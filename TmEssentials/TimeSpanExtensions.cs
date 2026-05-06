@@ -22,7 +22,7 @@ public static class TimeSpanExtensions
     /// <param name="useHundredths">If to use the hundredths instead of milliseconds (for better looks on TMUF for example).</param>
     /// <param name="useApostrophe">If to use ' instead of a colon and '' instead of a dot (to resolve cases where colon is not allowed for example).</param>
     /// <returns>A string representation of Trackmania time format.</returns>
-    public static string ToTmString(this TimeSpan timeSpan, bool useHundredths = false, bool useApostrophe = false)
+    public static string ToTmString(this TimeSpan timeSpan, bool useHundredths = false, bool useApostrophe = false, bool compact = false)
     {
         return TimeFormatter.ToTmString(timeSpan.Days,
                                         timeSpan.Hours,
@@ -33,7 +33,8 @@ public static class TimeSpanExtensions
                                         (float)timeSpan.TotalDays,
                                         timeSpan.Ticks < 0,
                                         useHundredths,
-                                        useApostrophe);
+                                        useApostrophe,
+                                        compact);
     }
 
     /// <summary>
@@ -44,10 +45,10 @@ public static class TimeSpanExtensions
     /// <param name="useHundredths">If to use the hundredths instead of milliseconds (for better looks on TMUF for example).</param>
     /// <param name="useApostrophe">If to use ' instead of a colon and '' instead of a dot (to resolve cases where colon is not allowed for example).</param>
     /// <returns>A string representation of Trackmania time format.</returns>
-    public static string ToTmString(this TimeSpan? timeSpan, string nullString, bool useHundredths = false, bool useApostrophe = false)
+    public static string ToTmString(this TimeSpan? timeSpan, string nullString, bool useHundredths = false, bool useApostrophe = false, bool compact = false)
     {
         return timeSpan.HasValue
-            ? ToTmString(timeSpan.Value, useHundredths, useApostrophe)
+            ? ToTmString(timeSpan.Value, useHundredths, useApostrophe, compact)
             : nullString;
     }
 
@@ -58,11 +59,11 @@ public static class TimeSpanExtensions
     /// <param name="useHundredths">If to use the hundredths instead of milliseconds (for better looks on TMUF for example).</param>
     /// <param name="useApostrophe">If to use ' instead of a colon and '' instead of a dot (to resolve cases where colon is not allowed for example).</param>
     /// <returns>A string representation of Trackmania time format.</returns>
-    public static string ToTmString(this TimeSpan? timeSpan, bool useHundredths = false, bool useApostrophe = false)
+    public static string ToTmString(this TimeSpan? timeSpan, bool useHundredths = false, bool useApostrophe = false, bool compact = false)
     {
         var nullStr = useHundredths
             ? (useApostrophe ? "-'--''--" : "-:--.--")
             : (useApostrophe ? "-'--''---" : "-:--.---");
-        return ToTmString(timeSpan, nullStr, useHundredths, useApostrophe);
+        return ToTmString(timeSpan, nullStr, useHundredths, useApostrophe, compact);
     }
 }

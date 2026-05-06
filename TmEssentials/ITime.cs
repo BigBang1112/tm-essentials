@@ -112,6 +112,7 @@ public interface ITime : IComparable, IComparable<ITime>, IEquatable<ITime>
     /// </summary>
     /// <param name="useHundredths">If to use the hundredths instead of milliseconds (for better looks on TMUF for example)</param>
     /// <param name="useApostrophe">If to use ' instead of a colon and '' instead of a dot (to resolve cases where colon is not allowed for example).</param>
+    /// <param name="compact">Whether to omit leading zeros and separators for times under 1 minute. Ideal for time deltas.</param>
     /// <returns>A string representation of Trackmania time format.</returns>
-    string ToString(bool useHundredths = false, bool useApostrophe = false);
+    string ToString(bool useHundredths = false, bool useApostrophe = false, bool compact = false);
 }
