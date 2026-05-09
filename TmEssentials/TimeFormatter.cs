@@ -41,13 +41,11 @@ internal static class TimeFormatter
                                     float totalDays,
                                     bool isNegative,
                                     bool useHundredths = false,
-                                    bool useApostrophe = false)
+                                    bool useApostrophe = false,
+                                    bool compact = false)
     {
-        var colonSep = useApostrophe ? '\'' : ':';
+        var colonSeparator = useApostrophe ? '\'' : ':';
 
-#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        var length = (useApostrophe ? 8 : 7) + (useHundredths ? 0 : 1);
-#endif
         if (isNegative)
         {
             milliseconds = -milliseconds;
@@ -55,175 +53,125 @@ internal static class TimeFormatter
             minutes = -minutes;
             hours = -hours;
             days = -days;
-
-#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            length++;
-#else
-            totalHours = -totalHours;
-            totalDays = -totalDays;
-#endif
         }
-
-#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        var hasDays = days > 0;
-
-        if (hasDays || hours > 0)
-        {
-            length += 3;
-
-            if (hasDays || hours >= 10)
-            {
-                length++;
-            }
-
-            if (hasDays)
-            {
-                if (days < 10) length += 2;
-                else if (days < 100) length += 3;
-                else if (days < 1000) length += 4;
-                else if (days < 10000) length += 5;
-                else if (days < 100000) length += 6;
-                else if (days < 1000000) length += 7;
-                else if (days < 10000000) length += 8;
-                else if (days < 100000000) length += 9;
-                else if (days < 1000000000) length += 10;
-            }
-        }
-        else if (minutes >= 10)
-        {
-            length++;
-        }
-
-        Span<char> array = stackalloc char[length];
 
         if (useHundredths)
         {
             milliseconds /= 10;
         }
 
-        if (milliseconds < 10)
+        // compact mode only applies when total time is under 1 minute
+        var useCompact = compact && days == 0 && hours == 0 && minutes == 0;
+
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        Span<char> buffer = stackalloc char[32];
+        int pos = 0;
+
+        if (isNegative)
+            buffer[pos++] = '-';
+
+        if (useCompact)
         {
-            milliseconds.TryFormat(array.Slice(length - 1), out int _);
-            array[length - 2] = '0';
-            array[length - 3] = '0';
-        }
-        else if (milliseconds < 100)
-        {
-            milliseconds.TryFormat(array.Slice(length - 2), out int _);
-            array[length - 3] = '0';
+            seconds.TryFormat(buffer.Slice(pos), out int secondCharsWritten);
+            pos += secondCharsWritten;
         }
         else
         {
-            milliseconds.TryFormat(array.Slice(length - 3), out int _);
+            if (days > 0)
+            {
+                days.TryFormat(buffer.Slice(pos), out int dayCharsWritten);
+                pos += dayCharsWritten;
+                buffer[pos++] = colonSeparator;
+            }
+
+            if (days > 0 || hours > 0)
+            {
+                if (days > 0 && hours < 10) buffer[pos++] = '0';
+                hours.TryFormat(buffer.Slice(pos), out int hourCharsWritten);
+                pos += hourCharsWritten;
+                buffer[pos++] = colonSeparator;
+            }
+
+            if ((days > 0 || hours > 0) && minutes < 10)
+                buffer[pos++] = '0';
+            minutes.TryFormat(buffer.Slice(pos), out int minuteCharsWritten);
+            pos += minuteCharsWritten;
+
+            buffer[pos++] = colonSeparator;
+
+            if (seconds < 10) buffer[pos++] = '0';
+            seconds.TryFormat(buffer.Slice(pos), out int secondCharsWritten);
+            pos += secondCharsWritten;
         }
-
-        var msLength = useHundredths ? 2 : 3;
-
-        array[length - msLength - 1] = useApostrophe ? '\'' : '.';
 
         if (useApostrophe)
         {
-            msLength++;
-            array[length - msLength - 1] = '\'';
-        }
-
-        if (seconds < 10)
-        {
-            seconds.TryFormat(array.Slice(length - msLength - 2), out int _);
-            array[length - msLength - 3] = '0';
+            buffer[pos++] = '\'';
+            buffer[pos++] = '\'';
         }
         else
         {
-            seconds.TryFormat(array.Slice(length - msLength - 3), out int _);
+            buffer[pos++] = '.';
         }
 
-        array[length - msLength - 4] = colonSep;
+        if (!useHundredths && milliseconds < 100) buffer[pos++] = '0';
+        if (milliseconds < 10) buffer[pos++] = '0';
+        milliseconds.TryFormat(buffer.Slice(pos), out int millisecondsWritten);
+        pos += millisecondsWritten;
 
-        minutes.TryFormat(array.Slice(length - msLength - (minutes < 10 ? 5 : 6)), out int _);
-
-        if (hours > 0 || days > 0)
-        {
-            if (minutes < 10)
-            {
-                array[length - msLength - 6] = '0';
-            }
-
-            array[length - msLength - 7] = colonSep;
-
-            hours.TryFormat(array.Slice(length - msLength - (hours < 10 ? 8 : 9)), out int _);
-
-            if (days > 0 && hours < 10)
-            {
-                array[length - msLength - 9] = '0';
-            }
-
-            if (days > 0)
-            {
-                array[length - msLength - 10] = colonSep;
-
-                if (isNegative)
-                {
-                    days.TryFormat(array.Slice(1), out int _);
-                }
-                else
-                {
-                    days.TryFormat(array, out int _);
-                }
-            }
-        }
-
+        return new string(buffer.Slice(0, pos));
+#else
         if (isNegative)
         {
-            array[0] = '-';
+            totalHours = -totalHours;
+            totalDays = -totalDays;
         }
 
-        return new string(array);
-#else
-		var formatBuilder = new StringBuilder();
+        var formatBuilder = new StringBuilder();
 
-		formatBuilder.Append(minutes);
+        if (isNegative)
+            formatBuilder.Append('-');
 
-		formatBuilder.Append(colonSep);
+        if (useCompact)
+        {
+            formatBuilder.Append(seconds);
+        }
+        else
+        {
+            if (totalDays >= 1)
+            {
+                formatBuilder.Append(days);
+                formatBuilder.Append(colonSeparator);
+            }
 
-		if (seconds < 10)
-			formatBuilder.Append(0);
-		formatBuilder.Append(seconds);
+            if (totalHours >= 1)
+            {
+                if (totalDays >= 1 && hours < 10)
+                    formatBuilder.Append('0');
+                formatBuilder.Append(hours);
+                formatBuilder.Append(colonSeparator);
+            }
 
-		formatBuilder.Append(useApostrophe ? "''" : '.');
+            if (totalHours >= 1 && minutes < 10)
+                formatBuilder.Append('0');
+            formatBuilder.Append(minutes);
 
-		if (milliseconds < 100)
-			formatBuilder.Append(0);
-		if (milliseconds < 10)
-			formatBuilder.Append(0);
-		formatBuilder.Append(milliseconds);
+            formatBuilder.Append(colonSeparator);
 
-		if (useHundredths)
-			formatBuilder.Remove(formatBuilder.Length - 1, 1);
+            if (seconds < 10)
+                formatBuilder.Append('0');
+            formatBuilder.Append(seconds);
+        }
 
-		if (totalHours >= 1)
-		{
-			if (minutes < 10)
-				formatBuilder.Insert(0, '0');
+        formatBuilder.Append(useApostrophe ? "''" : ".");
 
-			formatBuilder.Insert(0, colonSep);
-			formatBuilder.Insert(0, hours);
-		}
+        if (!useHundredths && milliseconds < 100)
+            formatBuilder.Append('0');
+        if (milliseconds < 10)
+            formatBuilder.Append('0');
+        formatBuilder.Append(milliseconds);
 
-		if (totalDays >= 1)
-		{
-			if (hours < 10)
-				formatBuilder.Insert(0, '0');
-
-			formatBuilder.Insert(0, colonSep);
-			formatBuilder.Insert(0, days);
-		}
-
-		if (isNegative)
-		{
-			formatBuilder.Insert(0, '-');
-		}
-
-		return formatBuilder.ToString();
+        return formatBuilder.ToString();
 #endif
     }
 }

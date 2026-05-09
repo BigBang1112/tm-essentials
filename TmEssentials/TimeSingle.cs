@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 #endif
 using System.ComponentModel;
+using TmEssentials.Converters;
 
 namespace TmEssentials;
 
@@ -86,10 +87,11 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime,
     /// </summary>
     /// <param name="useHundredths">If to use the hundredths instead of milliseconds (for better looks on TMUF for example)</param>
     /// <param name="useApostrophe">If to use ' instead of a colon and '' instead of a dot (to resolve cases where colon is not allowed for example).</param>
+    /// <param name="compact">Whether to omit leading zeros and separators for times under 1 minute. Ideal for time deltas.</param>
     /// <returns>A string representation of Trackmania time format.</returns>
-    public string ToString(bool useHundredths = false, bool useApostrophe = false)
+    public string ToString(bool useHundredths = false, bool useApostrophe = false, bool compact = false)
     {
-        return TimeFormatter.ToTmString(Days, Hours, Minutes, Seconds, (int)Milliseconds, TotalHours, TotalDays, IsNegative, useHundredths, useApostrophe);
+        return TimeFormatter.ToTmString(Days, Hours, Minutes, Seconds, (int)Milliseconds, TotalHours, TotalDays, IsNegative, useHundredths, useApostrophe, compact);
     }
 
     /// <summary>
