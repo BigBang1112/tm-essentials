@@ -228,28 +228,29 @@ public static class TextFormatter
             return;
         }
 
-        if (element[element.Length - 1] == 'z' || element[element.Length - 1] == 'g')
+        if (element.Length == 2 && element[1] is 'z' or 'Z' or 'g' or 'G')
         {
             output.Append(AnsiDefault);
             return;
         }
 
-        if (element.Length <= 3)
+        if (element.Length is < 2 or > 4)
         {
-            for (var i = 0; i < element.Length; i++)
+            return;
+        }
+
+        for (var i = 1; i < element.Length; i++)
+        {
+            if (!IsHex(element[i]))
             {
-                if (element[i] < '0' || element[i] > 'F')
-                {
-                    return;
-                }
+                return;
             }
         }
 
-        var colorInt16 = Convert.ToInt16(element.Substring(1), 16);
-
-        var r = 0x11 * ((colorInt16 & 0xF00) >> 8);
-        var g = 0x11 * ((colorInt16 & 0x0F0) >> 4);
-        var b = 0x11 * (colorInt16 & 0x00F);
+        // Missing color channels are zero, like in the game ($f is $f00)
+        var r = 0x11 * HexValue(element[1]);
+        var g = element.Length > 2 ? 0x11 * HexValue(element[2]) : 0;
+        var b = element.Length > 3 ? 0x11 * HexValue(element[3]) : 0;
 
         var color = Color.FromArgb(r, g, b);
 
@@ -703,6 +704,11 @@ public static class TextFormatter
     private static bool IsHex(char c) => (c >= '0' && c <= '9') ||
                                          (c >= 'a' && c <= 'f') ||
                                          (c >= 'A' && c <= 'F');
+
+    /// <summary>
+    /// Returns the value of a hex digit that passed <see cref="IsHex(char)"/>.
+    /// </summary>
+    private static int HexValue(char c) => c <= '9' ? c - '0' : (c | 0x20) - 'a' + 10;
 
     private enum MarkupType
     {

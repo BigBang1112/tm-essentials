@@ -573,16 +573,62 @@ public class TextFormatterTests
     }
 
     [Test]
-    public async Task AppendAnsiText_WithInvalidColorCode_AppendsNothing()
+    [Arguments("$")]
+    [Arguments("$G2")]
+    [Arguments("$xyz")]
+    [Arguments("$o")]
+    [Arguments("$12g")]
+    [Arguments("$abz")]
+    [Arguments("$ffff")]
+    [Arguments("$fffff")]
+    public async Task AppendAnsiText_WithInvalidColorCode_AppendsNothing(string element)
     {
         // Arrange
         var output = new StringBuilder();
 
         // Act
-        TextFormatter.AppendAnsiText(output, "$G2");
+        TextFormatter.AppendAnsiText(output, element);
 
         // Assert
         await Assert.That(output.ToString()).IsEmpty();
+    }
+
+    [Test]
+    [Arguments("$f00", "\u001b[1;31m")]
+    [Arguments("$F00", "\u001b[1;31m")]
+    [Arguments("$f", "\u001b[1;31m")]
+    [Arguments("$f0", "\u001b[1;31m")]
+    [Arguments("$0f", "\u001b[1;32m")]
+    [Arguments("$00f", "\u001b[1;34m")]
+    [Arguments("$fff", "\u001b[1;37m")]
+    [Arguments("$aBc", "\u001b[1;36m")]
+    public async Task AppendAnsiText_WithColorCode_AppendsAnsiColor(string element, string expected)
+    {
+        // Arrange
+        var output = new StringBuilder();
+
+        // Act
+        TextFormatter.AppendAnsiText(output, element);
+
+        // Assert
+        await Assert.That(output.ToString()).IsEqualTo(expected);
+    }
+
+    [Test]
+    [Arguments("$z")]
+    [Arguments("$Z")]
+    [Arguments("$g")]
+    [Arguments("$G")]
+    public async Task AppendAnsiText_WithResetCode_AppendsAnsiDefault(string element)
+    {
+        // Arrange
+        var output = new StringBuilder();
+
+        // Act
+        TextFormatter.AppendAnsiText(output, element);
+
+        // Assert
+        await Assert.That(output.ToString()).IsEqualTo(TextFormatter.AnsiDefault);
     }
 
     [Test]
