@@ -317,12 +317,28 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime,
     {
         if (TimeSpan.TryParseExact(s, TimeFormatter.TimeFormats, provider, out var timeSpan))
         {
-            result = (TimeInt32)(s?.Length > 0 && s[0] == '-' ? -timeSpan : timeSpan);
-            return true;
+            return TryFromTimeSpan(s?.Length > 0 && s[0] == '-' ? -timeSpan : timeSpan, out result);
         }
 
         result = default;
         return false;
+    }
+
+    /// <summary>
+    /// Converts a <see cref="TimeSpan"/> to whole milliseconds (truncated), if it fits into <see cref="TimeInt32"/>.
+    /// </summary>
+    private static bool TryFromTimeSpan(TimeSpan timeSpan, out TimeInt32 result)
+    {
+        var totalMilliseconds = timeSpan.Ticks / TimeSpan.TicksPerMillisecond;
+
+        if (totalMilliseconds is < int.MinValue or > int.MaxValue)
+        {
+            result = default;
+            return false;
+        }
+
+        result = new((int)totalMilliseconds);
+        return true;
     }
 
     /// <summary>
@@ -364,8 +380,7 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime,
         if (TimeSpan.TryParseExact(s.ToString(), TimeFormatter.TimeFormats, provider, out var timeSpan))
 #endif
         {
-            result = (TimeInt32)(s.Length > 0 && s[0] == '-' ? -timeSpan : timeSpan);
-            return true;
+            return TryFromTimeSpan(s.Length > 0 && s[0] == '-' ? -timeSpan : timeSpan, out result);
         }
 
         result = default;
@@ -498,12 +513,21 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime,
     public static implicit operator TimeSpan(TimeInt32 t) => TimeSpan.FromMilliseconds(t.TotalMilliseconds);
 
     /// <summary>
-    /// Implicitly converts a <see cref="TimeSpan"/> to a <see cref="TimeInt32"/> instance.
+    /// Explicitly converts a <see cref="TimeSpan"/> to a <see cref="TimeInt32"/> instance, truncated to whole milliseconds.
     /// </summary>
-    public static implicit operator TimeInt32(TimeSpan t) => FromMilliseconds((float)t.TotalMilliseconds);
+    /// <exception cref="OverflowException"><paramref name="t"/> is out of the <see cref="TimeInt32"/> range (about ±24.8 days).</exception>
+    public static explicit operator TimeInt32(TimeSpan t)
+    {
+        if (TryFromTimeSpan(t, out var result))
+        {
+            return result;
+        }
+
+        throw new OverflowException("TimeSpan is out of the TimeInt32 range.");
+    }
 
     /// <summary>
-    /// Implicitly converts a <see cref="TimeSingle"/> to a <see cref="TimeInt32"/> instance.
+    /// Explicitly converts a <see cref="TimeSingle"/> to a <see cref="TimeInt32"/> instance, rounded to the nearest millisecond.
     /// </summary>
-    public static implicit operator TimeInt32(TimeSingle t) => FromSeconds(t.TotalSeconds);
+    public static explicit operator TimeInt32(TimeSingle t) => t.ToTimeInt32();
 }

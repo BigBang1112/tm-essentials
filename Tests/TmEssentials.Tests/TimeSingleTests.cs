@@ -516,6 +516,46 @@ public class TimeSingleTests
     }
 
     [Test]
+    [Arguments(0.251f, 251)]
+    [Arguments(0.009f, 9)]
+    [Arguments(-0.251f, -251)]
+    [Arguments(0.9996f, 1000)]
+    [Arguments(0.0004f, 0)]
+    public async Task ToTimeInt32_WithFloatError_RoundsToNearestMillisecond(float totalSeconds, int expectedMilliseconds)
+    {
+        // Arrange
+        var time = new TimeSingle(totalSeconds);
+
+        // Act
+        var result = time.ToTimeInt32();
+        var castResult = (TimeInt32)time;
+
+        // Assert
+        await Assert.That(result.TotalMilliseconds).IsEqualTo(expectedMilliseconds);
+        await Assert.That(castResult.TotalMilliseconds).IsEqualTo(expectedMilliseconds);
+    }
+
+    [Test]
+    public async Task ToTimeInt32_ForEveryMillisecondUnderOneMinute_ReturnsSameMilliseconds()
+    {
+        // Arrange
+        var mismatch = -1;
+
+        // Act
+        for (var ms = 0; ms < 60_000; ms++)
+        {
+            if (new TimeSingle(ms / 1000f).ToTimeInt32().TotalMilliseconds != ms)
+            {
+                mismatch = ms;
+                break;
+            }
+        }
+
+        // Assert
+        await Assert.That(mismatch).IsEqualTo(-1);
+    }
+
+    [Test]
     public async Task GreaterThanOperator_WhenLeftIsGreater_ReturnsTrue()
     {
         // Arrange
@@ -1094,5 +1134,45 @@ public class TimeSingleTests
 
         // Assert
         await Assert.That(result).IsEqualTo("-1:23.456");
+    }
+
+    [Test]
+    [Arguments(0.251f, false, "0:00.251")]
+    [Arguments(0.251f, true, "0:00.25")]
+    [Arguments(-0.251f, false, "-0:00.251")]
+    [Arguments(0.9996f, false, "0:01.000")]
+    [Arguments(59.9999f, false, "1:00.000")]
+    [Arguments(3_599.9996f, false, "1:00:00.000")]
+    [Arguments(-0.0001f, false, "0:00.000")]
+    public async Task ToString_WithFloatError_RoundsToNearestMillisecond(float totalSeconds, bool useHundredths, string expected)
+    {
+        // Arrange
+        var time = new TimeSingle(totalSeconds);
+
+        // Act
+        var result = time.ToString(useHundredths);
+
+        // Assert
+        await Assert.That(result).IsEqualTo(expected);
+    }
+
+    [Test]
+    public async Task ToString_ForEveryMillisecondUnderOneMinute_MatchesTimeInt32()
+    {
+        // Arrange
+        var mismatch = -1;
+
+        // Act
+        for (var ms = 0; ms < 60_000; ms++)
+        {
+            if (new TimeSingle(ms / 1000f).ToString() != new TimeInt32(ms).ToString())
+            {
+                mismatch = ms;
+                break;
+            }
+        }
+
+        // Assert
+        await Assert.That(mismatch).IsEqualTo(-1);
     }
 }

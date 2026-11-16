@@ -91,8 +91,23 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime,
     /// <returns>A string representation of Trackmania time format.</returns>
     public string ToString(bool useHundredths = false, bool useApostrophe = false, bool compact = false)
     {
-        return TimeFormatter.ToTmString(Days, Hours, Minutes, Seconds, (int)Milliseconds, IsNegative, useHundredths, useApostrophe, compact);
+        var totalMilliseconds = RoundedTotalMilliseconds;
+
+        return TimeFormatter.ToTmString(
+            days: (int)(totalMilliseconds / 86_400_000),
+            hours: (int)(totalMilliseconds / 3_600_000 % 24),
+            minutes: (int)(totalMilliseconds / 60_000 % 60),
+            seconds: (int)(totalMilliseconds / 1_000 % 60),
+            milliseconds: (int)(totalMilliseconds % 1_000),
+            isNegative: totalMilliseconds < 0,
+            useHundredths, useApostrophe, compact);
     }
+
+    /// <summary>
+    /// The total number of milliseconds, rounded to the nearest whole millisecond. This removes float errors,
+    /// for example 0.251 seconds is 250.99998 milliseconds as a float and becomes 251.
+    /// </summary>
+    private long RoundedTotalMilliseconds => (long)Math.Round(TotalSeconds * 1000d, MidpointRounding.AwayFromZero);
 
     /// <summary>
     /// Converts the value of the current <see cref="TimeSingle"/> to a Trackmania familiar time format with milliseconds and without apostrophes.
@@ -275,10 +290,10 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime,
     }
 
     /// <summary>
-    /// Converts this <see cref="TimeSingle"/> to its equal <see cref="TimeInt32"/> value.
+    /// Converts this <see cref="TimeSingle"/> to its equal <see cref="TimeInt32"/> value, rounded to the nearest millisecond.
     /// </summary>
     /// <returns>A <see cref="TimeInt32"/>.</returns>
-    public TimeInt32 ToTimeInt32() => new((int)TotalMilliseconds);
+    public TimeInt32 ToTimeInt32() => new((int)RoundedTotalMilliseconds);
 
     /// <inheritdoc />
     public static bool TryParse(

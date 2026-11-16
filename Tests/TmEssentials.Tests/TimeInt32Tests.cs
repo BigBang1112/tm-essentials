@@ -829,26 +829,59 @@ public class TimeInt32Tests
     }
 
     [Test]
-    public async Task ImplicitConversionFromTimeSpan_WithTimeSpan_ReturnsEquivalentTime()
+    public async Task ExplicitConversionFromTimeSpan_WithTimeSpan_ReturnsEquivalentTime()
     {
         // Arrange
         var timeSpan = TimeSpan.FromMilliseconds(500);
 
         // Act
-        TimeInt32 result = timeSpan;
+        var result = (TimeInt32)timeSpan;
 
         // Assert
         await Assert.That(result).IsEqualTo(new TimeInt32(500));
     }
 
     [Test]
-    public async Task ImplicitConversionFromTimeSingle_WithTimeSingle_ReturnsEquivalentTime()
+    [Arguments(180_000_010_000L, 18_000_001)]
+    [Arguments(180_000_019_999L, 18_000_001)]
+    [Arguments(-180_000_019_999L, -18_000_001)]
+    [Arguments(864_000_000_000L - 10_000L, 86_399_999)]
+    [Arguments(int.MaxValue * 10_000L + 9_999L, int.MaxValue)]
+    [Arguments(int.MinValue * 10_000L - 9_999L, int.MinValue)]
+    public async Task ExplicitConversionFromTimeSpan_WithLargeTimeSpan_KeepsEveryMillisecond(long ticks, int expectedTotalMilliseconds)
+    {
+        // Act
+        var result = (TimeInt32)TimeSpan.FromTicks(ticks);
+
+        // Assert
+        await Assert.That(result.TotalMilliseconds).IsEqualTo(expectedTotalMilliseconds);
+    }
+
+    [Test]
+    [Arguments(int.MaxValue + 1L)]
+    [Arguments(int.MinValue - 1L)]
+    [Arguments(long.MaxValue / 10_000)]
+    [Arguments(long.MinValue / 10_000)]
+    public async Task ExplicitConversionFromTimeSpan_WithTimeSpanOutOfRange_ThrowsOverflowException(long totalMilliseconds)
+    {
+        // Arrange
+        var timeSpan = TimeSpan.FromTicks(totalMilliseconds * 10_000);
+
+        // Act
+        var act = () => (TimeInt32)timeSpan;
+
+        // Assert
+        await Assert.That(act).ThrowsExactly<OverflowException>();
+    }
+
+    [Test]
+    public async Task ExplicitConversionFromTimeSingle_WithTimeSingle_ReturnsEquivalentTime()
     {
         // Arrange
         var timeSingle = new TimeSingle(1.5f);
 
         // Act
-        TimeInt32 result = timeSingle;
+        var result = (TimeInt32)timeSingle;
 
         // Assert
         await Assert.That(result).IsEqualTo(new TimeInt32(1_500));
@@ -1085,6 +1118,52 @@ public class TimeInt32Tests
         // Assert
         await Assert.That(success).IsFalse();
         await Assert.That(time).IsEqualTo(TimeInt32.Zero);
+    }
+
+    [Test]
+    [Arguments("4:39:37.999", 16_777_999)]
+    [Arguments("5:00:00.001", 18_000_001)]
+    [Arguments("23:59:59.999", 86_399_999)]
+    [Arguments("-23:59:59.999", -86_399_999)]
+    [Arguments("24:20:31:23.647", int.MaxValue)]
+    [Arguments("-24:20:31:23.648", int.MinValue)]
+    public async Task Parse_WithLargeTimeString_KeepsEveryMillisecond(string input, int expectedTotalMilliseconds)
+    {
+        // Act
+        var fromString = TimeInt32.Parse(input);
+        var fromSpan = TimeInt32.Parse(input.AsSpan());
+
+        // Assert
+        await Assert.That(fromString.TotalMilliseconds).IsEqualTo(expectedTotalMilliseconds);
+        await Assert.That(fromSpan.TotalMilliseconds).IsEqualTo(expectedTotalMilliseconds);
+        await Assert.That(fromString.ToString()).IsEqualTo(input);
+    }
+
+    [Test]
+    [Arguments("24:20:31:23.648")]
+    [Arguments("-24:20:31:23.649")]
+    [Arguments("30:00:00:00.000")]
+    public async Task TryParse_WithTimeOutOfRange_ReturnsFalseAndZero(string input)
+    {
+        // Act
+        var successFromString = TimeInt32.TryParse(input, out var fromString);
+        var successFromSpan = TimeInt32.TryParse(input.AsSpan(), out var fromSpan);
+
+        // Assert
+        await Assert.That(successFromString).IsFalse();
+        await Assert.That(fromString).IsEqualTo(TimeInt32.Zero);
+        await Assert.That(successFromSpan).IsFalse();
+        await Assert.That(fromSpan).IsEqualTo(TimeInt32.Zero);
+    }
+
+    [Test]
+    public async Task Parse_WithTimeOutOfRange_ThrowsFormatException()
+    {
+        // Act
+        var act = () => TimeInt32.Parse("30:00:00:00.000");
+
+        // Assert
+        await Assert.That(act).ThrowsExactly<FormatException>();
     }
 
     [Test]
