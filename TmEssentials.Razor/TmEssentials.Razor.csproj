@@ -69,10 +69,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="wwwroot\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\TmEssentials\TmEssentials.csproj" />
     </ItemGroup>
 

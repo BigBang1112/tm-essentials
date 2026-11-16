@@ -440,6 +440,58 @@ public class TextFormatterTests
     }
 
     [Test]
+    [Arguments('', true)]
+    [Arguments('', true)]
+    [Arguments('', true)]
+    [Arguments('', false)]
+    [Arguments('', false)]
+    [Arguments('', false)]
+    [Arguments('A', false)]
+    public async Task IsFontAwesomeIcon_WithCharacter_ReturnsWhetherInFontAwesome47Range(char c, bool expected)
+    {
+        // Act
+        var actual = TextFormatter.IsFontAwesomeIcon(c);
+
+        // Assert
+        await Assert.That(actual).IsEqualTo(expected);
+    }
+
+    [Test]
+    [Arguments(" Winner", "<span class=\"fa\"></span> Winner")]
+    [Arguments("AB", "A<span class=\"fa\"></span>B")]
+    [Arguments("$f00", "<span style=\"color:#f00\"><span class=\"fa\"></span></span>")]
+    [Arguments("<>", "&lt;<span class=\"fa\"></span>&gt;")]
+    [Arguments(" Player", " Player")]
+    public async Task FormatHtml_WithIconCssClass_WrapsFontAwesomeIcons(string input, string expected)
+    {
+        // Act
+        var actual = TextFormatter.FormatHtml(input, allowLinks: false, allowManialinks: false, iconCssClass: "fa");
+
+        // Assert
+        await Assert.That(actual).IsEqualTo(expected);
+    }
+
+    [Test]
+    public async Task FormatHtml_WithoutIconCssClass_DoesNotWrapIcons()
+    {
+        // Act
+        var actual = TextFormatter.FormatHtml(" Winner");
+
+        // Assert
+        await Assert.That(actual).IsEqualTo(" Winner");
+    }
+
+    [Test]
+    public async Task FormatHtml_WithIconCssClassContainingQuote_EncodesIt()
+    {
+        // Act
+        var actual = TextFormatter.FormatHtml("", allowLinks: false, allowManialinks: false, iconCssClass: "a\"b");
+
+        // Assert
+        await Assert.That(actual).IsEqualTo("<span class=\"a&quot;b\"></span>");
+    }
+
+    [Test]
     public async Task AppendAnsiText_WithEmptyElement_AppendsNothing()
     {
         // Arrange

@@ -311,6 +311,13 @@ public static class TextFormatter
     }
 
     /// <summary>
+    /// Checks if the character is a Font Awesome 4.7 icon. The game renders these private use characters (U+F000 to U+F2E0) as icons.
+    /// </summary>
+    /// <param name="c">A character.</param>
+    /// <returns>True if the character is a Font Awesome 4.7 icon, otherwise false.</returns>
+    public static bool IsFontAwesomeIcon(char c) => c is >= '' and <= '';
+
+    /// <summary>
     /// Formats a Nadeo string into a HTML format.
     /// </summary>
     /// <param name="input">The input Nadeo string.</param>
@@ -318,6 +325,23 @@ public static class TextFormatter
     /// <param name="allowManialinks">Whether manialinks ($h and $p) should be processed.</param>
     /// <returns>A Nadeo string formatted as HTML.</returns>
     public static string FormatHtml(string? input, bool allowLinks = false, bool allowManialinks = false)
+    {
+        return FormatHtml(input, allowLinks, allowManialinks, iconCssClass: null);
+    }
+
+    /// <summary>
+    /// Formats a Nadeo string into a HTML format, with the Font Awesome icons wrapped in elements of a CSS class.
+    /// </summary>
+    /// <param name="input">The input Nadeo string.</param>
+    /// <param name="allowLinks">Whether standard links ($l) should be processed.</param>
+    /// <param name="allowManialinks">Whether manialinks ($h and $p) should be processed.</param>
+    /// <param name="iconCssClass">
+    /// The CSS class of the <c>span</c> elements wrapped around Font Awesome icons (see <see cref="IsFontAwesomeIcon(char)"/>),
+    /// so that they can be displayed with a Font Awesome 4.7 font. For example, <c>fa</c> with the Font Awesome 4.7 stylesheet.
+    /// Null to not wrap the icons.
+    /// </param>
+    /// <returns>A Nadeo string formatted as HTML.</returns>
+    public static string FormatHtml(string? input, bool allowLinks, bool allowManialinks, string? iconCssClass)
     {
         if (input is null or "")
         {
@@ -421,10 +445,12 @@ public static class TextFormatter
 
         // Build HTML with inline styles
         var sb = new StringBuilder();
+        var iconStartTag = string.IsNullOrEmpty(iconCssClass) ? null : $"<span class=\"{WebUtility.HtmlEncode(iconCssClass)}\">";
+
         foreach (var seg in segments)
         {
             var css = seg.Style.ToCss();
-            var encoded = WebUtility.HtmlEncode(seg.Text);
+            var encoded = EncodeHtmlText(seg.Text, iconStartTag);
 
             if (!string.IsNullOrEmpty(seg.Style.LinkUrl))
             {
@@ -443,6 +469,62 @@ public static class TextFormatter
         }
 
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// Encodes the text for HTML, with runs of Font Awesome icons wrapped in <paramref name="iconStartTag"/> if it is not null.
+    /// </summary>
+    private static string EncodeHtmlText(string text, string? iconStartTag)
+    {
+        if (iconStartTag is null)
+        {
+            return WebUtility.HtmlEncode(text);
+        }
+
+        var iconStart = IndexOfFontAwesomeIcon(text, 0);
+
+        if (iconStart == -1)
+        {
+            return WebUtility.HtmlEncode(text);
+        }
+
+        var output = new StringBuilder();
+        var textStart = 0;
+
+        while (iconStart != -1)
+        {
+            var iconEnd = iconStart + 1;
+
+            while (iconEnd < text.Length && IsFontAwesomeIcon(text[iconEnd]))
+            {
+                iconEnd++;
+            }
+
+            output.Append(WebUtility.HtmlEncode(text.Substring(textStart, iconStart - textStart)));
+            output.Append(iconStartTag);
+            output.Append(text, iconStart, iconEnd - iconStart);
+            output.Append("</span>");
+
+            textStart = iconEnd;
+            iconStart = IndexOfFontAwesomeIcon(text, iconEnd);
+        }
+
+        output.Append(WebUtility.HtmlEncode(text.Substring(textStart)));
+
+        return output.ToString();
+    }
+
+    private static int IndexOfFontAwesomeIcon(string text, int startIndex)
+    {
+        for (var i = startIndex; i < text.Length; i++)
+        {
+            if (IsFontAwesomeIcon(text[i]))
+            {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     /// <summary>

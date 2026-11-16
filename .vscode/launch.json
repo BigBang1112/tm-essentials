@@ -1,0 +1,50 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Blazor Sample: Debug (Edge)",
+            "type": "blazorwasm",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/Samples/BlazorSample",
+            "browser": "edge",
+            "presentation": {
+                "group": "Blazor Sample",
+                "order": 1
+            }
+        },
+        {
+            "name": "Blazor Sample: Watch",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "dotnet watch --launch-profile http",
+            "cwd": "${workspaceFolder}/Samples/BlazorSample",
+            "env": {
+                "DOTNET_WATCH_RESTART_ON_RUDE_EDIT": "1"
+            },
+            "presentation": {
+                "group": "Blazor Sample",
+                "order": 2
+            }
+        },
+        {
+            "name": "Blazor Sample: Watch (Integrated Browser)",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "dotnet watch --launch-profile http",
+            "cwd": "${workspaceFolder}/Samples/BlazorSample",
+            "env": {
+                "DOTNET_WATCH_SUPPRESS_LAUNCH_BROWSER": "1",
+                "DOTNET_WATCH_RESTART_ON_RUDE_EDIT": "1"
+            },
+            "serverReadyAction": {
+                "action": "openIntegratedBrowser",
+                "pattern": "Now listening on:\\s+(https?://\\S+)",
+                "uriFormat": "%s"
+            },
+            "presentation": {
+                "group": "Blazor Sample",
+                "order": 3
+            }
+        }
+    ]
+}

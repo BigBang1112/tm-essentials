@@ -14,6 +14,7 @@
   </Folder>
   <Project Path="TmEssentials.Benchmarks/TmEssentials.Benchmarks.csproj" />
   <Project Path="TmEssentials.Razor/TmEssentials.Razor.csproj" />
+  <Project Path="TmEssentials.Razor.Tests/TmEssentials.Razor.Tests.csproj" />
   <Project Path="TmEssentials.Tests/TmEssentials.Tests.csproj" />
   <Project Path="TmEssentials/TmEssentials.csproj" />
 </Solution>

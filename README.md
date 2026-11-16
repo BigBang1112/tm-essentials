@@ -90,6 +90,38 @@ Console.WriteLine(deformatted);
 
 `TextFormatter.FormatHtml()`
 
+```cs
+var html = TextFormatter.FormatHtml("$f00Red $l[https://trackmania.io]link$l", allowLinks: true);
+// Output: <span style="color:#f00">Red </span><a href="https://trackmania.io" style="color:#f00">link</a>
+```
+
+### Icons
+
+Trackmania renders the private use characters U+F000 to U+F2E0 as [Font Awesome 4.7](https://fontawesome.com/v4/icons/) icons (see [Text Styling](https://wiki.trackmania.io/en/content-creation/text-styling#font-awesome)). Pass a CSS class to wrap them in `<span>` elements, so that a page can display them with the icon font:
+
+```cs
+var html = TextFormatter.FormatHtml(" Winner", allowLinks: false, allowManialinks: false, iconCssClass: "fa");
+// Output: <span class="fa"></span> Winner
+```
+
+`fa` works with the Font Awesome 4.7 stylesheet, or use `tm-icon` with the stylesheet of TmEssentials.Razor.
+
+## Blazor
+
+The TmEssentials.Razor package provides the `FormattedText` component:
+
+```razor
+<FormattedText Text="$f00Red $l[https://trackmania.io]link$l" AllowLinks="true" />
+```
+
+To display the icons, add the stylesheet that comes with the package (it includes the Font Awesome 4.7 font, licensed under the SIL OFL 1.1):
+
+```html
+<link rel="stylesheet" href="_content/TmEssentials.Razor/tm-essentials.css" />
+```
+
+Set `IconCssClass="fa"` if the page uses the Font Awesome 4.7 stylesheet instead, or `IconCssClass="@null"` to not wrap the icons.
+
 ## ANSI formatting
 
 Credits to [reaby](https://github.com/reaby) for the solution.

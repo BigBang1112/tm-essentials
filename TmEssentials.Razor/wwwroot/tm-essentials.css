@@ -1,0 +1,19 @@
+/*
+ * Displays the Font Awesome 4.7 icons that Trackmania renders from private use characters (U+F000 to U+F2E0).
+ * Font Awesome 4.7.0 by Dave Gandy - https://fontawesome.com - the font is licensed under the SIL OFL 1.1 (fonts/FontAwesome-OFL.txt).
+ */
+@font-face {
+    font-family: "TmEssentials Font Awesome";
+    src: url("fonts/fontawesome-webfont.woff2") format("woff2");
+    font-weight: normal;
+    font-style: normal;
+    font-display: block;
+    unicode-range: U+F000-F2E0;
+}
+
+.tm-icon {
+    font-family: "TmEssentials Font Awesome";
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
