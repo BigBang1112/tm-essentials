@@ -426,7 +426,7 @@ public class TextFormatterTests
         var actual = TextFormatter.FormatHtml("$l[u]A$<B$>C$l", allowLinks: true);
 
         // Assert
-        await Assert.That(actual).IsEqualTo("<a href=\"u\">A</a><a href=\"u\">B</a><a href=\"u\">C</a>");
+        await Assert.That(actual).IsEqualTo("<a href=\"http://u\">A</a><a href=\"http://u\">B</a><a href=\"http://u\">C</a>");
     }
 
     [Test]
@@ -436,7 +436,62 @@ public class TextFormatterTests
         var actual = TextFormatter.FormatHtml("$<$lexample.com$> after", allowLinks: true);
 
         // Assert
-        await Assert.That(actual).IsEqualTo("<a href=\"example.com\">example.com</a> after");
+        await Assert.That(actual).IsEqualTo("<a href=\"http://example.com\">example.com</a> after");
+    }
+
+    [Test]
+    [Arguments("$l[http://example.com]Site$l", "<a href=\"http://example.com\">Site</a>")]
+    [Arguments("$l[HTTPS://example.com]Site$l", "<a href=\"HTTPS://example.com\">Site</a>")]
+    [Arguments("$l[www.example.com]Site$l", "<a href=\"http://www.example.com\">Site</a>")]
+    [Arguments("$l[example.com/a:b]Site$l", "<a href=\"http://example.com/a:b\">Site</a>")]
+    [Arguments("$l[//example.com]Site$l", "<a href=\"http:////example.com\">Site</a>")]
+    public async Task FormatHtml_WithLink_HrefStartsWithHttp(string input, string expected)
+    {
+        // Act
+        var actual = TextFormatter.FormatHtml(input, allowLinks: true);
+
+        // Assert
+        await Assert.That(actual).IsEqualTo(expected);
+    }
+
+    [Test]
+    [Arguments("$l[javascript:alert(1)]Site$l")]
+    [Arguments("$l[JavaScript:alert(1)]Site$l")]
+    [Arguments("$l[data:text/html,<script>alert(1)</script>]Site$l")]
+    [Arguments("$l[vbscript:msgbox(1)]Site$l")]
+    [Arguments("$l[mailto:a@example.com]Site$l")]
+    [Arguments("$l[]Site$l")]
+    public async Task FormatHtml_WithLinkOfOtherScheme_ReturnsLinkTextOnly(string input)
+    {
+        // Act
+        var actual = TextFormatter.FormatHtml(input, allowLinks: true);
+
+        // Assert
+        await Assert.That(actual).IsEqualTo("Site");
+    }
+
+    [Test]
+    [Arguments("$l[ javascript:alert(1)]Site$l", "<a href=\"http:// javascript:alert(1)\">Site</a>")]
+    [Arguments("$l[java\tscript:alert(1)]Site$l", "<a href=\"http://java\tscript:alert(1)\">Site</a>")]
+    [Arguments("$l[java\nscript:alert(1)]Site$l", "<a href=\"http://java\nscript:alert(1)\">Site</a>")]
+    [Arguments("$l[\u0001javascript:alert(1)]Site$l", "<a href=\"http://\u0001javascript:alert(1)\">Site</a>")]
+    public async Task FormatHtml_WithObfuscatedScriptLink_PrefixesHttp(string input, string expected)
+    {
+        // Act
+        var actual = TextFormatter.FormatHtml(input, allowLinks: true);
+
+        // Assert
+        await Assert.That(actual).IsEqualTo(expected);
+    }
+
+    [Test]
+    public async Task FormatHtml_WithScriptLinkWithoutBrackets_ReturnsLinkTextOnly()
+    {
+        // Act
+        var actual = TextFormatter.FormatHtml("$ljavascript:alert(1)$l", allowLinks: true);
+
+        // Assert
+        await Assert.That(actual).IsEqualTo("javascript:alert(1)");
     }
 
     [Test]

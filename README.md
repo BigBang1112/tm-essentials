@@ -95,6 +95,8 @@ var html = TextFormatter.FormatHtml("$f00Red $l[https://trackmania.io]link$l", a
 // Output: <span style="color:#f00">Red </span><a href="https://trackmania.io" style="color:#f00">link</a>
 ```
 
+Links are safe to show from untrusted text. Only `http://` and `https://` URLs become links, URLs without a scheme (like `www.trackmania.com`) get `http://` in front, and URLs with any other scheme (like `javascript:`) are shown as plain text.
+
 ### Icons
 
 Trackmania renders the private use characters U+F000 to U+F2E0 as [Font Awesome 4.7](https://fontawesome.com/v4/icons/) icons (see [Text Styling](https://wiki.trackmania.io/en/content-creation/text-styling#font-awesome)). Pass a CSS class to wrap them in `<span>` elements, so that a page can display them with the icon font:

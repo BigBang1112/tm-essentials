@@ -105,6 +105,18 @@ public class FormattedTextTests : BunitContext
     }
 
     [Test]
+    public async Task Render_WithScriptLink_RendersTextOnly()
+    {
+        // Act
+        var cut = Render<FormattedText>(parameters => parameters
+            .Add(x => x.Text, "$l[javascript:alert(1)]Site$l")
+            .Add(x => x.AllowLinks, true));
+
+        // Assert
+        await Assert.That(cut.Markup).IsEqualTo("Site");
+    }
+
+    [Test]
     public async Task Render_WithDisallowedLink_RendersTextOnly()
     {
         // Act

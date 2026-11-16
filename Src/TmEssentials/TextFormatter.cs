@@ -429,7 +429,7 @@ public static class TextFormatter
                     style.InLink = true;
                     style.LinkUrl = markup.LinkType switch
                     {
-                        LinkType.External when allowLinks => markup.LinkUrl,
+                        LinkType.External when allowLinks => ToSafeExternalUrl(markup.LinkUrl),
                         LinkType.Manialink when allowManialinks => $"maniaplanet:///:{markup.LinkUrl}",
                         _ => null
                     };
@@ -470,6 +470,62 @@ public static class TextFormatter
 
         return sb.ToString();
     }
+
+    /// <summary>
+    /// Makes the URL of a <c>$l</c> link safe to use as <c>href</c>, so that formatted text from players cannot run scripts
+    /// (<c>javascript:</c>, <c>data:</c>, ...). HTTP(S) URLs are kept, URLs without a scheme get <c>http://</c>
+    /// (like <c>www.example.com</c>), and URLs with any other scheme are not linked.
+    /// </summary>
+    /// <returns>A URL that starts with <c>http://</c> or <c>https://</c>, or null if the link should not be clickable.</returns>
+    private static string? ToSafeExternalUrl(string? url)
+    {
+        if (string.IsNullOrEmpty(url))
+        {
+            return null;
+        }
+
+        if (url!.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+            url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        {
+            return url;
+        }
+
+        return HasUrlScheme(url) ? null : "http://" + url;
+    }
+
+    /// <summary>
+    /// Checks if the URL starts with a scheme followed by a colon, the same way as browsers do (<c>ALPHA *( ALPHA / DIGIT / "+" / "-" / "." ) ":"</c>).
+    /// </summary>
+    /// <remarks>
+    /// Anything that is not a valid scheme (like leading whitespace or a tab inside <c>java&#9;script:</c>) counts as no scheme,
+    /// so the URL then gets <c>http://</c> in front, and the browser cannot read it as another scheme.
+    /// </remarks>
+    private static bool HasUrlScheme(string url)
+    {
+        if (!IsAsciiLetter(url[0]))
+        {
+            return false;
+        }
+
+        for (var i = 1; i < url.Length; i++)
+        {
+            var c = url[i];
+
+            if (c == ':')
+            {
+                return true;
+            }
+
+            if (!IsAsciiLetter(c) && c is not (>= '0' and <= '9') and not '+' and not '-' and not '.')
+            {
+                return false;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool IsAsciiLetter(char c) => c is (>= 'a' and <= 'z') or (>= 'A' and <= 'Z');
 
     /// <summary>
     /// Encodes the text for HTML, with runs of Font Awesome icons wrapped in <paramref name="iconStartTag"/> if it is not null.
