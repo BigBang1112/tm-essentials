@@ -1,143 +1,160 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
 
 namespace TmEssentials.Tests;
 
 public class TextFormatterTests
 {
+    private const string KrazyColors = "$F00T$D01M$C13U$A14.$815K$727r$528a$329z$23By$03CC$03Co$04Bl$059o$068r$077s$085 $094v$0A30$0B1.$0C01";
+
     [Test]
     [Arguments("$l[https://google.com]My nickname$l")]
     [Arguments("$L[https://google.com]My nickname$l")]
-    public async Task Deformat_Links(string texts)
+    public async Task Deformat_WithLink_ReturnsLinkText(string input)
     {
-        var expected = "My nickname";
+        // Act
+        var actual = TextFormatter.Deformat(input);
 
-        var actual = TextFormatter.Deformat(texts);
+        // Assert
+        await Assert.That(actual).IsEqualTo("My nickname");
+    }
 
+    [Test]
+    [Arguments(KrazyColors, "TMU.KrazyColors v0.1")]
+    [Arguments("$abcC$f0o$del$befo$abr$aaas", "Colors")]
+    [Arguments("$abcC$fo$dl$befo$ar$aas", "Colors")]
+    public async Task Deformat_WithColorCodes_RemovesColorCodes(string input, string expected)
+    {
+        // Act
+        var actual = TextFormatter.Deformat(input);
+
+        // Assert
         await Assert.That(actual).IsEqualTo(expected);
     }
 
     [Test]
-    public async Task Deformat_Colors()
+    public async Task Deformat_WithManialink_ReturnsManialinkText()
     {
-        var expected = "TMU.KrazyColors v0.1";
+        // Arrange
+        var input = "$h[bigbang1112]BigBang1112$h";
 
-        var actual = TextFormatter.Deformat("$F00T$D01M$C13U$A14.$815K$727r$528a$329z$23By$03CC$03Co$04Bl$059o$068r$077s$085 $094v$0A30$0B1.$0C01");
+        // Act
+        var actual = TextFormatter.Deformat(input);
 
+        // Assert
+        await Assert.That(actual).IsEqualTo("BigBang1112");
+    }
+
+    [Test]
+    public async Task Deformat_WithStyleCodes_RemovesStyleCodes()
+    {
+        // Arrange
+        var input = "$<B$wi$ng$oB$ia$tn$sg$g1$z112$>";
+
+        // Act
+        var actual = TextFormatter.Deformat(input);
+
+        // Assert
+        await Assert.That(actual).IsEqualTo("BigBang1112");
+    }
+
+    [Test]
+    public async Task Deformat_WithEscapedDollars_KeepsSingleDollars()
+    {
+        // Arrange
+        var input = "$$B$$i$$g$$$B$$$a$$$$n$$$$g1112";
+
+        // Act
+        var actual = TextFormatter.Deformat(input);
+
+        // Assert
+        await Assert.That(actual).IsEqualTo("$B$i$g$$$$n$$g1112");
+    }
+
+    [Test]
+    public async Task Deformat_WithMaxReplacementCount_StopsAfterThatManyReplacements()
+    {
+        // Arrange
+        var input = "$<B$wi$ng$oB$ia$tn$sg$g1$z112$>";
+
+        // Act
+        var actual = TextFormatter.Deformat(input, maxReplacementCount: 2);
+
+        // Assert
+        await Assert.That(actual).IsEqualTo("Bi$ng$oB$ia$tn$sg$g1$z112$>");
+    }
+
+    [Test]
+    public async Task FormatAnsi_WithNull_ThrowsArgumentNullException()
+    {
+        // Act
+        var act = () => TextFormatter.FormatAnsi(null!);
+
+        // Assert
+        await Assert.That(act).ThrowsExactly<ArgumentNullException>();
+    }
+
+    [Test]
+    public async Task FormatAnsi_WithColorCodes_ReturnsAnsiColoredText()
+    {
+        // Arrange
+        var expected = "\u001b[1;31mT\u001b[1;31mM\u001b[1;31mU\u001b[0;31m.\u001b[0;35mK\u001b[0;35mr\u001b[0;34ma\u001b[0;34mz\u001b[1;34my\u001b[0;34mC\u001b[0;34mo\u001b[0;34ml\u001b[0;36mo\u001b[0;36mr\u001b[0;36ms\u001b[0;32m \u001b[0;32mv\u001b[0;32m0\u001b[0;32m.\u001b[0;32m1\u001b[39m\u001b[22m";
+
+        // Act
+        var actual = TextFormatter.FormatAnsi(KrazyColors);
+
+        // Assert
         await Assert.That(actual).IsEqualTo(expected);
     }
 
     [Test]
-    public async Task Deformat_Colors2()
+    public async Task AppendAnsiText_WithEmptyElement_AppendsNothing()
     {
-        var expected = "Colors";
-
-        var actual = TextFormatter.Deformat("$abcC$f0o$del$befo$abr$aaas");
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task Deformat_Colors1()
-    {
-        var expected = "Colors";
-
-        var actual = TextFormatter.Deformat("$abcC$fo$dl$befo$ar$aas");
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task Deformat_Manialink()
-    {
-        var expected = "BigBang1112";
-
-        var actual = TextFormatter.Deformat("$h[bigbang1112]BigBang1112$h");
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task Deformat_SimpleFormatters()
-    {
-        var expected = "BigBang1112";
-
-        var actual = TextFormatter.Deformat("$<B$wi$ng$oB$ia$tn$sg$g1$z112$>");
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task Deformat_DoubleDollar()
-    {
-        var expected = "$B$i$g$$$$n$$g1112";
-
-        var actual = TextFormatter.Deformat("$$B$$i$$g$$$B$$$a$$$$n$$$$g1112");
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task Deformat_MaxReplacementCountSetTo2()
-    {
-        var expected = "Bi$ng$oB$ia$tn$sg$g1$z112$>";
-
-        var actual = TextFormatter.Deformat("$<B$wi$ng$oB$ia$tn$sg$g1$z112$>", maxReplacementCount: 2);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task FormatAnsi_NullArgument_ThrowsArgumentNullException()
-    {
-        await Assert.That(() => TextFormatter.FormatAnsi(null)).ThrowsExactly<ArgumentNullException>();
-    }
-
-    [Test]
-    public async Task FormatAnsi_FormatsCorrectly()
-    {
-        var expected = "\\u001b[1;31mT\\u001b[1;31mM\\u001b[1;31mU\\u001b[0;31m.\\u001b[0;35mK\\u001b[0;35mr\\u001b[0;34ma\\u001b[0;34mz\\u001b[1;34my\\u001b[0;34mC\\u001b[0;34mo\\u001b[0;34ml\\u001b[0;36mo\\u001b[0;36mr\\u001b[0;36ms\\u001b[0;32m \\u001b[0;32mv\\u001b[0;32m0\\u001b[0;32m.\\u001b[0;32m1\\u001b[39m\\u001b[22m";
-
-        var actual = TextFormatter.FormatAnsi("$F00T$D01M$C13U$A14.$815K$727r$528a$329z$23By$03CC$03Co$04Bl$059o$068r$077s$085 $094v$0A30$0B1.$0C01")
-            .Replace("\x1B", "\\u001b"); // purely testing purposes
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task AppendAnsiText_WithEmptyElement_ShouldNotAppendAnything()
-    {
+        // Arrange
         var output = new StringBuilder();
+
+        // Act
         TextFormatter.AppendAnsiText(output, "");
 
-        await Assert.That(output.ToString()).IsEqualTo("");
+        // Assert
+        await Assert.That(output.ToString()).IsEmpty();
     }
 
     [Test]
-    public async Task AppendAnsiText_WithNonAnsiElement_ShouldAppendAsIs()
+    public async Task AppendAnsiText_WithPlainText_AppendsTextUnchanged()
     {
+        // Arrange
         var output = new StringBuilder();
+
+        // Act
         TextFormatter.AppendAnsiText(output, "Hello");
 
+        // Assert
         await Assert.That(output.ToString()).IsEqualTo("Hello");
     }
 
     [Test]
-    public async Task AppendAnsiText_WithInvalidAnsiCode_ShouldNotAppendAnything()
+    public async Task AppendAnsiText_WithInvalidColorCode_AppendsNothing()
     {
+        // Arrange
         var output = new StringBuilder();
+
+        // Act
         TextFormatter.AppendAnsiText(output, "$G2");
 
-        await Assert.That(output.ToString()).IsEqualTo("");
+        // Assert
+        await Assert.That(output.ToString()).IsEmpty();
     }
 
     [Test]
-    public async Task AppendAnsiText_WithBrightColor_ShouldAppendBoldAnsiCode()
+    public async Task AppendAnsiText_WithBrightColorCode_AppendsBoldAnsiColor()
     {
+        // Arrange
         var output = new StringBuilder();
-        TextFormatter.AppendAnsiText(output, "$FFF"); // White
 
-        // Assuming the bold code for white is "\x1B[1;37m"
-        await Assert.That(output.ToString()).IsEqualTo("\x1B[1;37m");
+        // Act
+        TextFormatter.AppendAnsiText(output, "$FFF");
+
+        // Assert
+        await Assert.That(output.ToString()).IsEqualTo("\u001b[1;37m");
     }
 }

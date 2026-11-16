@@ -1,28 +1,37 @@
-﻿using System;
-
-namespace TmEssentials.Tests;
+﻿namespace TmEssentials.Tests;
 
 public class MapUtilsTests
 {
     [Test]
-    public async Task GenerateMapUid_ReturnsExpected()
+    public async Task GenerateMapUid_WithSeed_ReturnsDeterministicUid()
     {
-        var actual = MapUtils.GenerateMapUid(1112);
+        // Arrange
+        var seed = 1112;
 
-        await Assert.That(actual).IsEqualTo("E51Ufj8ixjwC3ZluiqMSyEVuFJZ");
+        // Act
+        var uid = MapUtils.GenerateMapUid(seed);
+
+        // Assert
+        await Assert.That(uid).IsEqualTo("E51Ufj8ixjwC3ZluiqMSyEVuFJZ");
     }
 
     [Test]
-    public async Task GenerateMapUid_RandomIsNull_ThrowsArgumentNullException()
+    public async Task GenerateMapUid_WithNullRandom_ThrowsArgumentNullException()
     {
-        await Assert.That(() => MapUtils.GenerateMapUid(random: null)).ThrowsExactly<ArgumentNullException>();
+        // Act
+        var act = () => MapUtils.GenerateMapUid(random: null!);
+
+        // Assert
+        await Assert.That(act).ThrowsExactly<ArgumentNullException>();
     }
 
     [Test]
-    public async Task GenerateMapUid_ReturnsNonEmptyString()
+    public async Task GenerateMapUid_WithoutArguments_ReturnsNonEmptyUid()
     {
-        var actual = MapUtils.GenerateMapUid();
+        // Act
+        var uid = MapUtils.GenerateMapUid();
 
-        await Assert.That(actual).IsNotEmpty();
+        // Assert
+        await Assert.That(uid).IsNotEmpty();
     }
 }

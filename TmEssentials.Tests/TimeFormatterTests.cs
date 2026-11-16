@@ -1,828 +1,175 @@
-﻿using System;
-
-namespace TmEssentials.Tests;
+﻿namespace TmEssentials.Tests;
 
 public class TimeFormatterTests
 {
     [Test]
-    public async Task ToTmString_Null()
+    [Arguments(0, 0, 0, 0, 3, "0:00.003")]
+    [Arguments(0, 0, 0, 0, 33, "0:00.033")]
+    [Arguments(0, 0, 0, 0, 333, "0:00.333")]
+    [Arguments(0, 0, 0, 3, 333, "0:03.333")]
+    [Arguments(0, 0, 3, 3, 333, "3:03.333")]
+    [Arguments(0, 0, 33, 3, 333, "33:03.333")]
+    [Arguments(0, 3, 33, 3, 333, "3:33:03.333")]
+    [Arguments(1, 0, 56, 43, 165, "1:00:56:43.165")]
+    [Arguments(1, 15, 56, 43, 165, "1:15:56:43.165")]
+    [Arguments(0, 0, 0, 0, -333, "-0:00.333")]
+    [Arguments(0, 0, 0, -3, -333, "-0:03.333")]
+    [Arguments(0, 0, -3, -3, -333, "-3:03.333")]
+    [Arguments(0, 0, -33, -3, -333, "-33:03.333")]
+    [Arguments(0, -3, -33, -3, -333, "-3:33:03.333")]
+    [Arguments(-1, -15, -56, -43, -165, "-1:15:56:43.165")]
+    public async Task ToTmString_WithDefaultOptions_ReturnsTimeWithMilliseconds(int days, int hours, int minutes, int seconds, int milliseconds, string expected)
     {
-        var expected = "-:--.---";
+        // Arrange
+        var time = new TimeInt32(days, hours, minutes, seconds, milliseconds);
 
-        var actual = default(TimeInt32?).ToTmString();
+        // Act
+        var actual = time.ToTmString();
 
+        // Assert
         await Assert.That(actual).IsEqualTo(expected);
     }
 
     [Test]
-    public async Task ToTmString_NullHundredths()
-    {
-        var expected = "-:--.--";
-
-        var actual = default(TimeInt32?).ToTmString(true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_00F()
-    {
-        var expected = "0:00.003";
-
-        var actual = TimeInt32.FromMilliseconds(3).ToTmString();
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_0FF()
-    {
-        var expected = "0:00.033";
-
-        var actual = TimeInt32.FromMilliseconds(33).ToTmString();
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_FFF()
-    {
-        var expected = "0:00.333";
-
-        var actual = TimeInt32.FromMilliseconds(333).ToTmString();
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_FF()
-    {
-        var expected = "0:00.33";
-
-        var actual = TimeInt32.FromMilliseconds(333).ToTmString(true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_SSFFF()
-    {
-        var expected = "0:03.333";
-
-        var actual = TimeInt32.FromSeconds(3.333f).ToTmString();
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_SSFF()
-    {
-        var expected = "0:03.33";
-
-        var actual = TimeInt32.FromSeconds(3.333f).ToTmString(true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_MSSFFF()
-    {
-        var expected = "3:03.333";
-
-        var actual = new TimeInt32(0, 0, 3, 3, 333).ToTmString();
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_MSSFF()
-    {
-        var expected = "3:03.33";
-
-        var actual = new TimeInt32(0, 0, 3, 3, 333).ToTmString(true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_MMSSFFF()
-    {
-        var expected = "33:03.333";
-
-        var actual = new TimeInt32(0, 0, 33, 3, 333).ToTmString();
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_MMSSFF()
-    {
-        var expected = "33:03.33";
-
-        var actual = new TimeInt32(0, 0, 33, 3, 333).ToTmString(true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_HMMSSFFF()
-    {
-        var expected = "3:33:03.333";
-
-        var actual = new TimeInt32(0, 3, 33, 3, 333).ToTmString();
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_HMMSSFF()
-    {
-        var expected = "3:33:03.33";
-
-        var actual = new TimeInt32(0, 3, 33, 3, 333).ToTmString(true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_FullTimeWithoutHours()
-    {
-        var expected = "1:00:56:43.165";
-
-        var actual = new TimeInt32(1, hours: 0, 56, 43, 165).ToTmString();
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_FullTime()
-    {
-        var expected = "1:15:56:43.165";
-
-        var actual = new TimeInt32(1, 15, 56, 43, 165).ToTmString();
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_FullTimeHundredths()
-    {
-        var expected = "1:15:56:43.16";
-
-        var actual = new TimeInt32(1, 15, 56, 43, 165).ToTmString(true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_NegativeFFF()
-    {
-        var expected = "-0:00.333";
-
-        var actual = (-TimeInt32.FromMilliseconds(333)).ToTmString();
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_NegativeFF()
-    {
-        var expected = "-0:00.33";
-
-        var actual = (-TimeInt32.FromMilliseconds(333)).ToTmString(true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_NegativeSSFFF()
-    {
-        var expected = "-0:03.333";
-
-        var actual = (-TimeInt32.FromSeconds(3.333f)).ToTmString();
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_NegativeSSFF()
-    {
-        var expected = "-0:03.33";
-
-        var actual = (-TimeInt32.FromSeconds(3.333f)).ToTmString(true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_NegativeMSSFFF()
-    {
-        var expected = "-3:03.333";
-
-        var actual = (-new TimeInt32(0, 0, 3, 3, 333)).ToTmString();
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_NegativeMSSFF()
-    {
-        var expected = "-3:03.33";
-
-        var actual = (-new TimeInt32(0, 0, 3, 3, 333)).ToTmString(true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_NegativeMMSSFFF()
-    {
-        var expected = "-33:03.333";
-
-        var actual = (-new TimeInt32(0, 0, 33, 3, 333)).ToTmString();
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_NegativeMMSSFF()
-    {
-        var expected = "-33:03.33";
-
-        var actual = (-new TimeInt32(0, 0, 33, 3, 333)).ToTmString(true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_NegativeHMMSSFFF()
-    {
-        var expected = "-3:33:03.333";
-
-        var actual = (-new TimeInt32(0, 3, 33, 3, 333)).ToTmString();
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_NegativeHMMSSFF()
-    {
-        var expected = "-3:33:03.33";
-
-        var actual = (-new TimeInt32(0, 3, 33, 3, 333)).ToTmString(true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_FullNegativeTime()
-    {
-        var expected = "-1:15:56:43.165";
-
-        var actual = (-new TimeInt32(1, 15, 56, 43, 165)).ToTmString();
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_FullNegativeTimeHundredths()
-    {
-        var expected = "-1:15:56:43.16";
-
-        var actual = (-new TimeInt32(1, 15, 56, 43, 165)).ToTmString(true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Apostrophe_Null()
-    {
-        var expected = "-'--''---";
-
-        var actual = default(TimeInt32?).ToTmString(useApostrophe: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Apostrophe_NullHundredths()
-    {
-        var expected = "-'--''--";
-
-        var actual = default(TimeInt32?).ToTmString(true, useApostrophe: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Apostrophe_FFF()
-    {
-        var expected = "0'00''333";
-
-        var actual = TimeInt32.FromMilliseconds(333).ToTmString(useApostrophe: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Apostrophe_FF()
-    {
-        var expected = "0'00''33";
-
-        var actual = TimeInt32.FromMilliseconds(333).ToTmString(true, useApostrophe: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Apostrophe_SSFFF()
-    {
-        var expected = "0'03''333";
-
-        var actual = TimeInt32.FromSeconds(3.333f).ToTmString(useApostrophe: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Apostrophe_SSFF()
-    {
-        var expected = "0'03''33";
-
-        var actual = TimeInt32.FromSeconds(3.333f).ToTmString(true, useApostrophe: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Apostrophe_MSSFFF()
-    {
-        var expected = "3'03''333";
-
-        var actual = new TimeInt32(0, 0, 3, 3, 333).ToTmString(useApostrophe: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Apostrophe_MSSFF()
-    {
-        var expected = "3'03''33";
-
-        var actual = new TimeInt32(0, 0, 3, 3, 333).ToTmString(true, useApostrophe: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Apostrophe_MMSSFFF()
-    {
-        var expected = "33'03''333";
-
-        var actual = new TimeInt32(0, 0, 33, 3, 333).ToTmString(useApostrophe: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Apostrophe_MMSSFF()
-    {
-        var expected = "33'03''33";
-
-        var actual = new TimeInt32(0, 0, 33, 3, 333).ToTmString(true, useApostrophe: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Apostrophe_HMMSSFFF()
-    {
-        var expected = "3'33'03''333";
-
-        var actual = new TimeInt32(0, 3, 33, 3, 333).ToTmString(useApostrophe: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Apostrophe_HMMSSFF()
-    {
-        var expected = "3'33'03''33";
-
-        var actual = new TimeInt32(0, 3, 33, 3, 333).ToTmString(true, useApostrophe: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Apostrophe_FullTimeWithoutHours()
-    {
-        var expected = "1'00'56'43''165";
-
-        var actual = new TimeInt32(1, hours: 0, 56, 43, 165).ToTmString(useApostrophe: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Apostrophe_FullTime()
-    {
-        var expected = "1'15'56'43''165";
-
-        var actual = new TimeInt32(1, 15, 56, 43, 165).ToTmString(useApostrophe: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Apostrophe_FullTimeHundredths()
-    {
-        var expected = "1'15'56'43''16";
-
-        var actual = new TimeInt32(1, 15, 56, 43, 165).ToTmString(true, useApostrophe: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Apostrophe_NegativeFFF()
-    {
-        var expected = "-0'00''333";
-
-        var actual = (-TimeInt32.FromMilliseconds(333)).ToTmString(useApostrophe: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Apostrophe_NegativeFF()
-    {
-        var expected = "-0'00''33";
-
-        var actual = (-TimeInt32.FromMilliseconds(333)).ToTmString(true, useApostrophe: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Apostrophe_NegativeSSFFF()
-    {
-        var expected = "-0'03''333";
-
-        var actual = (-TimeInt32.FromSeconds(3.333f)).ToTmString(useApostrophe: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Apostrophe_NegativeSSFF()
-    {
-        var expected = "-0'03''33";
-
-        var actual = (-TimeInt32.FromSeconds(3.333f)).ToTmString(true, useApostrophe: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Apostrophe_NegativeMSSFFF()
-    {
-        var expected = "-3'03''333";
-
-        var actual = (-new TimeInt32(0, 0, 3, 3, 333)).ToTmString(useApostrophe: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Apostrophe_NegativeMSSFF()
-    {
-        var expected = "-3'03''33";
-
-        var actual = (-new TimeInt32(0, 0, 3, 3, 333)).ToTmString(true, useApostrophe: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Apostrophe_NegativeMMSSFFF()
-    {
-        var expected = "-33'03''333";
-
-        var actual = (-new TimeInt32(0, 0, 33, 3, 333)).ToTmString(useApostrophe: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Apostrophe_NegativeMMSSFF()
-    {
-        var expected = "-33'03''33";
-
-        var actual = (-new TimeInt32(0, 0, 33, 3, 333)).ToTmString(true, useApostrophe: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Apostrophe_NegativeHMMSSFFF()
-    {
-        var expected = "-3'33'03''333";
-
-        var actual = (-new TimeInt32(0, 3, 33, 3, 333)).ToTmString(useApostrophe: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Apostrophe_NegativeHMMSSFF()
-    {
-        var expected = "-3'33'03''33";
-
-        var actual = (-new TimeInt32(0, 3, 33, 3, 333)).ToTmString(true, useApostrophe: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Apostrophe_FullNegativeTime()
-    {
-        var expected = "-1'15'56'43''165";
-
-        var actual = (-new TimeInt32(1, 15, 56, 43, 165)).ToTmString(useApostrophe: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Apostrophe_FullNegativeTimeHundredths()
-    {
-        var expected = "-1'15'56'43''16";
-
-        var actual = (-new TimeInt32(1, 15, 56, 43, 165)).ToTmString(true, useApostrophe: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Days1Digit()
-    {
-        var expected = "1:00:00:00.000";
-
-        var actual = new TimeInt32(1, 0, 0, 0, 0).ToTmString();
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Days2Digit()
-    {
-        var expected = "10:00:00:00.000";
-
-        var actual = new TimeInt32(10, 0, 0, 0, 0).ToTmString();
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Days3Digit()
-    {
-        var expected = "100:00:00:00.000";
-
-        var actual = new TimeSingle(100, 0, 0, 0, 0).ToTmString();
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Days4Digit()
-    {
-        var expected = "1000:00:00:00.000";
-
-        var actual = new TimeSingle(1000, 0, 0, 0, 0).ToTmString();
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Days5Digit()
-    {
-        var expected = "10000:00:00:00.000";
-
-        var actual = new TimeSpan(10000, 0, 0, 0, 0).ToTmString();
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Days6Digit()
-    {
-        var expected = "100000:00:00:00.000";
-
-        var actual = new TimeSpan(100000, 0, 0, 0, 0).ToTmString();
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Days7Digit()
-    {
-        var expected = "1000000:00:00:00.000";
-
-        var actual = new TimeSpan(1000000, 0, 0, 0, 0).ToTmString();
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Days8Digit()
-    {
-        var expected = "10000000:00:00:00.000";
-
-        var actual = new TimeSpan(10000000, 0, 0, 0, 0).ToTmString();
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Compact_00F()
-    {
-        var expected = "0.003";
-
-        var actual = TimeInt32.FromMilliseconds(3).ToTmString(compact: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Compact_0FF()
-    {
-        var expected = "0.033";
-
-        var actual = TimeInt32.FromMilliseconds(33).ToTmString(compact: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Compact_FFF()
-    {
-        var expected = "0.333";
-
-        var actual = TimeInt32.FromMilliseconds(333).ToTmString(compact: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Compact_SSFFF()
-    {
-        var expected = "3.333";
-
-        var actual = TimeInt32.FromSeconds(3.333f).ToTmString(compact: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Compact_59SFFF()
-    {
-        var expected = "59.999";
-
-        var actual = new TimeInt32(0, 0, 0, 59, 999).ToTmString(compact: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Compact_FF()
-    {
-        var expected = "0.33";
-
-        var actual = TimeInt32.FromMilliseconds(333).ToTmString(useHundredths: true, compact: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Compact_SSFF()
-    {
-        var expected = "3.33";
-
-        var actual = TimeInt32.FromSeconds(3.333f).ToTmString(useHundredths: true, compact: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Compact_Negative_FFF()
-    {
-        var expected = "-0.333";
-
-        var actual = (-TimeInt32.FromMilliseconds(333)).ToTmString(compact: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Compact_Negative_SSFFF()
-    {
-        var expected = "-3.333";
-
-        var actual = (-TimeInt32.FromSeconds(3.333f)).ToTmString(compact: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Compact_Negative_FF()
-    {
-        var expected = "-0.33";
-
-        var actual = (-TimeInt32.FromMilliseconds(333)).ToTmString(useHundredths: true, compact: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Compact_Negative_SSFF()
-    {
-        var expected = "-3.33";
-
-        var actual = (-TimeInt32.FromSeconds(3.333f)).ToTmString(useHundredths: true, compact: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Compact_FallbackToNormal_MSSFFF()
-    {
-        // compact does not apply when time >= 1 minute
-        var expected = "3:03.333";
-
-        var actual = new TimeInt32(0, 0, 3, 3, 333).ToTmString(compact: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
-
-    [Test]
-    public async Task ToTmString_Compact_FallbackToNormal_HMMSSFFF()
-    {
-        // compact does not apply when time >= 1 hour
-        var expected = "3:33:03.333";
-
-        var actual = new TimeInt32(0, 3, 33, 3, 333).ToTmString(compact: true);
-
-        await Assert.That(actual).IsEqualTo(expected);
-    }
+    [Arguments(0, 0, 0, 0, 333, "0:00.33")]
+    [Arguments(0, 0, 0, 3, 333, "0:03.33")]
+    [Arguments(0, 0, 3, 3, 333, "3:03.33")]
+    [Arguments(0, 0, 33, 3, 333, "33:03.33")]
+    [Arguments(0, 3, 33, 3, 333, "3:33:03.33")]
+    [Arguments(1, 15, 56, 43, 165, "1:15:56:43.16")]
+    [Arguments(0, 0, 0, 0, -333, "-0:00.33")]
+    [Arguments(0, 0, 0, -3, -333, "-0:03.33")]
+    [Arguments(0, 0, -3, -3, -333, "-3:03.33")]
+    [Arguments(0, 0, -33, -3, -333, "-33:03.33")]
+    [Arguments(0, -3, -33, -3, -333, "-3:33:03.33")]
+    [Arguments(-1, -15, -56, -43, -165, "-1:15:56:43.16")]
+    public async Task ToTmString_WithHundredths_TruncatesToHundredths(int days, int hours, int minutes, int seconds, int milliseconds, string expected)
+    {
+        // Arrange
+        var time = new TimeInt32(days, hours, minutes, seconds, milliseconds);
+
+        // Act
+        var actual = time.ToTmString(useHundredths: true);
+
+        // Assert
+        await Assert.That(actual).IsEqualTo(expected);
+    }
 
     [Test]
-    public async Task ToTmString_Compact_Apostrophe_FFF()
+    [Arguments(0, 0, 0, 0, 333, false, "0'00''333")]
+    [Arguments(0, 0, 0, 3, 333, false, "0'03''333")]
+    [Arguments(0, 0, 3, 3, 333, false, "3'03''333")]
+    [Arguments(0, 0, 33, 3, 333, false, "33'03''333")]
+    [Arguments(0, 3, 33, 3, 333, false, "3'33'03''333")]
+    [Arguments(1, 0, 56, 43, 165, false, "1'00'56'43''165")]
+    [Arguments(1, 15, 56, 43, 165, false, "1'15'56'43''165")]
+    [Arguments(0, 0, 0, 0, 333, true, "0'00''33")]
+    [Arguments(0, 0, 0, 3, 333, true, "0'03''33")]
+    [Arguments(0, 0, 3, 3, 333, true, "3'03''33")]
+    [Arguments(0, 0, 33, 3, 333, true, "33'03''33")]
+    [Arguments(0, 3, 33, 3, 333, true, "3'33'03''33")]
+    [Arguments(1, 15, 56, 43, 165, true, "1'15'56'43''16")]
+    [Arguments(0, 0, 0, 0, -333, false, "-0'00''333")]
+    [Arguments(0, 0, 0, -3, -333, false, "-0'03''333")]
+    [Arguments(0, 0, -3, -3, -333, false, "-3'03''333")]
+    [Arguments(0, 0, -33, -3, -333, false, "-33'03''333")]
+    [Arguments(0, -3, -33, -3, -333, false, "-3'33'03''333")]
+    [Arguments(-1, -15, -56, -43, -165, false, "-1'15'56'43''165")]
+    [Arguments(0, 0, 0, 0, -333, true, "-0'00''33")]
+    [Arguments(0, 0, 0, -3, -333, true, "-0'03''33")]
+    [Arguments(0, 0, -3, -3, -333, true, "-3'03''33")]
+    [Arguments(0, 0, -33, -3, -333, true, "-33'03''33")]
+    [Arguments(0, -3, -33, -3, -333, true, "-3'33'03''33")]
+    [Arguments(-1, -15, -56, -43, -165, true, "-1'15'56'43''16")]
+    public async Task ToTmString_WithApostrophe_UsesApostropheSeparators(int days, int hours, int minutes, int seconds, int milliseconds, bool useHundredths, string expected)
     {
-        var expected = "0''333";
+        // Arrange
+        var time = new TimeInt32(days, hours, minutes, seconds, milliseconds);
 
-        var actual = TimeInt32.FromMilliseconds(333).ToTmString(useApostrophe: true, compact: true);
+        // Act
+        var actual = time.ToTmString(useHundredths, useApostrophe: true);
 
+        // Assert
         await Assert.That(actual).IsEqualTo(expected);
     }
 
     [Test]
-    public async Task ToTmString_Compact_Apostrophe_SSFFF()
+    [Arguments(1, "1:00:00:00.000")]
+    [Arguments(10, "10:00:00:00.000")]
+    [Arguments(100, "100:00:00:00.000")]
+    [Arguments(1_000, "1000:00:00:00.000")]
+    [Arguments(10_000, "10000:00:00:00.000")]
+    [Arguments(100_000, "100000:00:00:00.000")]
+    [Arguments(1_000_000, "1000000:00:00:00.000")]
+    [Arguments(10_000_000, "10000000:00:00:00.000")]
+    public async Task ToTmString_WithManyDays_ReturnsAllDayDigits(int days, string expected)
     {
-        var expected = "3''333";
+        // Arrange
+        var time = TimeSpan.FromDays(days);
 
-        var actual = TimeInt32.FromSeconds(3.333f).ToTmString(useApostrophe: true, compact: true);
+        // Act
+        var actual = time.ToTmString();
 
+        // Assert
         await Assert.That(actual).IsEqualTo(expected);
     }
 
     [Test]
-    public async Task ToTmString_Compact_Apostrophe_FF()
+    [Arguments(100, "100:00:00:00.000")]
+    [Arguments(1_000, "1000:00:00:00.000")]
+    public async Task ToTmString_WithManyDaysInTimeSingle_ReturnsAllDayDigits(int days, string expected)
     {
-        var expected = "0''33";
+        // Arrange
+        var time = new TimeSingle(days, 0, 0, 0);
 
-        var actual = TimeInt32.FromMilliseconds(333).ToTmString(useHundredths: true, useApostrophe: true, compact: true);
+        // Act
+        var actual = time.ToTmString();
 
+        // Assert
         await Assert.That(actual).IsEqualTo(expected);
     }
 
     [Test]
-    public async Task ToTmString_Compact_Apostrophe_SSFF()
+    [Arguments(0, 3, false, false, "0.003")]
+    [Arguments(0, 33, false, false, "0.033")]
+    [Arguments(0, 333, false, false, "0.333")]
+    [Arguments(3, 333, false, false, "3.333")]
+    [Arguments(59, 999, false, false, "59.999")]
+    [Arguments(0, 333, true, false, "0.33")]
+    [Arguments(3, 333, true, false, "3.33")]
+    [Arguments(0, -333, false, false, "-0.333")]
+    [Arguments(-3, -333, false, false, "-3.333")]
+    [Arguments(0, -333, true, false, "-0.33")]
+    [Arguments(-3, -333, true, false, "-3.33")]
+    [Arguments(0, 333, false, true, "0''333")]
+    [Arguments(3, 333, false, true, "3''333")]
+    [Arguments(0, 333, true, true, "0''33")]
+    [Arguments(3, 333, true, true, "3''33")]
+    [Arguments(-3, -333, false, true, "-3''333")]
+    public async Task ToTmString_CompactUnderOneMinute_OmitsMinutes(int seconds, int milliseconds, bool useHundredths, bool useApostrophe, string expected)
     {
-        var expected = "3''33";
+        // Arrange
+        var time = new TimeInt32(0, 0, 0, seconds, milliseconds);
 
-        var actual = TimeInt32.FromSeconds(3.333f).ToTmString(useHundredths: true, useApostrophe: true, compact: true);
+        // Act
+        var actual = time.ToTmString(useHundredths, useApostrophe, compact: true);
 
+        // Assert
         await Assert.That(actual).IsEqualTo(expected);
     }
 
     [Test]
-    public async Task ToTmString_Compact_Apostrophe_Negative_SSFFF()
+    [Arguments(0, 3, 3, 333, "3:03.333")]
+    [Arguments(3, 33, 3, 333, "3:33:03.333")]
+    public async Task ToTmString_CompactFromOneMinute_ReturnsFullFormat(int hours, int minutes, int seconds, int milliseconds, string expected)
     {
-        var expected = "-3''333";
+        // Arrange
+        var time = new TimeInt32(0, hours, minutes, seconds, milliseconds);
 
-        var actual = (-TimeInt32.FromSeconds(3.333f)).ToTmString(useApostrophe: true, compact: true);
+        // Act
+        var actual = time.ToTmString(compact: true);
 
+        // Assert
         await Assert.That(actual).IsEqualTo(expected);
     }
 }

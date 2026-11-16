@@ -1,33 +1,38 @@
-﻿
 namespace TmEssentials.Tests;
 
 public class TimeSingleExtensionsTests
 {
     [Test]
-    [Arguments(false, false)]
-    [Arguments(true, false)]
-    [Arguments(false, true)]
-    [Arguments(true, true)]
-    public async Task ToTmString_CallsToString(bool useHundredths, bool useApostrophe)
+    [Arguments(false, false, "1:02:03.500")]
+    [Arguments(true, false, "1:02:03.50")]
+    [Arguments(false, true, "1'02'03''500")]
+    [Arguments(true, true, "1'02'03''50")]
+    public async Task ToTmString_WithValue_ReturnsFormattedTime(bool useHundredths, bool useApostrophe, string expected)
     {
-        var expected = new TimeSingle(234567890).ToString(useHundredths, useApostrophe);
+        // Arrange
+        var time = new TimeSingle(3_723.5f);
 
-        var actual = new TimeSingle(234567890).ToTmString(useHundredths, useApostrophe);
+        // Act
+        var actual = time.ToTmString(useHundredths, useApostrophe);
 
+        // Assert
         await Assert.That(actual).IsEqualTo(expected);
     }
 
     [Test]
-    [Arguments(false, false)]
-    [Arguments(true, false)]
-    [Arguments(false, true)]
-    [Arguments(true, true)]
-    public async Task ToTmString_CallsToString_NullableWithValue(bool useHundredths, bool useApostrophe)
+    [Arguments(false, false, "1:02:03.500")]
+    [Arguments(true, false, "1:02:03.50")]
+    [Arguments(false, true, "1'02'03''500")]
+    [Arguments(true, true, "1'02'03''50")]
+    public async Task ToTmString_WithNullableWithValue_ReturnsFormattedTime(bool useHundredths, bool useApostrophe, string expected)
     {
-        var expected = new TimeSingle(234567890).ToString(useHundredths, useApostrophe);
+        // Arrange
+        TimeSingle? time = new TimeSingle(3_723.5f);
 
-        var actual = new TimeSingle?(new(234567890)).ToTmString(useHundredths, useApostrophe);
+        // Act
+        var actual = time.ToTmString(useHundredths, useApostrophe);
 
+        // Assert
         await Assert.That(actual).IsEqualTo(expected);
     }
 
@@ -36,10 +41,15 @@ public class TimeSingleExtensionsTests
     [Arguments(true, false, "-:--.--")]
     [Arguments(false, true, "-'--''---")]
     [Arguments(true, true, "-'--''--")]
-    public async Task ToTmString_CallsToString_NullableWithoutValue(bool useHundredths, bool useApostrophe, string expected)
+    public async Task ToTmString_WithNullableWithoutValue_ReturnsPlaceholder(bool useHundredths, bool useApostrophe, string expected)
     {
-        var actual = new TimeSingle?().ToTmString(useHundredths, useApostrophe);
+        // Arrange
+        TimeSingle? time = null;
 
+        // Act
+        var actual = time.ToTmString(useHundredths, useApostrophe);
+
+        // Assert
         await Assert.That(actual).IsEqualTo(expected);
     }
 }

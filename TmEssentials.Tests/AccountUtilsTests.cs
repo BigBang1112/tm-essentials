@@ -1,40 +1,50 @@
-﻿using System;
-
-namespace TmEssentials.Tests;
+﻿namespace TmEssentials.Tests;
 
 public class AccountUtilsTests
 {
+    private static readonly Guid AccountId = Guid.Parse("bfcf62ff-0f9e-40aa-b924-11b9c70b8a09");
+    private const string Login = "v89i_w-eQKq5JBG5xwuKCQ";
+
     [Test]
-    public async Task ToLogin_ReturnsExpected()
+    public async Task ToLogin_WithAccountId_ReturnsLogin()
     {
-        var guid = Guid.Parse("bfcf62ff-0f9e-40aa-b924-11b9c70b8a09");
+        // Act
+        var login = AccountUtils.ToLogin(AccountId);
 
-        var login = AccountUtils.ToLogin(guid);
-
-        await Assert.That(login).IsEqualTo("v89i_w-eQKq5JBG5xwuKCQ");
+        // Assert
+        await Assert.That(login).IsEqualTo(Login);
     }
 
     [Test]
-    public async Task ToAccountId_Null_ThrowsArgumentNullException()
+    public async Task ToAccountId_WithLogin_ReturnsAccountId()
     {
-        await Assert.That(() => AccountUtils.ToAccountId(null)).ThrowsExactly<ArgumentNullException>();
+        // Act
+        var accountId = AccountUtils.ToAccountId(Login);
+
+        // Assert
+        await Assert.That(accountId).IsEqualTo(AccountId);
     }
 
     [Test]
-    public async Task ToAccountId_ReturnsExpected()
+    public async Task ToAccountId_WithNull_ThrowsArgumentNullException()
     {
-        var login = "v89i_w-eQKq5JBG5xwuKCQ";
+        // Act
+        var act = () => AccountUtils.ToAccountId(null!);
 
-        var guid = AccountUtils.ToAccountId(login);
-
-        await Assert.That(guid).IsEqualTo(Guid.Parse("bfcf62ff-0f9e-40aa-b924-11b9c70b8a09"));
+        // Assert
+        await Assert.That(act).ThrowsExactly<ArgumentNullException>();
     }
 
     [Test]
-    public async Task ToAccountId_WhenInvalidLogin_ThrowsException()
+    public async Task ToAccountId_WithNonBase64Login_ThrowsFormatException()
     {
+        // Arrange
         var login = "řáčíšřýěščářýéí";
 
-        await Assert.That(() => AccountUtils.ToAccountId(login)).ThrowsExactly<FormatException>();
+        // Act
+        var act = () => AccountUtils.ToAccountId(login);
+
+        // Assert
+        await Assert.That(act).ThrowsExactly<FormatException>();
     }
 }
