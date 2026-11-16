@@ -2,7 +2,6 @@ using System;
 using System.ComponentModel;
 using System.Globalization;
 using TmEssentials.Converters;
-using Xunit;
 
 namespace TmEssentials.Tests;
 
@@ -10,133 +9,129 @@ public class TimeInt32TypeConverterTests
 {
     private readonly TimeInt32TypeConverter _converter = new();
 
-    [Fact]
-    public void CanConvertFrom_String_ReturnsTrue()
+    [Test]
+    public async Task CanConvertFrom_String_ReturnsTrue()
     {
         var result = _converter.CanConvertFrom(null, typeof(string));
         
-        Assert.True(result);
+        await Assert.That(result).IsTrue();
     }
 
-    [Fact]
-    public void CanConvertFrom_Int_ReturnsFalse()
+    [Test]
+    public async Task CanConvertFrom_Int_ReturnsFalse()
     {
         var result = _converter.CanConvertFrom(null, typeof(int));
         
-        Assert.False(result);
+        await Assert.That(result).IsFalse();
     }
 
-    [Fact]
-    public void CanConvertTo_String_ReturnsTrue()
+    [Test]
+    public async Task CanConvertTo_String_ReturnsTrue()
     {
         var result = _converter.CanConvertTo(null, typeof(string));
         
-        Assert.True(result);
+        await Assert.That(result).IsTrue();
     }
 
-    [Fact]
-    public void CanConvertTo_Int_ReturnsFalse()
+    [Test]
+    public async Task CanConvertTo_Int_ReturnsFalse()
     {
         var result = _converter.CanConvertTo(null, typeof(int));
         
-        Assert.False(result);
+        await Assert.That(result).IsFalse();
     }
 
-    [Fact]
-    public void ConvertFrom_ValidTimeString_ReturnsTimeInt32()
+    [Test]
+    public async Task ConvertFrom_ValidTimeString_ReturnsTimeInt32()
     {
         var result = _converter.ConvertFrom(null, CultureInfo.InvariantCulture, "1:23.456");
         
-        Assert.IsType<TimeInt32>(result);
+        await Assert.That(result).IsTypeOf<TimeInt32>();
         var timeInt32 = (TimeInt32)result!;
-        Assert.Equal(83456, timeInt32.TotalMilliseconds); // 1min 23sec 456ms = 83456ms
+        await Assert.That(timeInt32.TotalMilliseconds).IsEqualTo(83456); // 1min 23sec 456ms = 83456ms
     }
 
-    [Fact]
-    public void ConvertFrom_EmptyString_ReturnsZero()
+    [Test]
+    public async Task ConvertFrom_EmptyString_ReturnsZero()
     {
         var result = _converter.ConvertFrom(null, CultureInfo.InvariantCulture, "");
         
-        Assert.Equal(TimeInt32.Zero, result);
+        await Assert.That(result).IsEqualTo(TimeInt32.Zero);
     }
 
-    [Fact]
-    public void ConvertFrom_WhitespaceString_ReturnsZero()
+    [Test]
+    public async Task ConvertFrom_WhitespaceString_ReturnsZero()
     {
         var result = _converter.ConvertFrom(null, CultureInfo.InvariantCulture, "   ");
         
-        Assert.Equal(TimeInt32.Zero, result);
+        await Assert.That(result).IsEqualTo(TimeInt32.Zero);
     }
 
-    [Fact]
-    public void ConvertFrom_NullString_CallsBase()
+    [Test]
+    public async Task ConvertFrom_NullString_CallsBase()
     {
-        Assert.Throws<NotSupportedException>(() =>
-            _converter.ConvertFrom(null, CultureInfo.InvariantCulture, null));
+        await Assert.That(() => _converter.ConvertFrom(null, CultureInfo.InvariantCulture, null)).ThrowsExactly<NotSupportedException>();
     }
 
-    [Fact]
-    public void ConvertFrom_InvalidString_ThrowsFormatException()
+    [Test]
+    public async Task ConvertFrom_InvalidString_ThrowsFormatException()
     {
-        var exception = Assert.Throws<FormatException>(() =>
-            _converter.ConvertFrom(null, CultureInfo.InvariantCulture, "invalid"));
+        var exception = await Assert.That(() => _converter.ConvertFrom(null, CultureInfo.InvariantCulture, "invalid")).ThrowsExactly<FormatException>();
         
-        Assert.Contains("Unable to parse 'invalid' as TimeInt32", exception.Message);
+        await Assert.That(exception.Message).Contains("Unable to parse 'invalid' as TimeInt32");
     }
 
-    [Fact]
-    public void ConvertFrom_NonString_CallsBase()
+    [Test]
+    public async Task ConvertFrom_NonString_CallsBase()
     {
-        Assert.Throws<NotSupportedException>(() =>
-            _converter.ConvertFrom(null, CultureInfo.InvariantCulture, 123));
+        await Assert.That(() => _converter.ConvertFrom(null, CultureInfo.InvariantCulture, 123)).ThrowsExactly<NotSupportedException>();
     }
 
-    [Fact]
-    public void ConvertTo_TimeInt32ToString_ReturnsFormattedString()
+    [Test]
+    public async Task ConvertTo_TimeInt32ToString_ReturnsFormattedString()
     {
         var timeInt32 = new TimeInt32(83456); // 1min 23sec 456ms
         
         var result = _converter.ConvertTo(null, CultureInfo.InvariantCulture, timeInt32, typeof(string));
         
-        Assert.Equal("1:23.456", result);
+        await Assert.That(result).IsEqualTo("1:23.456");
     }
 
-    [Fact]
-    public void ConvertTo_TimeInt32ToNonString_CallsBase()
+    [Test]
+    public async Task ConvertTo_TimeInt32ToNonString_CallsBase()
     {
         var timeInt32 = new TimeInt32(1000);
         
-        Assert.Throws<NotSupportedException>(() =>
-            _converter.ConvertTo(null, CultureInfo.InvariantCulture, timeInt32, typeof(int)));
+        await Assert.That(() => _converter.ConvertTo(null, CultureInfo.InvariantCulture, timeInt32, typeof(int))).ThrowsExactly<NotSupportedException>();
     }
 
-    [Theory]
-    [InlineData("0:00.000", 0)]
-    [InlineData("0:01.000", 1000)]
-    [InlineData("1:00.000", 60000)]
-    [InlineData("0:00.001", 1)]
-    [InlineData("2:34.567", 154567)]
-    public void ConvertFrom_VariousValidFormats_ReturnsCorrectTimeInt32(string input, int expectedMilliseconds)
+    [Test]
+    [Arguments("0:00.000", 0)]
+    [Arguments("0:01.000", 1000)]
+    [Arguments("1:00.000", 60000)]
+    [Arguments("0:00.001", 1)]
+    [Arguments("2:34.567", 154567)]
+    public async Task ConvertFrom_VariousValidFormats_ReturnsCorrectTimeInt32(string input, int expectedMilliseconds)
     {
         var result = _converter.ConvertFrom(null, CultureInfo.InvariantCulture, input);
         
-        Assert.IsType<TimeInt32>(result);
+        await Assert.That(result).IsTypeOf<TimeInt32>();
         var timeInt32 = (TimeInt32)result!;
-        Assert.Equal(expectedMilliseconds, timeInt32.TotalMilliseconds);
+        await Assert.That(timeInt32.TotalMilliseconds).IsEqualTo(expectedMilliseconds);
     }
 
-    [Fact]
-    public void RoundTripConversion_PreservesValue()
+    [Test]
+    public async Task RoundTripConversion_PreservesValue()
     {
         var originalTime = new TimeInt32(12345);
         
         // Convert to string
         var stringValue = _converter.ConvertTo(null, CultureInfo.InvariantCulture, originalTime, typeof(string)) as string;
-        Assert.NotNull(stringValue);
+        await Assert.That(stringValue).IsNotNull();
         
         // Convert back to TimeInt32
         var roundTripTime = _converter.ConvertFrom(null, CultureInfo.InvariantCulture, stringValue);
         
-        Assert.Equal(originalTime, roundTripTime);
+        await Assert.That(roundTripTime).IsEqualTo(originalTime);
     }
 }

@@ -1,29 +1,28 @@
 ﻿using System;
-using Xunit;
 
 namespace TmEssentials.Tests;
 
 public class MapUtilsTests
 {
-    [Fact]
-    public void GenerateMapUid_ReturnsExpected()
+    [Test]
+    public async Task GenerateMapUid_ReturnsExpected()
     {
         var actual = MapUtils.GenerateMapUid(1112);
 
-        Assert.Equal(expected: "E51Ufj8ixjwC3ZluiqMSyEVuFJZ", actual);
+        await Assert.That(actual).IsEqualTo("E51Ufj8ixjwC3ZluiqMSyEVuFJZ");
     }
 
-    [Fact]
-    public void GenerateMapUid_RandomIsNull_ThrowsArgumentNullException()
+    [Test]
+    public async Task GenerateMapUid_RandomIsNull_ThrowsArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => MapUtils.GenerateMapUid(random: null));
+        await Assert.That(() => MapUtils.GenerateMapUid(random: null)).ThrowsExactly<ArgumentNullException>();
     }
 
-    [Fact]
-    public void GenerateMapUid_ReturnsNonEmptyString()
+    [Test]
+    public async Task GenerateMapUid_ReturnsNonEmptyString()
     {
         var actual = MapUtils.GenerateMapUid();
 
-        Assert.NotEmpty(actual);
+        await Assert.That(actual).IsNotEmpty();
     }
 }

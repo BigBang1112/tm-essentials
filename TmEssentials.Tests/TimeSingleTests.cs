@@ -1,514 +1,513 @@
 ﻿using System;
-using Xunit;
 
 namespace TmEssentials.Tests;
 
 public class TimeSingleTests
 {
-    [Fact]
-    public void Constructor_WithTotalSeconds()
+    [Test]
+    public async Task Constructor_WithTotalSeconds()
     {
         var expected = 2.3f;
 
         var actual = new TimeSingle(expected).TotalSeconds;
 
-        Assert.Equal(expected, actual);
+        await Assert.That(actual).IsEqualTo(expected);
     }
 
-    [Fact]
-    public void Constructor_InitTotalSeconds()
+    [Test]
+    public async Task Constructor_InitTotalSeconds()
     {
         var expected = 2.3f;
 
         var actual = new TimeSingle() { TotalSeconds = expected }.TotalSeconds;
 
-        Assert.Equal(expected, actual);
+        await Assert.That(actual).IsEqualTo(expected);
     }
 
-    [Fact]
-    public void Zero_IsZero()
+    [Test]
+    public async Task Zero_IsZero()
     {
         var expected = new TimeSingle();
 
         var actual = TimeSingle.Zero;
 
-        Assert.Equal(expected, actual);
+        await Assert.That(actual).IsEqualTo(expected);
     }
 
-    [Fact]
-    public void Zero_IsMaxSingleValue()
+    [Test]
+    public async Task Zero_IsMaxSingleValue()
     {
         var expected = new TimeSingle(float.MaxValue);
 
         var actual = TimeSingle.MaxValue;
 
-        Assert.Equal(expected, actual);
+        await Assert.That(actual).IsEqualTo(expected);
     }
 
-    [Fact]
-    public void Zero_IsMinSingleValue()
+    [Test]
+    public async Task Zero_IsMinSingleValue()
     {
         var expected = new TimeSingle(float.MinValue);
 
         var actual = TimeSingle.MinValue;
 
-        Assert.Equal(expected, actual);
+        await Assert.That(actual).IsEqualTo(expected);
     }
     
-    [Fact]
-    public void ToString_Override_UsesDefaultParamValues()
+    [Test]
+    public async Task ToString_Override_UsesDefaultParamValues()
     {
         var expected = ((object)new TimeSingle(234567890)).ToString();
 
         var actual = new TimeSingle(234567890).ToString(useHundredths: false, useApostrophe: false);
 
-        Assert.Equal(expected, actual);
+        await Assert.That(actual).IsEqualTo(expected);
     }
     
-    [Theory]
-    [InlineData(0, 0)]
-    [InlineData(1, 1)]
-    [InlineData(5.6f, 5.6f)]
-    [InlineData(100, 100)]
-    public void TotalSeconds_ShouldBeCorrect(float totalSeconds, float expectedTotalSeconds)
+    [Test]
+    [Arguments(0, 0)]
+    [Arguments(1, 1)]
+    [Arguments(5.6f, 5.6f)]
+    [Arguments(100, 100)]
+    public async Task TotalSeconds_ShouldBeCorrect(float totalSeconds, float expectedTotalSeconds)
     {
         var timeSingle = new TimeSingle(totalSeconds);
 
-        Assert.Equal(expectedTotalSeconds, actual: timeSingle.TotalSeconds);
+        await Assert.That(timeSingle.TotalSeconds).IsEqualTo(expectedTotalSeconds);
     }
 
-    [Theory]
-    [InlineData(0, 0)]
-    [InlineData(1, 1000)]
-    [InlineData(5.6f, 5600)]
-    [InlineData(100, 100000)]
-    public void TotalMilliseconds_ShouldBeCorrect(float totalSeconds, float expectedTotalMilliseconds)
+    [Test]
+    [Arguments(0, 0)]
+    [Arguments(1, 1000)]
+    [Arguments(5.6f, 5600)]
+    [Arguments(100, 100000)]
+    public async Task TotalMilliseconds_ShouldBeCorrect(float totalSeconds, float expectedTotalMilliseconds)
     {
         var timeSingle = new TimeSingle(totalSeconds);
 
-        Assert.Equal(expectedTotalMilliseconds, actual: timeSingle.TotalMilliseconds);
+        await Assert.That(timeSingle.TotalMilliseconds).IsEqualTo(expectedTotalMilliseconds);
     }
 
-    [Theory]
-    [InlineData(0, 0)]
-    [InlineData(150, 2.5f)]
-    [InlineData(7.5f, 0.125f)]
-    [InlineData(1200, 20)]
-    public void TotalMinutes_ShouldBeCorrect(float totalSeconds, float expectedTotalMinutes)
+    [Test]
+    [Arguments(0, 0)]
+    [Arguments(150, 2.5f)]
+    [Arguments(7.5f, 0.125f)]
+    [Arguments(1200, 20)]
+    public async Task TotalMinutes_ShouldBeCorrect(float totalSeconds, float expectedTotalMinutes)
     {
         var timeSingle = new TimeSingle(totalSeconds);
         
-        Assert.Equal(expectedTotalMinutes, actual: timeSingle.TotalMinutes);
+        await Assert.That(timeSingle.TotalMinutes).IsEqualTo(expectedTotalMinutes);
     }
 
-    [Theory]
-    [InlineData(0, 0)]
-    [InlineData(5.4f, 0.0015f)]
-    [InlineData(1800, 0.5f)]
-    [InlineData(10800, 3)]
-    public void TotalHours_ShouldBeCorrect(float totalSeconds, float expectedTotalHours)
+    [Test]
+    [Arguments(0, 0)]
+    [Arguments(5.4f, 0.0015f)]
+    [Arguments(1800, 0.5f)]
+    [Arguments(10800, 3)]
+    public async Task TotalHours_ShouldBeCorrect(float totalSeconds, float expectedTotalHours)
     {
         var timeSingle = new TimeSingle(totalSeconds);
 
-        Assert.Equal(expectedTotalHours, actual: timeSingle.TotalHours);
+        await Assert.That(timeSingle.TotalHours).IsEqualTo(expectedTotalHours);
     }
 
-    [Theory]
-    [InlineData(0, 0)]
-    [InlineData(10627.2f, 0.123f)]
-    [InlineData(60480, 0.7f)]
-    [InlineData(172800, 2)]
-    public void TotalDays_ShouldBeCorrect(float totalSeconds, float expectedTotalDays)
+    [Test]
+    [Arguments(0, 0)]
+    [Arguments(10627.2f, 0.123f)]
+    [Arguments(60480, 0.7f)]
+    [Arguments(172800, 2)]
+    public async Task TotalDays_ShouldBeCorrect(float totalSeconds, float expectedTotalDays)
     {
         var timeSingle = new TimeSingle(totalSeconds);
 
-        Assert.Equal(expectedTotalDays, actual: timeSingle.TotalDays);
+        await Assert.That(timeSingle.TotalDays).IsEqualTo(expectedTotalDays);
     }
 
-    [Theory]
-    [InlineData(0, 0)]
-    [InlineData(0.05f, 500_000)]
-    [InlineData(0.5f, 5_000_000)]
-    [InlineData(1, 10_000_000)]
-    public void Ticks_ShouldBeCorrect(float totalSeconds, long expectedTicks)
+    [Test]
+    [Arguments(0, 0)]
+    [Arguments(0.05f, 500_000)]
+    [Arguments(0.5f, 5_000_000)]
+    [Arguments(1, 10_000_000)]
+    public async Task Ticks_ShouldBeCorrect(float totalSeconds, long expectedTicks)
     {
         var timeSingle = new TimeSingle(totalSeconds);
 
-        Assert.Equal(expectedTicks, actual: timeSingle.Ticks);
+        await Assert.That(timeSingle.Ticks).IsEqualTo(expectedTicks);
     }
 
-    [Theory]
-    [InlineData(0, 0)]
-    [InlineData(1, 0)]
-    [InlineData(5.6f, 600)]
-    [InlineData(11.12f, 120)]
-    [InlineData(100.2455f, 245.5f)]
-    public void Milliseconds_ShouldBeCorrect(float totalSeconds, float expectedMilliseconds)
+    [Test]
+    [Arguments(0, 0)]
+    [Arguments(1, 0)]
+    [Arguments(5.6f, 600)]
+    [Arguments(11.12f, 120)]
+    [Arguments(100.2455f, 245.5f)]
+    public async Task Milliseconds_ShouldBeCorrect(float totalSeconds, float expectedMilliseconds)
     {
         var timeSingle = new TimeSingle(totalSeconds);
 
-        Assert.Equal(expectedMilliseconds, actual: timeSingle.Milliseconds);
+        await Assert.That(timeSingle.Milliseconds).IsEqualTo(expectedMilliseconds);
     }
 
-    [Theory]
-    [InlineData(0, 0)]
-    [InlineData(1, 0)]
-    [InlineData(5.5f, 500)]
-    [InlineData(11.1f, 100)]
-    [InlineData(100.2455f, 245)]
-    public void Milliseconds_ITime_ShouldBeCorrect(float totalSeconds, int expectedMilliseconds)
+    [Test]
+    [Arguments(0, 0)]
+    [Arguments(1, 0)]
+    [Arguments(5.5f, 500)]
+    [Arguments(11.1f, 100)]
+    [Arguments(100.2455f, 245)]
+    public async Task Milliseconds_ITime_ShouldBeCorrect(float totalSeconds, int expectedMilliseconds)
     {
         var timeSingle = new TimeSingle(totalSeconds);
 
-        Assert.Equal(expectedMilliseconds, actual: (timeSingle as ITime).Milliseconds);
+        await Assert.That((timeSingle as ITime).Milliseconds).IsEqualTo(expectedMilliseconds);
     }
 
-    [Theory]
-    [InlineData(0, 0)]
-    [InlineData(1, 1)]
-    [InlineData(5.6f, 5)]
-    [InlineData(100, 40)]
-    [InlineData(1112, 32)]
-    public void Seconds_ShouldBeCorrect(float totalSeconds, int expectedSeconds)
+    [Test]
+    [Arguments(0, 0)]
+    [Arguments(1, 1)]
+    [Arguments(5.6f, 5)]
+    [Arguments(100, 40)]
+    [Arguments(1112, 32)]
+    public async Task Seconds_ShouldBeCorrect(float totalSeconds, int expectedSeconds)
     {
         var timeSingle = new TimeSingle(totalSeconds);
 
-        Assert.Equal(expectedSeconds, actual: timeSingle.Seconds);
+        await Assert.That(timeSingle.Seconds).IsEqualTo(expectedSeconds);
     }
 
-    [Theory]
-    [InlineData(0, 0)]
-    [InlineData(59.99f, 0)]
-    [InlineData(60, 1)]
-    [InlineData(61, 1)]
-    [InlineData(320, 5)]
-    [InlineData(3680, 1)]
-    public void Minutes_ShouldBeCorrect(float totalSeconds, int expectedMinutes)
+    [Test]
+    [Arguments(0, 0)]
+    [Arguments(59.99f, 0)]
+    [Arguments(60, 1)]
+    [Arguments(61, 1)]
+    [Arguments(320, 5)]
+    [Arguments(3680, 1)]
+    public async Task Minutes_ShouldBeCorrect(float totalSeconds, int expectedMinutes)
     {
         var timeSingle = new TimeSingle(totalSeconds);
 
-        Assert.Equal(expectedMinutes, actual: timeSingle.Minutes);
+        await Assert.That(timeSingle.Minutes).IsEqualTo(expectedMinutes);
     }
 
-    [Theory]
-    [InlineData(0, 0)]
-    [InlineData(3599.99f, 0)]
-    [InlineData(3600, 1)]
-    [InlineData(3601, 1)]
-    [InlineData(10000, 2)]
-    [InlineData(10800, 3)]
-    public void Hours_ShouldBeCorrect(float totalSeconds, int expectedHours)
+    [Test]
+    [Arguments(0, 0)]
+    [Arguments(3599.99f, 0)]
+    [Arguments(3600, 1)]
+    [Arguments(3601, 1)]
+    [Arguments(10000, 2)]
+    [Arguments(10800, 3)]
+    public async Task Hours_ShouldBeCorrect(float totalSeconds, int expectedHours)
     {
         var timeSingle = new TimeSingle(totalSeconds);
 
-        Assert.Equal(expectedHours, actual: timeSingle.Hours);
+        await Assert.That(timeSingle.Hours).IsEqualTo(expectedHours);
     }
 
-    [Theory]
-    [InlineData(0, 0)]
-    [InlineData(86399.99f, 0)]
-    [InlineData(86400, 1)]
-    [InlineData(86401, 1)]
-    [InlineData(172799, 1)]
-    [InlineData(172800, 2)]
-    public void Days_ShouldBeCorrect(float totalSeconds, int expectedDays)
+    [Test]
+    [Arguments(0, 0)]
+    [Arguments(86399.99f, 0)]
+    [Arguments(86400, 1)]
+    [Arguments(86401, 1)]
+    [Arguments(172799, 1)]
+    [Arguments(172800, 2)]
+    public async Task Days_ShouldBeCorrect(float totalSeconds, int expectedDays)
     {
         var timeSingle = new TimeSingle(totalSeconds);
 
-        Assert.Equal(expectedDays, actual: timeSingle.Days);
+        await Assert.That(timeSingle.Days).IsEqualTo(expectedDays);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(5.5f)]
-    [InlineData(20)]
-    public void New_TotalSeconds_ShouldBeEqual(float totalSeconds)
+    [Test]
+    [Arguments(0)]
+    [Arguments(1)]
+    [Arguments(5.5f)]
+    [Arguments(20)]
+    public async Task New_TotalSeconds_ShouldBeEqual(float totalSeconds)
     {
         var timeSingle = new TimeSingle(totalSeconds);
 
-        Assert.Equal(expected: totalSeconds, actual: timeSingle.TotalSeconds);
+        await Assert.That(timeSingle.TotalSeconds).IsEqualTo(totalSeconds);
     }
 
-    [Theory]
-    [InlineData(-1, -2, -3)]
-    [InlineData(0, 0, 0)]
-    [InlineData(5, 10, 15)]
-    [InlineData(13, 18, 7)]
-    public void New_HoursMinutesSeconds_ShouldBeEqual(int hours, int minutes, int seconds)
+    [Test]
+    [Arguments(-1, -2, -3)]
+    [Arguments(0, 0, 0)]
+    [Arguments(5, 10, 15)]
+    [Arguments(13, 18, 7)]
+    public async Task New_HoursMinutesSeconds_ShouldBeEqual(int hours, int minutes, int seconds)
     {
         var timeSingle = new TimeSingle(hours, minutes, seconds);
 
-        Assert.Equal(expected: hours, actual: timeSingle.Hours);
-        Assert.Equal(expected: minutes, actual: timeSingle.Minutes);
-        Assert.Equal(expected: seconds, actual: timeSingle.Seconds);
+        await Assert.That(timeSingle.Hours).IsEqualTo(hours);
+        await Assert.That(timeSingle.Minutes).IsEqualTo(minutes);
+        await Assert.That(timeSingle.Seconds).IsEqualTo(seconds);
     }
 
-    [Theory]
-    [InlineData(0, -2, -3, -4, -100)]
-    [InlineData(0, 0, 0, 0, 0)]
-    [InlineData(0, 10, 15, 20, 100)]
-    [InlineData(0, 18, 7, 1, 100)]
-    public void New_DaysHoursMinutesSecondsMilliseconds_ShouldBeEqual(int days, int hours, int minutes, int seconds, float milliseconds)
+    [Test]
+    [Arguments(0, -2, -3, -4, -100)]
+    [Arguments(0, 0, 0, 0, 0)]
+    [Arguments(0, 10, 15, 20, 100)]
+    [Arguments(0, 18, 7, 1, 100)]
+    public async Task New_DaysHoursMinutesSecondsMilliseconds_ShouldBeEqual(int days, int hours, int minutes, int seconds, float milliseconds)
     {
         var timeSingle = new TimeSingle(days, hours, minutes, seconds, milliseconds);
 
-        Assert.Equal(expected: days, actual: timeSingle.Days);
-        Assert.Equal(expected: hours, actual: timeSingle.Hours);
-        Assert.Equal(expected: minutes, actual: timeSingle.Minutes);
-        Assert.Equal(expected: seconds, actual: timeSingle.Seconds);
-        Assert.Equal(expected: milliseconds, actual: timeSingle.Milliseconds);
+        await Assert.That(timeSingle.Days).IsEqualTo(days);
+        await Assert.That(timeSingle.Hours).IsEqualTo(hours);
+        await Assert.That(timeSingle.Minutes).IsEqualTo(minutes);
+        await Assert.That(timeSingle.Seconds).IsEqualTo(seconds);
+        await Assert.That(timeSingle.Milliseconds).IsEqualTo(milliseconds);
     }
 
-    [Theory]
-    [InlineData(-2)]
-    [InlineData(0)]
-    [InlineData(5)]
-    [InlineData(6.5f)]
-    [InlineData(12)]
-    public void FromDays_TotalDaysShouldBeEqual(float days)
+    [Test]
+    [Arguments(-2)]
+    [Arguments(0)]
+    [Arguments(5)]
+    [Arguments(6.5f)]
+    [Arguments(12)]
+    public async Task FromDays_TotalDaysShouldBeEqual(float days)
     {
         var timeSingle = TimeSingle.FromDays(days);
 
-        Assert.Equal(expected: days, actual: timeSingle.TotalDays);
+        await Assert.That(timeSingle.TotalDays).IsEqualTo(days);
     }
 
-    [Theory]
-    [InlineData(-2)]
-    [InlineData(0)]
-    [InlineData(5)]
-    [InlineData(6.5f)]
-    [InlineData(12)]
-    public void FromHours_TotalHoursShouldBeEqual(float hours)
+    [Test]
+    [Arguments(-2)]
+    [Arguments(0)]
+    [Arguments(5)]
+    [Arguments(6.5f)]
+    [Arguments(12)]
+    public async Task FromHours_TotalHoursShouldBeEqual(float hours)
     {
         var timeSingle = TimeSingle.FromHours(hours);
 
-        Assert.Equal(expected: hours, actual: timeSingle.TotalHours);
+        await Assert.That(timeSingle.TotalHours).IsEqualTo(hours);
     }
 
-    [Theory]
-    [InlineData(-2)]
-    [InlineData(0)]
-    [InlineData(5)]
-    [InlineData(6.5f)]
-    [InlineData(12)]
-    public void FromMilliseconds_TotalMillisecondsShouldBeEqual(float milliseconds)
+    [Test]
+    [Arguments(-2)]
+    [Arguments(0)]
+    [Arguments(5)]
+    [Arguments(6.5f)]
+    [Arguments(12)]
+    public async Task FromMilliseconds_TotalMillisecondsShouldBeEqual(float milliseconds)
     {
         var timeSingle = TimeSingle.FromMilliseconds(milliseconds);
 
-        Assert.Equal(expected: milliseconds, actual: timeSingle.TotalMilliseconds);
+        await Assert.That(timeSingle.TotalMilliseconds).IsEqualTo(milliseconds);
     }
 
-    [Theory]
-    [InlineData(-2)]
-    [InlineData(0)]
-    [InlineData(5)]
-    [InlineData(6.5f)]
-    [InlineData(12)]
-    public void FromMinutes_TotalMinutesShouldBeEqual(float minutes)
+    [Test]
+    [Arguments(-2)]
+    [Arguments(0)]
+    [Arguments(5)]
+    [Arguments(6.5f)]
+    [Arguments(12)]
+    public async Task FromMinutes_TotalMinutesShouldBeEqual(float minutes)
     {
         var timeSingle = TimeSingle.FromMinutes(minutes);
 
-        Assert.Equal(expected: minutes, actual: timeSingle.TotalMinutes);
+        await Assert.That(timeSingle.TotalMinutes).IsEqualTo(minutes);
     }
 
-    [Theory]
-    [InlineData(-2)]
-    [InlineData(0)]
-    [InlineData(5)]
-    [InlineData(6.5f)]
-    [InlineData(12)]
-    public void FromSeconds_TotalSecondsShouldBeEqual(float seconds)
+    [Test]
+    [Arguments(-2)]
+    [Arguments(0)]
+    [Arguments(5)]
+    [Arguments(6.5f)]
+    [Arguments(12)]
+    public async Task FromSeconds_TotalSecondsShouldBeEqual(float seconds)
     {
         var timeSingle = TimeSingle.FromSeconds(seconds);
 
-        Assert.Equal(expected: seconds, actual: timeSingle.TotalSeconds);
+        await Assert.That(timeSingle.TotalSeconds).IsEqualTo(seconds);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-10_000)]
-    [InlineData(10_000)]
-    [InlineData(100_000)]
-    [InlineData(5_100_000)]
-    public void FromTicks_TicksShouldBeEqual(long ticks)
+    [Test]
+    [Arguments(0)]
+    [Arguments(-10_000)]
+    [Arguments(10_000)]
+    [Arguments(100_000)]
+    [Arguments(5_100_000)]
+    public async Task FromTicks_TicksShouldBeEqual(long ticks)
     {
         var timeSingle = TimeSingle.FromTicks(ticks);
 
-        Assert.Equal(expected: ticks, actual: timeSingle.Ticks);
+        await Assert.That(timeSingle.Ticks).IsEqualTo(ticks);
     }
 
-    [Theory]
-    [InlineData(5, 10, 15)]
-    [InlineData(-1, -2, -3)]
-    [InlineData(0, 0, 0)]
-    [InlineData(12, 15.5f, 27.5f)]
-    public void Add_ShouldAdd(float totalSeconds1, float totalSeconds2, float totalSecondsResult)
+    [Test]
+    [Arguments(5, 10, 15)]
+    [Arguments(-1, -2, -3)]
+    [Arguments(0, 0, 0)]
+    [Arguments(12, 15.5f, 27.5f)]
+    public async Task Add_ShouldAdd(float totalSeconds1, float totalSeconds2, float totalSecondsResult)
     {
         var timeSingle1 = new TimeSingle(totalSeconds1);
         var timeSingle2 = new TimeSingle(totalSeconds2);
 
         var result = timeSingle1.Add(timeSingle2);
 
-        Assert.Equal(expected: totalSecondsResult, actual: result.TotalSeconds);
+        await Assert.That(result.TotalSeconds).IsEqualTo(totalSecondsResult);
     }
 
-    [Theory]
-    [InlineData(0, 1, 0)]
-    [InlineData(1, 0.5f, 2)]
-    [InlineData(10, 2, 5)]
-    public void Divide_Divisor_ShouldDivide(float totalSeconds, float divisor, float totalSecondsResult)
+    [Test]
+    [Arguments(0, 1, 0)]
+    [Arguments(1, 0.5f, 2)]
+    [Arguments(10, 2, 5)]
+    public async Task Divide_Divisor_ShouldDivide(float totalSeconds, float divisor, float totalSecondsResult)
     {
         var timeSingle = new TimeSingle(totalSeconds);
 
         var result = timeSingle.Divide(divisor);
         
-        Assert.Equal(expected: totalSecondsResult, actual: result.TotalSeconds);
+        await Assert.That(result.TotalSeconds).IsEqualTo(totalSecondsResult);
     }
 
-    [Theory]
-    [InlineData(0, 1, 0)]
-    [InlineData(1, 0.5f, 2)]
-    [InlineData(10, 2, 5)]
-    public void Divide_Time_ShouldDivide(float totalSeconds, float totalSecondsDivisor, float totalSecondsResult)
+    [Test]
+    [Arguments(0, 1, 0)]
+    [Arguments(1, 0.5f, 2)]
+    [Arguments(10, 2, 5)]
+    public async Task Divide_Time_ShouldDivide(float totalSeconds, float totalSecondsDivisor, float totalSecondsResult)
     {
         var timeSingle = new TimeSingle(totalSeconds);
         var divisor = new TimeSingle(totalSecondsDivisor);
 
         var result = timeSingle.Divide(divisor);
 
-        Assert.Equal(expected: totalSecondsResult, actual: result);
+        await Assert.That(result).IsEqualTo(totalSecondsResult);
     }
 
-    [Theory]
-    [InlineData(0, 0)]
-    [InlineData(-1, 1)]
-    [InlineData(10, 10)]
-    [InlineData(-10, 10)]
-    public void Duration_ShouldReturnAbsoluteValue(float totalSeconds, float totalSecondsExpected)
+    [Test]
+    [Arguments(0, 0)]
+    [Arguments(-1, 1)]
+    [Arguments(10, 10)]
+    [Arguments(-10, 10)]
+    public async Task Duration_ShouldReturnAbsoluteValue(float totalSeconds, float totalSecondsExpected)
     {
         var timeSingle = new TimeSingle(totalSeconds);
         var timeSingleExpected = new TimeSingle(totalSecondsExpected);
 
         var result = timeSingle.Duration();
 
-        Assert.Equal(timeSingleExpected, actual: result);
+        await Assert.That(result).IsEqualTo(timeSingleExpected);
     }
 
-    [Theory]
-    [InlineData(0, 1, 0)]
-    [InlineData(1, 0.5f, 0.5f)]
-    [InlineData(10, 2, 20)]
-    public void Multiply_ShouldMultiplyByFactor(float totalSeconds, float totalSecondsFactor, float totalSecondsResult)
+    [Test]
+    [Arguments(0, 1, 0)]
+    [Arguments(1, 0.5f, 0.5f)]
+    [Arguments(10, 2, 20)]
+    public async Task Multiply_ShouldMultiplyByFactor(float totalSeconds, float totalSecondsFactor, float totalSecondsResult)
     {
         var timeSingle = new TimeSingle(totalSeconds);
 
         var result = timeSingle.Multiply(totalSecondsFactor);
 
-        Assert.Equal(expected: totalSecondsResult, actual: result.TotalSeconds);
+        await Assert.That(result.TotalSeconds).IsEqualTo(totalSecondsResult);
     }
 
-    [Theory]
-    [InlineData(0, 0)]
-    [InlineData(1, -1)]
-    [InlineData(5.5f, -5.5f)]
-    [InlineData(-8.5f, 8.5f)]
-    public void Negate_ShouldNegate(float totalSeconds, float totalSecondsResult)
+    [Test]
+    [Arguments(0, 0)]
+    [Arguments(1, -1)]
+    [Arguments(5.5f, -5.5f)]
+    [Arguments(-8.5f, 8.5f)]
+    public async Task Negate_ShouldNegate(float totalSeconds, float totalSecondsResult)
     {
         var timeSingle = new TimeSingle(totalSeconds);
 
         var result = timeSingle.Negate();
 
-        Assert.Equal(expected: totalSecondsResult, actual: result.TotalSeconds);
+        await Assert.That(result.TotalSeconds).IsEqualTo(totalSecondsResult);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(5.5f)]
-    [InlineData(-8.5f)]
-    public void ToTimeInt32_ConvertsCorrectly(float totalSeconds)
+    [Test]
+    [Arguments(0)]
+    [Arguments(1)]
+    [Arguments(5.5f)]
+    [Arguments(-8.5f)]
+    public async Task ToTimeInt32_ConvertsCorrectly(float totalSeconds)
     {
         var timeSingle = new TimeSingle(totalSeconds);
 
         var timeInt = timeSingle.ToTimeInt32();
 
-        Assert.Equal(expected: timeSingle.TotalSeconds, actual: timeInt.TotalSeconds);
+        await Assert.That(timeInt.TotalSeconds).IsEqualTo(timeSingle.TotalSeconds);
     }
 
-    [Fact]
-    public void GreaterThanOperator_TimeSingle_ReturnsCorrectResult()
+    [Test]
+    public async Task GreaterThanOperator_TimeSingle_ReturnsCorrectResult()
     {
         var time1 = new TimeSingle(2.0f); // 2 seconds
         var time2 = new TimeSingle(1.5f); // 1.5 seconds
 
-        Assert.True(time1 > time2);
-        Assert.False(time2 > time1);
+        await Assert.That(time1 > time2).IsTrue();
+        await Assert.That(time2 > time1).IsFalse();
     }
 
-    [Fact]
-    public void GreaterThanOrEqualOperator_TimeSingle_ReturnsCorrectResult()
+    [Test]
+    public async Task GreaterThanOrEqualOperator_TimeSingle_ReturnsCorrectResult()
     {
         var time1 = new TimeSingle(2.0f);
         var time2 = new TimeSingle(2.0f);
         var time3 = new TimeSingle(1.5f);
 
-        Assert.True(time1 >= time2);
-        Assert.True(time1 >= time3);
-        Assert.False(time3 >= time1);
+        await Assert.That(time1 >= time2).IsTrue();
+        await Assert.That(time1 >= time3).IsTrue();
+        await Assert.That(time3 >= time1).IsFalse();
     }
 
-    [Fact]
-    public void LessThanOperator_TimeSingle_ReturnsCorrectResult()
+    [Test]
+    public async Task LessThanOperator_TimeSingle_ReturnsCorrectResult()
     {
         var time1 = new TimeSingle(1.5f);
         var time2 = new TimeSingle(2.0f);
 
-        Assert.True(time1 < time2);
-        Assert.False(time2 < time1);
+        await Assert.That(time1 < time2).IsTrue();
+        await Assert.That(time2 < time1).IsFalse();
     }
 
-    [Fact]
-    public void LessThanOrEqualOperator_TimeSingle_ReturnsCorrectResult()
+    [Test]
+    public async Task LessThanOrEqualOperator_TimeSingle_ReturnsCorrectResult()
     {
         var time1 = new TimeSingle(2.0f);
         var time2 = new TimeSingle(2.0f);
         var time3 = new TimeSingle(2.5f);
 
-        Assert.True(time1 <= time2);
-        Assert.True(time1 <= time3);
-        Assert.False(time3 <= time1);
+        await Assert.That(time1 <= time2).IsTrue();
+        await Assert.That(time1 <= time3).IsTrue();
+        await Assert.That(time3 <= time1).IsFalse();
     }
 
-    [Fact]
-    public void EqualityOperator_TimeSingleAndTimeInt32_ReturnsCorrectResult()
+    [Test]
+    public async Task EqualityOperator_TimeSingleAndTimeInt32_ReturnsCorrectResult()
     {
         var timeSingle = new TimeSingle(1.0f); // 1 second
         var timeInt32 = new TimeInt32(1000); // 1000 milliseconds
 
-        Assert.True(timeSingle == timeInt32);
+        await Assert.That(timeSingle == timeInt32).IsTrue();
     }
 
-    [Fact]
-    public void InequalityOperator_TimeSingleAndTimeInt32_ReturnsCorrectResult()
+    [Test]
+    public async Task InequalityOperator_TimeSingleAndTimeInt32_ReturnsCorrectResult()
     {
         var timeSingle = new TimeSingle(1.5f); // 1.5 seconds
         var timeInt32 = new TimeInt32(1000); // 1000 milliseconds
 
-        Assert.True(timeSingle != timeInt32);
+        await Assert.That(timeSingle != timeInt32).IsTrue();
     }
 
-    [Fact]
-    public void UnaryPlusOperator_ReturnsSameValue()
+    [Test]
+    public async Task UnaryPlusOperator_ReturnsSameValue()
     {
         var time = new TimeSingle(1.5f); // 1.5 seconds
         var result = +time;
 
-        Assert.Equal(time.TotalSeconds, result.TotalSeconds, precision: 3);
+        await Assert.That(result.TotalSeconds).IsEqualTo(time.TotalSeconds).Within(0.001f);
     }
 
-    [Fact]
-    public void AddTwoTimeSingle_ReturnsCorrectResult()
+    [Test]
+    public async Task AddTwoTimeSingle_ReturnsCorrectResult()
     {
         var time1 = new TimeSingle(1.0f); // 1 second
         var time2 = new TimeSingle(2.5f); // 2.5 seconds
@@ -516,11 +515,11 @@ public class TimeSingleTests
 
         var result = time1 + time2;
 
-        Assert.Equal(expected.TotalSeconds, result.TotalSeconds, precision: 3);
+        await Assert.That(result.TotalSeconds).IsEqualTo(expected.TotalSeconds).Within(0.001f);
     }
 
-    [Fact]
-    public void AddTimeSingleAndTimeSpan_ReturnsCorrectResult()
+    [Test]
+    public async Task AddTimeSingleAndTimeSpan_ReturnsCorrectResult()
     {
         var timeSingle = new TimeSingle(1.0f); // 1 second
         var timeSpan = TimeSpan.FromSeconds(2.5); // 2.5 seconds
@@ -528,22 +527,22 @@ public class TimeSingleTests
 
         var result = timeSingle + timeSpan;
 
-        Assert.Equal(expected.TotalSeconds, result.TotalSeconds, precision: 3);
+        await Assert.That(result.TotalSeconds).IsEqualTo(expected.TotalSeconds).Within(0.001f);
     }
 
-    [Fact]
-    public void UnaryMinusOperator_ReturnsNegatedValue()
+    [Test]
+    public async Task UnaryMinusOperator_ReturnsNegatedValue()
     {
         var time = new TimeSingle(1.5f); // 1.5 seconds
         var expected = new TimeSingle(-1.5f);
 
         var result = -time;
 
-        Assert.Equal(expected.TotalSeconds, result.TotalSeconds, precision: 3);
+        await Assert.That(result.TotalSeconds).IsEqualTo(expected.TotalSeconds).Within(0.001f);
     }
 
-    [Fact]
-    public void SubtractTwoTimeSingle_ReturnsCorrectResult()
+    [Test]
+    public async Task SubtractTwoTimeSingle_ReturnsCorrectResult()
     {
         var time1 = new TimeSingle(3.5f); // 3.5 seconds
         var time2 = new TimeSingle(1.0f); // 1 second
@@ -551,11 +550,11 @@ public class TimeSingleTests
 
         var result = time1 - time2;
 
-        Assert.Equal(expected.TotalSeconds, result.TotalSeconds, precision: 3);
+        await Assert.That(result.TotalSeconds).IsEqualTo(expected.TotalSeconds).Within(0.001f);
     }
 
-    [Fact]
-    public void SubtractTimeSpanFromTimeSingle_ReturnsCorrectResult()
+    [Test]
+    public async Task SubtractTimeSpanFromTimeSingle_ReturnsCorrectResult()
     {
         var timeSingle = new TimeSingle(3.5f); // 3.5 seconds
         var timeSpan = TimeSpan.FromSeconds(1.0); // 1 second
@@ -563,11 +562,11 @@ public class TimeSingleTests
 
         var result = timeSingle - timeSpan;
 
-        Assert.Equal(expected.TotalSeconds, result.TotalSeconds, precision: 3);
+        await Assert.That(result.TotalSeconds).IsEqualTo(expected.TotalSeconds).Within(0.001f);
     }
 
-    [Fact]
-    public void MultiplyFloatAndTimeSingle_ReturnsTimeSingle()
+    [Test]
+    public async Task MultiplyFloatAndTimeSingle_ReturnsTimeSingle()
     {
         var time = new TimeSingle(2.0f); // 2 seconds
         float factor = 2.5f;
@@ -575,11 +574,11 @@ public class TimeSingleTests
 
         var result = factor * time;
 
-        Assert.Equal(expected.TotalSeconds, result.TotalSeconds, precision: 3);
+        await Assert.That(result.TotalSeconds).IsEqualTo(expected.TotalSeconds).Within(0.001f);
     }
 
-    [Fact]
-    public void MultiplyTimeSingleAndFloat_ReturnsTimeSingle()
+    [Test]
+    public async Task MultiplyTimeSingleAndFloat_ReturnsTimeSingle()
     {
         var time = new TimeSingle(1.5f); // 1.5 seconds
         float factor = 2f;
@@ -587,11 +586,11 @@ public class TimeSingleTests
 
         var result = time * factor;
 
-        Assert.Equal(expected.TotalSeconds, result.TotalSeconds, precision: 3);
+        await Assert.That(result.TotalSeconds).IsEqualTo(expected.TotalSeconds).Within(0.001f);
     }
 
-    [Fact]
-    public void DivideTimeSingleByFloat_ReturnsTimeSingle()
+    [Test]
+    public async Task DivideTimeSingleByFloat_ReturnsTimeSingle()
     {
         var time = new TimeSingle(3.0f); // 3 seconds
         float divisor = 2f;
@@ -599,11 +598,11 @@ public class TimeSingleTests
 
         var result = time / divisor;
 
-        Assert.Equal(expected.TotalSeconds, result.TotalSeconds, precision: 3);
+        await Assert.That(result.TotalSeconds).IsEqualTo(expected.TotalSeconds).Within(0.001f);
     }
 
-    [Fact]
-    public void DivideTimeSingleByTimeSingle_ReturnsFloat()
+    [Test]
+    public async Task DivideTimeSingleByTimeSingle_ReturnsFloat()
     {
         var time1 = new TimeSingle(3.0f); // 3 seconds
         var time2 = new TimeSingle(1.5f); // 1.5 seconds
@@ -611,282 +610,282 @@ public class TimeSingleTests
 
         var result = time1 / time2;
 
-        Assert.Equal(expected, result, precision: 3);
+        await Assert.That(result).IsEqualTo(expected).Within(0.001f);
     }
 
-    [Fact]
-    public void ImplicitConversionFromTimeSingleToTimeSpan()
+    [Test]
+    public async Task ImplicitConversionFromTimeSingleToTimeSpan()
     {
         var timeSingle = new TimeSingle(1.5f); // 1.5 seconds
         TimeSpan expected = TimeSpan.FromSeconds(1.5);
 
         TimeSpan result = timeSingle;
 
-        Assert.Equal(expected, result);
+        await Assert.That(result).IsEqualTo(expected);
     }
 
-    [Fact]
-    public void ImplicitConversionFromTimeSpanToTimeSingle()
+    [Test]
+    public async Task ImplicitConversionFromTimeSpanToTimeSingle()
     {
         var timeSpan = TimeSpan.FromSeconds(2.0); // 2 seconds
         var expected = new TimeSingle(2.0f);
 
         TimeSingle result = timeSpan;
 
-        Assert.Equal(expected.TotalSeconds, result.TotalSeconds, precision: 3);
+        await Assert.That(result.TotalSeconds).IsEqualTo(expected.TotalSeconds).Within(0.001f);
     }
 
-    [Fact]
-    public void ImplicitConversionFromTimeInt32ToTimeSingle()
+    [Test]
+    public async Task ImplicitConversionFromTimeInt32ToTimeSingle()
     {
         var timeInt32 = new TimeInt32(3000); // 3000 milliseconds
         var expected = new TimeSingle(3.0f); // 3 seconds
 
         TimeSingle result = timeInt32;
 
-        Assert.Equal(expected.TotalSeconds, result.TotalSeconds, precision: 3);
+        await Assert.That(result.TotalSeconds).IsEqualTo(expected.TotalSeconds).Within(0.001f);
     }
 
-    [Fact]
-    public void CompareTo_WithNull_ReturnsPositive()
+    [Test]
+    public async Task CompareTo_WithNull_ReturnsPositive()
     {
         var time = new TimeSingle(1); // Assuming this class implements ITime
         int result = time.CompareTo(null);
 
-        Assert.Equal(1, result);
+        await Assert.That(result).IsEqualTo(1);
     }
 
-    [Fact]
-    public void CompareTo_WithGreaterTotalSeconds_ReturnsNegative()
+    [Test]
+    public async Task CompareTo_WithGreaterTotalSeconds_ReturnsNegative()
     {
         var time = new TimeSingle(1f);
         var other = new TimeSingle(1.5f);
 
         int result = time.CompareTo(other);
 
-        Assert.Equal(-1, result);
+        await Assert.That(result).IsEqualTo(-1);
     }
 
-    [Fact]
-    public void CompareTo_WithLesserTotalSeconds_ReturnsPositive()
+    [Test]
+    public async Task CompareTo_WithLesserTotalSeconds_ReturnsPositive()
     {
         var time = new TimeSingle(1.5f);
         var other = new TimeSingle(1);
 
         int result = time.CompareTo(other);
 
-        Assert.Equal(1, result);
+        await Assert.That(result).IsEqualTo(1);
     }
 
-    [Fact]
-    public void CompareTo_WithEqualTotalSeconds_ReturnsZero()
+    [Test]
+    public async Task CompareTo_WithEqualTotalSeconds_ReturnsZero()
     {
         var time = new TimeSingle(1);
         var other = new TimeSingle(1);
 
         int result = time.CompareTo(other);
 
-        Assert.Equal(0, result);
+        await Assert.That(result).IsEqualTo(0);
     }
 
-    [Fact]
-    public void CompareToObject_WithNull_ReturnsPositive()
+    [Test]
+    public async Task CompareToObject_WithNull_ReturnsPositive()
     {
         var time = new TimeSingle(1.0f); // Replace with your class that implements ITime
         int result = time.CompareTo(default(object));
 
-        Assert.Equal(1, result);
+        await Assert.That(result).IsEqualTo(1);
     }
 
-    [Theory]
-    [InlineData(1f, 1.5f, -1)]
-    [InlineData(1.5f, 1f, 1)]
-    [InlineData(1f, 1f, 0)]
-    public void CompareToObject_WithITimeObject_ReturnsCorrectComparison(float timeFloat, float otherFloat, int expected)
+    [Test]
+    [Arguments(1f, 1.5f, -1)]
+    [Arguments(1.5f, 1f, 1)]
+    [Arguments(1f, 1f, 0)]
+    public async Task CompareToObject_WithITimeObject_ReturnsCorrectComparison(float timeFloat, float otherFloat, int expected)
     {
         var time = new TimeSingle(timeFloat);
         object other = new TimeSingle(otherFloat); // other implements ITime
 
         int result = time.CompareTo(other);
 
-        Assert.Equal(expected, result);
+        await Assert.That(result).IsEqualTo(expected);
     }
 
-    [Fact]
-    public void CompareToObject_WithNonITimeObject_ThrowsArgumentException()
+    [Test]
+    public async Task CompareToObject_WithNonITimeObject_ThrowsArgumentException()
     {
         var time = new TimeSingle(1.0f);
         object nonTimeObject = new Random(); // An object that does not implement ITime
 
-        Assert.Throws<ArgumentException>(() => time.CompareTo(nonTimeObject));
+        await Assert.That(() => time.CompareTo(nonTimeObject)).ThrowsExactly<ArgumentException>();
     }
 
-    [Theory]
-    [InlineData(1f, 1500, -1)]
-    [InlineData(1.5f, 1000, 1)]
-    [InlineData(1f, 1000, 0)]
-    public void CompareTo_WithTimeInt32_ReturnsCorrectComparison(float timeFloat, int otherInt, int expected)
+    [Test]
+    [Arguments(1f, 1500, -1)]
+    [Arguments(1.5f, 1000, 1)]
+    [Arguments(1f, 1000, 0)]
+    public async Task CompareTo_WithTimeInt32_ReturnsCorrectComparison(float timeFloat, int otherInt, int expected)
     {
         var time = new TimeSingle(timeFloat);
         var other = new TimeInt32(otherInt);
 
         int result = time.CompareTo(other);
 
-        Assert.Equal(expected, result);
+        await Assert.That(result).IsEqualTo(expected);
     }
 
-    [Fact]
-    public void Equals_WithNullITime_ReturnsFalse()
+    [Test]
+    public async Task Equals_WithNullITime_ReturnsFalse()
     {
         var time = new TimeSingle(1.0f);
 
-        Assert.False(time.Equals(null));
+        await Assert.That(time.Equals(null)).IsFalse();
     }
 
-    [Fact]
-    public void Equals_WithTimeInt32_ReturnsFalse()
+    [Test]
+    public async Task Equals_WithTimeInt32_ReturnsFalse()
     {
         var time = new TimeSingle(2);
         var other = new TimeInt32(1000);
-        Assert.False(time.Equals(other));
+        await Assert.That(time.Equals(other)).IsFalse();
     }
 
-    [Fact]
-    public void TryParse_WithValidString_ReturnsTrue()
+    [Test]
+    public async Task TryParse_WithValidString_ReturnsTrue()
     {
         var time = new TimeSingle(1);
         var str = time.ToString();
         var result = TimeSingle.TryParse(str, out var parsed);
-        Assert.True(result);
-        Assert.Equal(time, parsed);
+        await Assert.That(result).IsTrue();
+        await Assert.That(parsed).IsEqualTo(time);
     }
 
-    [Fact]
-    public void TryParse_WithInvalidString_ReturnsFalse()
+    [Test]
+    public async Task TryParse_WithInvalidString_ReturnsFalse()
     {
         var str = "invalid";
         var result = TimeSingle.TryParse(str, out var parsed);
-        Assert.False(result);
-        Assert.Equal(TimeSingle.Zero, parsed);
+        await Assert.That(result).IsFalse();
+        await Assert.That(parsed).IsEqualTo(TimeSingle.Zero);
     }
 
-    [Fact]
-    public void TryParse_WithNullString_ReturnsFalse()
+    [Test]
+    public async Task TryParse_WithNullString_ReturnsFalse()
     {
         var result = TimeSingle.TryParse(null, out var parsed);
-        Assert.False(result);
-        Assert.Equal(TimeSingle.Zero, parsed);
+        await Assert.That(result).IsFalse();
+        await Assert.That(parsed).IsEqualTo(TimeSingle.Zero);
     }
 
-    [Fact]
-    public void Parse_WithValidString_ReturnsTimeSingle()
+    [Test]
+    public async Task Parse_WithValidString_ReturnsTimeSingle()
     {
         var time = new TimeSingle(1);
         var str = time.ToString();
         var parsed = TimeSingle.Parse(str);
-        Assert.Equal(time, parsed);
+        await Assert.That(parsed).IsEqualTo(time);
     }
 
-    [Fact]
-    public void Parse_WithInvalidString_ThrowsFormatException()
+    [Test]
+    public async Task Parse_WithInvalidString_ThrowsFormatException()
     {
         var str = "invalid";
-        Assert.Throws<FormatException>(() => TimeSingle.Parse(str));
+        await Assert.That(() => TimeSingle.Parse(str)).ThrowsExactly<FormatException>();
     }
 
-    [Fact]
-    public void TryParse_WithValidSpan_ReturnsTrue()
+    [Test]
+    public async Task TryParse_WithValidSpan_ReturnsTrue()
     {
         var time = new TimeSingle(1);
         var str = time.ToString();
         var result = TimeSingle.TryParse(str.AsSpan(), out var parsed);
-        Assert.True(result);
-        Assert.Equal(time, parsed);
+        await Assert.That(result).IsTrue();
+        await Assert.That(parsed).IsEqualTo(time);
     }
 
-    [Fact]
-    public void TryParse_WithInvalidSpan_ReturnsFalse()
+    [Test]
+    public async Task TryParse_WithInvalidSpan_ReturnsFalse()
     {
         var str = "invalid";
         var result = TimeSingle.TryParse(str.AsSpan(), out var parsed);
-        Assert.False(result);
-        Assert.Equal(TimeSingle.Zero, parsed);
+        await Assert.That(result).IsFalse();
+        await Assert.That(parsed).IsEqualTo(TimeSingle.Zero);
     }
 
-    [Fact]
-    public void TryParse_WithEmptySpan_ReturnsFalse()
+    [Test]
+    public async Task TryParse_WithEmptySpan_ReturnsFalse()
     {
         var result = TimeSingle.TryParse(ReadOnlySpan<char>.Empty, out var parsed);
-        Assert.False(result);
-        Assert.Equal(TimeSingle.Zero, parsed);
+        await Assert.That(result).IsFalse();
+        await Assert.That(parsed).IsEqualTo(TimeSingle.Zero);
     }
 
-    [Fact]
-    public void Parse_WithValidSpan_ReturnsTimeSingle()
+    [Test]
+    public async Task Parse_WithValidSpan_ReturnsTimeSingle()
     {
         var time = new TimeSingle(1);
         var str = time.ToString();
         var parsed = TimeSingle.Parse(str.AsSpan());
-        Assert.Equal(time, parsed);
+        await Assert.That(parsed).IsEqualTo(time);
     }
 
-    [Fact]
-    public void Parse_WithInvalidSpan_ThrowsFormatException()
+    [Test]
+    public async Task Parse_WithInvalidSpan_ThrowsFormatException()
     {
         var str = "invalid";
-        Assert.Throws<FormatException>(() => TimeSingle.Parse(str.AsSpan()));
+        await Assert.That(() => TimeSingle.Parse(str.AsSpan())).ThrowsExactly<FormatException>();
     }
 
-    [Theory]
-    [InlineData("1.876", 1.876f)]
-    [InlineData("00:00.00", 0f)]
-    [InlineData("0:00.69", 0.690f)]
-    [InlineData("0:01.00", 1.000f)]
-    [InlineData("0:43.256", 43.256f)]
-    [InlineData("1:00.000", 60.000f)]
-    [InlineData("1:50.011", 110.011f)]
-    public void Parse_VariousTimes_ReturnsTimeSingle(string str, float expected)
+    [Test]
+    [Arguments("1.876", 1.876f)]
+    [Arguments("00:00.00", 0f)]
+    [Arguments("0:00.69", 0.690f)]
+    [Arguments("0:01.00", 1.000f)]
+    [Arguments("0:43.256", 43.256f)]
+    [Arguments("1:00.000", 60.000f)]
+    [Arguments("1:50.011", 110.011f)]
+    public async Task Parse_VariousTimes_ReturnsTimeSingle(string str, float expected)
     {
         var parsed = TimeSingle.Parse(str);
-        Assert.Equal(expected, parsed.TotalSeconds);
+        await Assert.That(parsed.TotalSeconds).IsEqualTo(expected);
     }
 
-    [Theory]
-    [InlineData("-1.876", -1.876f)]
-    [InlineData("-0:00.69", -0.690f)]
-    [InlineData("-0:01.00", -1.000f)]
-    [InlineData("-0:43.256", -43.256f)]
-    [InlineData("-1:00.000", -60.000f)]
-    [InlineData("-1:50.011", -110.011f)]
-    [InlineData("-1:23:45.678", -5025.678f)] // 1h 23m 45s 678ms = 5025.678s
-    public void Parse_NegativeTimes_ReturnsNegativeTimeSingle(string str, float expected)
+    [Test]
+    [Arguments("-1.876", -1.876f)]
+    [Arguments("-0:00.69", -0.690f)]
+    [Arguments("-0:01.00", -1.000f)]
+    [Arguments("-0:43.256", -43.256f)]
+    [Arguments("-1:00.000", -60.000f)]
+    [Arguments("-1:50.011", -110.011f)]
+    [Arguments("-1:23:45.678", -5025.678f)] // 1h 23m 45s 678ms = 5025.678s
+    public async Task Parse_NegativeTimes_ReturnsNegativeTimeSingle(string str, float expected)
     {
         var parsed = TimeSingle.Parse(str);
-        Assert.Equal(expected, parsed.TotalSeconds, precision: 3);
+        await Assert.That(parsed.TotalSeconds).IsEqualTo(expected).Within(0.001f);
     }
 
-    [Fact]
-    public void TryParse_WithNegativeTime_ReturnsTrue()
+    [Test]
+    public async Task TryParse_WithNegativeTime_ReturnsTrue()
     {
         var result = TimeSingle.TryParse("-1:23.456", out var parsed);
-        Assert.True(result);
-        Assert.Equal(-83.456f, parsed.TotalSeconds, precision: 3);
+        await Assert.That(result).IsTrue();
+        await Assert.That(parsed.TotalSeconds).IsEqualTo(-83.456f).Within(0.001f);
     }
 
-    [Fact]
-    public void Parse_WithNegativeTime_ReturnsNegativeTimeSingle()
+    [Test]
+    public async Task Parse_WithNegativeTime_ReturnsNegativeTimeSingle()
     {
         var parsed = TimeSingle.Parse("-2:15.789");
-        Assert.Equal(-135.789f, parsed.TotalSeconds, precision: 3);
-        Assert.True(parsed.IsNegative);
+        await Assert.That(parsed.TotalSeconds).IsEqualTo(-135.789f).Within(0.001f);
+        await Assert.That(parsed.IsNegative).IsTrue();
     }
 
-    [Fact]
-    public void ToString_NegativeTime_IncludesNegativeSign()
+    [Test]
+    public async Task ToString_NegativeTime_IncludesNegativeSign()
     {
         var negativeTime = new TimeSingle(-83.456f); // -1:23.456
         var timeString = negativeTime.ToString();
-        Assert.StartsWith("-", timeString);
-        Assert.Equal("-1:23.456", timeString);
+        await Assert.That(timeString).StartsWith("-");
+        await Assert.That(timeString).IsEqualTo("-1:23.456");
     }
 }

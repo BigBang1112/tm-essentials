@@ -2,7 +2,6 @@ using System;
 using System.ComponentModel;
 using System.Globalization;
 using TmEssentials.Converters;
-using Xunit;
 
 namespace TmEssentials.Tests;
 
@@ -10,143 +9,139 @@ public class TimeSingleTypeConverterTests
 {
     private readonly TimeSingleTypeConverter _converter = new();
 
-    [Fact]
-    public void CanConvertFrom_String_ReturnsTrue()
+    [Test]
+    public async Task CanConvertFrom_String_ReturnsTrue()
     {
         var result = _converter.CanConvertFrom(null, typeof(string));
         
-        Assert.True(result);
+        await Assert.That(result).IsTrue();
     }
 
-    [Fact]
-    public void CanConvertFrom_Float_ReturnsFalse()
+    [Test]
+    public async Task CanConvertFrom_Float_ReturnsFalse()
     {
         var result = _converter.CanConvertFrom(null, typeof(float));
         
-        Assert.False(result);
+        await Assert.That(result).IsFalse();
     }
 
-    [Fact]
-    public void CanConvertTo_String_ReturnsTrue()
+    [Test]
+    public async Task CanConvertTo_String_ReturnsTrue()
     {
         var result = _converter.CanConvertTo(null, typeof(string));
         
-        Assert.True(result);
+        await Assert.That(result).IsTrue();
     }
 
-    [Fact]
-    public void CanConvertTo_Float_ReturnsFalse()
+    [Test]
+    public async Task CanConvertTo_Float_ReturnsFalse()
     {
         var result = _converter.CanConvertTo(null, typeof(float));
         
-        Assert.False(result);
+        await Assert.That(result).IsFalse();
     }
 
-    [Fact]
-    public void ConvertFrom_ValidTimeString_ReturnsTimeSingle()
+    [Test]
+    public async Task ConvertFrom_ValidTimeString_ReturnsTimeSingle()
     {
         var result = _converter.ConvertFrom(null, CultureInfo.InvariantCulture, "1:23.456");
         
-        Assert.IsType<TimeSingle>(result);
+        await Assert.That(result).IsTypeOf<TimeSingle>();
         var timeSingle = (TimeSingle)result!;
-        Assert.Equal(83.456f, timeSingle.TotalSeconds, precision: 3);
+        await Assert.That(timeSingle.TotalSeconds).IsEqualTo(83.456f).Within(0.001f);
     }
 
-    [Fact]
-    public void ConvertFrom_EmptyString_ReturnsZero()
+    [Test]
+    public async Task ConvertFrom_EmptyString_ReturnsZero()
     {
         var result = _converter.ConvertFrom(null, CultureInfo.InvariantCulture, "");
         
-        Assert.Equal(TimeSingle.Zero, result);
+        await Assert.That(result).IsEqualTo(TimeSingle.Zero);
     }
 
-    [Fact]
-    public void ConvertFrom_WhitespaceString_ReturnsZero()
+    [Test]
+    public async Task ConvertFrom_WhitespaceString_ReturnsZero()
     {
         var result = _converter.ConvertFrom(null, CultureInfo.InvariantCulture, "   ");
         
-        Assert.Equal(TimeSingle.Zero, result);
+        await Assert.That(result).IsEqualTo(TimeSingle.Zero);
     }
 
-    [Fact]
-    public void ConvertFrom_NullString_CallsBase()
+    [Test]
+    public async Task ConvertFrom_NullString_CallsBase()
     {
-        Assert.Throws<NotSupportedException>(() =>
-            _converter.ConvertFrom(null, CultureInfo.InvariantCulture, null));
+        await Assert.That(() => _converter.ConvertFrom(null, CultureInfo.InvariantCulture, null)).ThrowsExactly<NotSupportedException>();
     }
 
-    [Fact]
-    public void ConvertFrom_InvalidString_ThrowsFormatException()
+    [Test]
+    public async Task ConvertFrom_InvalidString_ThrowsFormatException()
     {
-        var exception = Assert.Throws<FormatException>(() =>
-            _converter.ConvertFrom(null, CultureInfo.InvariantCulture, "invalid"));
+        var exception = await Assert.That(() => _converter.ConvertFrom(null, CultureInfo.InvariantCulture, "invalid")).ThrowsExactly<FormatException>();
         
-        Assert.Contains("Unable to parse 'invalid' as TimeSingle", exception.Message);
+        await Assert.That(exception.Message).Contains("Unable to parse 'invalid' as TimeSingle");
     }
 
-    [Fact]
-    public void ConvertFrom_NonString_CallsBase()
+    [Test]
+    public async Task ConvertFrom_NonString_CallsBase()
     {
-        Assert.Throws<NotSupportedException>(() =>
-            _converter.ConvertFrom(null, CultureInfo.InvariantCulture, 123.45f));
+        await Assert.That(() => _converter.ConvertFrom(null, CultureInfo.InvariantCulture, 123.45f)).ThrowsExactly<NotSupportedException>();
     }
 
-    [Fact]
-    public void ConvertTo_TimeSingleToString_ReturnsFormattedString()
+    [Test]
+    public async Task ConvertTo_TimeSingleToString_ReturnsFormattedString()
     {
         var timeSingle = new TimeSingle(83.456f); // 1min 23.456sec
         
         var result = _converter.ConvertTo(null, CultureInfo.InvariantCulture, timeSingle, typeof(string));
         
-        Assert.Equal("1:23.456", result);
+        await Assert.That(result).IsEqualTo("1:23.456");
     }
 
-    [Fact]
-    public void ConvertTo_TimeSingleToNonString_CallsBase()
+    [Test]
+    public async Task ConvertTo_TimeSingleToNonString_CallsBase()
     {
         var timeSingle = new TimeSingle(1.0f);
         
-        Assert.Throws<NotSupportedException>(() =>
-            _converter.ConvertTo(null, CultureInfo.InvariantCulture, timeSingle, typeof(float)));
+        await Assert.That(() => _converter.ConvertTo(null, CultureInfo.InvariantCulture, timeSingle, typeof(float))).ThrowsExactly<NotSupportedException>();
     }
 
-    [Theory]
-    [InlineData("0:00.000", 0.0f)]
-    [InlineData("0:01.000", 1.0f)]
-    [InlineData("1:00.000", 60.0f)]
-    [InlineData("0:00.100", 0.1f)]
-    [InlineData("2:34.567", 154.567f)]
-    public void ConvertFrom_VariousValidFormats_ReturnsCorrectTimeSingle(string input, float expectedSeconds)
+    [Test]
+    [Arguments("0:00.000", 0.0f)]
+    [Arguments("0:01.000", 1.0f)]
+    [Arguments("1:00.000", 60.0f)]
+    [Arguments("0:00.100", 0.1f)]
+    [Arguments("2:34.567", 154.567f)]
+    public async Task ConvertFrom_VariousValidFormats_ReturnsCorrectTimeSingle(string input, float expectedSeconds)
     {
         var result = _converter.ConvertFrom(null, CultureInfo.InvariantCulture, input);
         
-        Assert.IsType<TimeSingle>(result);
+        await Assert.That(result).IsTypeOf<TimeSingle>();
         var timeSingle = (TimeSingle)result!;
-        Assert.Equal(expectedSeconds, timeSingle.TotalSeconds, precision: 3);
+        await Assert.That(timeSingle.TotalSeconds).IsEqualTo(expectedSeconds).Within(0.001f);
     }
 
-    [Fact]
-    public void RoundTripConversion_PreservesValue()
+    [Test]
+    public async Task RoundTripConversion_PreservesValue()
     {
         var originalTime = new TimeSingle(123.456f);
         
         // Convert to string
         var stringValue = _converter.ConvertTo(null, CultureInfo.InvariantCulture, originalTime, typeof(string)) as string;
-        Assert.NotNull(stringValue);
+        await Assert.That(stringValue).IsNotNull();
         
         // Convert back to TimeSingle
         var roundTripTime = _converter.ConvertFrom(null, CultureInfo.InvariantCulture, stringValue);
         
-        Assert.Equal(originalTime, roundTripTime);
+        await Assert.That(roundTripTime).IsEqualTo(originalTime);
     }
 
-    [Fact]
-    public void ConvertFrom_SubsecondPrecision_HandlesCorrectly()
+    [Test]
+    public async Task ConvertFrom_SubsecondPrecision_HandlesCorrectly()
     {
         var result = _converter.ConvertFrom(null, CultureInfo.InvariantCulture, "0:00.123");
         
-        Assert.IsType<TimeSingle>(result);
+        await Assert.That(result).IsTypeOf<TimeSingle>();
         var timeSingle = (TimeSingle)result!;
-        Assert.Equal(0.123f, timeSingle.TotalSeconds, precision: 3);
+        await Assert.That(timeSingle.TotalSeconds).IsEqualTo(0.123f).Within(0.001f);
     }
 }

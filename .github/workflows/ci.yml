@@ -3,14 +3,19 @@ name: CI
 on:
   push:
     branches: [ main, dev ]
+  pull_request:
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
 
 jobs:
   ci:
     name: Continuous Integration
-    uses: bigbang1112/workflows/.github/workflows/ci.yml@main
+    uses: bigbang1112/workflows/.github/workflows/dotnet-ci.yml@main
     with:
-      dotnet-version: |
-        10.x.x
-        9.x.x
-        8.x.x
+      dotnet-version: latest

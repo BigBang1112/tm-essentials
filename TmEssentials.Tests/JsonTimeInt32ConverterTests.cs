@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using TmEssentials.Converters;
-using Xunit;
 
 #if NET5_0_OR_GREATER
 namespace TmEssentials.Tests;
@@ -19,49 +18,49 @@ public sealed class JsonTimeInt32ConverterTests
         public TimeInt32 Time { get; set; }
     }
 
-    [Fact]
-    public void Serialize_Root_WritesNumber()
+    [Test]
+    public async Task Serialize_Root_WritesNumber()
     {
         var options = CreateOptions();
 
         var json = JsonSerializer.Serialize(new TimeInt32(1234), options);
 
-        Assert.Equal("1234", json);
+        await Assert.That(json).IsEqualTo("1234");
     }
 
-    [Fact]
-    public void Deserialize_Root_ReadsNumber()
+    [Test]
+    public async Task Deserialize_Root_ReadsNumber()
     {
         var options = CreateOptions();
 
         var value = JsonSerializer.Deserialize<TimeInt32>("1234", options);
 
-        Assert.Equal(1234, value.TotalMilliseconds);
+        await Assert.That(value.TotalMilliseconds).IsEqualTo(1234);
     }
 
-    [Fact]
-    public void Serialize_Property_WritesNumber()
+    [Test]
+    public async Task Serialize_Property_WritesNumber()
     {
         var options = CreateOptions();
 
         var json = JsonSerializer.Serialize(new SampleContainer { Time = new TimeInt32(98765) }, options);
 
-        Assert.Equal("{\"Time\":98765}", json);
+        await Assert.That(json).IsEqualTo("{\"Time\":98765}");
     }
 
-    [Fact]
-    public void Deserialize_Property_ReadsNumber()
+    [Test]
+    public async Task Deserialize_Property_ReadsNumber()
     {
         var options = CreateOptions();
 
         var obj = JsonSerializer.Deserialize<SampleContainer>("{\"Time\":98765}", options);
 
-        Assert.NotNull(obj);
-        Assert.Equal(98765, obj!.Time.TotalMilliseconds);
+        await Assert.That(obj).IsNotNull();
+        await Assert.That(obj!.Time.TotalMilliseconds).IsEqualTo(98765);
     }
 
-    [Fact]
-    public void NegativeValue_SerializesCorrectly()
+    [Test]
+    public async Task NegativeValue_SerializesCorrectly()
     {
         var options = CreateOptions();
         const int ms = -123456;
@@ -69,8 +68,8 @@ public sealed class JsonTimeInt32ConverterTests
         var json = JsonSerializer.Serialize(new TimeInt32(ms), options);
         var back = JsonSerializer.Deserialize<TimeInt32>(json, options);
 
-        Assert.Equal(ms.ToString(), json);
-        Assert.Equal(ms, back.TotalMilliseconds);
+        await Assert.That(json).IsEqualTo(ms.ToString());
+        await Assert.That(back.TotalMilliseconds).IsEqualTo(ms);
     }
 }
 #endif

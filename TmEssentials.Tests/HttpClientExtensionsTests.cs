@@ -1,17 +1,7 @@
 ﻿using RichardSzalay.MockHttp;
-using System;
 using System.Net;
 
-#if NET6_0_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-using System.Net.Http;
-using System.Threading.Tasks;
-#endif
-
-using Xunit;
-
 namespace TmEssentials.Tests;
-
-#if NET6_0_OR_GREATER || NETCOREAPP3_1_OR_GREATER
 
 public class HttpClientExtensionsTests
 {
@@ -25,21 +15,25 @@ public class HttpClientExtensionsTests
         httpClient = new HttpClient(mockHandler);
     }
 
-    [Fact]
+    [After(Test)]
+    public void Cleanup()
+    {
+        httpClient.Dispose();
+    }
+
+    [Test]
     public async Task HeadAsync_String_ReturnsMessageWithHeadOnly()
     {
         var response = await httpClient.HeadAsync("http://www.google.com");
 
-        Assert.Equal(expected: HttpMethod.Head, actual: response.RequestMessage.Method);
+        await Assert.That(response.RequestMessage!.Method).IsEqualTo(HttpMethod.Head);
     }
 
-    [Fact]
+    [Test]
     public async Task HeadAsync_Uri_ReturnsMessageWithHeadOnly()
     {
         var response = await httpClient.HeadAsync(new Uri("http://www.google.com"));
 
-        Assert.Equal(expected: HttpMethod.Head, actual: response.RequestMessage.Method);
+        await Assert.That(response.RequestMessage!.Method).IsEqualTo(HttpMethod.Head);
     }
 }
-
-#endif
