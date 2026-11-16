@@ -33,7 +33,10 @@
 </div>
 
 <h2 class="section-title">Map UIDs</h2>
-<p class="section-text"><code>MapUtils</code> generates map UIDs in the format of the game, randomly or from a seed.</p>
+<p class="section-text">
+    The game makes a map UID from a new UUID and the CRC32 of the map: 20 bytes written as one number in base 63,
+    with <code>_0-9a-zA-Z</code> as the digits. <code>MapUtils</code> makes them the same way.
+</p>
 
 <div class="card info">
     <div class="map-uid">
@@ -42,10 +45,59 @@
     <div class="seed">
         <label for="seed">Seed</label>
         <input id="seed" type="number" @bind="seed" @bind:event="oninput" />
-        <ReuButton OnClick="() => mapUid = MapUtils.GenerateMapUid(seed)">Generate from seed</ReuButton>
-        <ReuButton OnClick="() => mapUid = MapUtils.GenerateMapUid()" Variant="ReuButtonVariant.Blue">Generate random</ReuButton>
+        <ReuButton OnClick="GenerateFromSeed">Generate from seed</ReuButton>
+        <ReuButton OnClick="GenerateRandom" Variant="ReuButtonVariant.Blue">Generate random</ReuButton>
     </div>
-    <code class="snippet">MapUtils.GenerateMapUid(seed: @seed); // the same UID for the same seed</code>
+    <code class="snippet">MapUtils.GenerateMapUid(seed: @seed); // the same UID for the same seed
+MapUtils.GenerateMapUid(); // a new UID every time</code>
+    <p>Random UIDs use a random number in place of the CRC32, which needs the whole map.</p>
+</div>
+
+<h2 class="section-title">Inside a map UID</h2>
+<p class="section-text">
+    Edit either side. The UID decodes into its UUID and CRC32, and they encode back into the same UID the game would make.
+</p>
+
+<div class="card-grid">
+    <div class="card info">
+        <label for="map-uid"><code>string</code> map UID</label>
+        <input id="map-uid" @bind="MapUid" @bind:event="oninput" class="@(mapUidError is null ? "" : "invalid")" spellcheck="false" />
+        @if (mapUidError is not null)
+        {
+            <div class="validation-message">@mapUidError</div>
+        }
+        else
+        {
+            <ul class="facts">
+                <li>@mapUid.Length characters@(mapUid.Length < MapUtils.MaxMapUidLength ? $" (most have {MapUtils.MaxMapUidLength}, about 1 in 24 is shorter)" : "")</li>
+                @if (IsGameUuid(decodedUuid))
+                {
+                    <li class="good">Version 4 UUID inside, like in UIDs made by the game</li>
+                }
+                else
+                {
+                    <li class="warning">No version 4 UUID inside, so the game probably didn't make this UID</li>
+                }
+            </ul>
+        }
+        <code class="snippet">MapUtils.TryDecodeMapUid(mapUid, out var uuid, out var crc32)</code>
+    </div>
+    <div class="card info">
+        <label for="uuid"><code>Guid</code> UUID</label>
+        <input id="uuid" @bind="Uuid" @bind:event="oninput" class="@(uuidError is null ? "" : "invalid")" spellcheck="false" />
+        @if (uuidError is not null)
+        {
+            <div class="validation-message">@uuidError</div>
+        }
+        <label for="crc32"><code>uint</code> CRC32 (hexadecimal)</label>
+        <input id="crc32" @bind="Crc32" @bind:event="oninput" class="@(crc32Error is null ? "" : "invalid")" spellcheck="false" />
+        @if (crc32Error is not null)
+        {
+            <div class="validation-message">@crc32Error</div>
+        }
+        <code class="snippet">MapUtils.GenerateMapUid(uuid, crc32)</code>
+        <p>The game uses a new random UUID, and the CRC32 of the map's data with the map name left empty.</p>
+    </div>
 </div>
 
 @code {
@@ -57,7 +109,95 @@
     private string? loginError;
 
     private int seed = 1112;
-    private string mapUid = MapUtils.GenerateMapUid(1112);
+
+    private string mapUid = "";
+    private string uuid = "";
+    private string crc32 = "";
+    private Guid decodedUuid;
+    private string? mapUidError;
+    private string? uuidError;
+    private string? crc32Error;
+
+    protected override void OnInitialized()
+    {
+        GenerateFromSeed();
+    }
+
+    private void GenerateFromSeed() => MapUid = MapUtils.GenerateMapUid(seed);
+
+    private void GenerateRandom() => MapUid = MapUtils.GenerateMapUid();
+
+    // A version 4 UUID with the RFC 4122 variant, which is what the game generates
+    private static bool IsGameUuid(Guid uuid) => uuid.Version == 4 && uuid.Variant is >= 8 and <= 0xB;
+
+    private string MapUid
+    {
+        get => mapUid;
+        set
+        {
+            mapUid = value;
+
+            if (MapUtils.TryDecodeMapUid(value, out var decoded, out var decodedCrc32) && value.Length > 0)
+            {
+                mapUidError = null;
+                decodedUuid = decoded;
+                uuid = decoded.ToString();
+                crc32 = decodedCrc32.ToString("X8");
+                uuidError = null;
+                crc32Error = null;
+            }
+            else
+            {
+                mapUidError = value.Length > MapUtils.MaxMapUidLength
+                    ? $"Too long, map UIDs have at most {MapUtils.MaxMapUidLength} characters."
+                    : "Not a valid map UID.";
+            }
+        }
+    }
+
+    private string Uuid
+    {
+        get => uuid;
+        set
+        {
+            uuid = value;
+            uuidError = Guid.TryParse(value, out _) ? null : "Not a valid UUID.";
+            Encode();
+        }
+    }
+
+    private string Crc32
+    {
+        get => crc32;
+        set
+        {
+            crc32 = value;
+            crc32Error = TryParseCrc32(value, out _) ? null : "Not a valid 32-bit hexadecimal number.";
+            Encode();
+        }
+    }
+
+    private void Encode()
+    {
+        if (Guid.TryParse(uuid, out var parsedUuid) && TryParseCrc32(crc32, out var parsedCrc32))
+        {
+            decodedUuid = parsedUuid;
+            mapUid = MapUtils.GenerateMapUid(parsedUuid, parsedCrc32);
+            mapUidError = null;
+        }
+    }
+
+    private static bool TryParseCrc32(string value, out uint crc32)
+    {
+        var hex = value.Trim();
+
+        if (hex.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+        {
+            hex = hex[2..];
+        }
+
+        return uint.TryParse(hex, System.Globalization.NumberStyles.AllowHexSpecifier, System.Globalization.CultureInfo.InvariantCulture, out crc32);
+    }
 
     private string AccountId
     {

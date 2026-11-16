@@ -153,9 +153,18 @@ AccountUtils.ToLogin(Guid.Parse("bfcf62ff-0f9e-40aa-b924-11b9c70b8a09")) // "v89
 
 ## Map UID generation
 
-An approximate implementation of 27-character map UID generation.
+Map UIDs are generated the same way as in the game: a new UUID and a CRC32 (20 bytes) written as one number in base 63 with `_0-9a-zA-Z` digits. They are most often 27 characters long, sometimes shorter.
 
-`MapUtils.GenerateMapUid()`
+```cs
+MapUtils.GenerateMapUid() // random, like "az8D4K6OKOuyGtUjHV_ui39x4xi"
+MapUtils.GenerateMapUid(seed: 1112) // the same UID for the same seed
+MapUtils.GenerateMapUid(uuid, crc32) // exactly what the game would make from these
+
+MapUtils.TryDecodeMapUid("az8D4K6OKOuyGtUjHV_ui39x4xi", out var uuid, out var crc32)
+// eabd691c-a87f-428c-9e56-608e21bc91dd, 0xCF9B930D
+```
+
+Since the game uses the CRC32 of the map's serialized data, which needs the whole map, the random overloads use a random number in its place.
 
 ## .NET Standard 2+
 
