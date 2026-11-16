@@ -2,53 +2,39 @@
 using System.Drawing;
 using System.Net;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace TmEssentials;
 
 /// <summary>
 /// Provides a set of methods for text formatting in Nadeo games.
 /// </summary>
-public static partial class TextFormatter
+/// <remarks>
+/// The parsing rules follow the formatting parser of ManiaPlanet (<c>CFastStringFormatting::GetMarkup</c> and <c>ReadNextChar</c>).
+/// </remarks>
+public static class TextFormatter
 {
     //
     // Credits to reaby for the ANSI stuff (https://github.com/reaby)
     //
 
-#if NET7_0_OR_GREATER
-    [StringSyntax(StringSyntaxAttribute.Regex)]
-#endif
-    private const string DeformatRegexStr = @"\$(?:(\$)|[0-9a-fA-F]{2,3}|[lhLH]\[.*?\]|[lhLH]\[|.)";
-
-#if NET7_0_OR_GREATER
-    [StringSyntax(StringSyntaxAttribute.Regex)]
-#endif
-    private const string DeformatRegexOldStr = @"(\$[0-9a-fA-F]{1,3}|\$[lhLH]\[.+\]|\$[lhLH]|\$.)";
-
-#if NET7_0_OR_GREATER
-    [GeneratedRegex(DeformatRegexStr)]
-    private static partial Regex DeformatRegex();
-
-    [GeneratedRegex(DeformatRegexOldStr)]
-    private static partial Regex DeformatRegexOld();
-#endif
-
-    // Doesn't work for dollar
-    private static readonly Regex deformatRegexOld = 
-#if NET7_0_OR_GREATER
-        DeformatRegexOld();
-#else
-        new(DeformatRegexOldStr, RegexOptions.Compiled);
-#endif
-
-    private static readonly Regex deformatRegex =
-#if NET7_0_OR_GREATER
-        DeformatRegex();
-#else
-        new(DeformatRegexStr, RegexOptions.Compiled);
-#endif
-
     internal const string AnsiDefault = "\x1B[39m\x1B[22m";
+
+    /// <summary>
+    /// A regex pattern that matches one formatting code: a dollar sign followed by a link code with <c>[url]</c>,
+    /// a color of 1 to 3 hex digits, any other character, or nothing (at the end of the string).
+    /// </summary>
+    /// <remarks>
+    /// The pattern does not depend on regex options. Line breaks are matched like any other character, as in the game.
+    /// </remarks>
+#if NET7_0_OR_GREATER
+    [StringSyntax(StringSyntaxAttribute.Regex)]
+#endif
+    public const string FormattingCodeRegexPattern = @"\$(?:[hlpHLP]\[[^\]]*\]?|[0-9a-fA-F]{1,3}|[\uD800-\uDBFF][\s\S]?|[\s\S])?";
+
+    /// <summary>
+    /// The game keeps the base style plus up to 7 styles saved by <c>$&lt;</c>. Further <c>$&lt;</c> are ignored.
+    /// </summary>
+    private const int MaxStyleStackCount = 7;
 
     /// <summary>
     /// Deformats a string from Nadeo format.
@@ -56,32 +42,93 @@ public static partial class TextFormatter
     /// <param name="input">A string input.</param>
     /// <returns>A deformatted string.</returns>
     /// <exception cref="ArgumentNullException">Input is null.</exception>
-    /// <exception cref="RegexMatchTimeoutException">Regex match timeout.</exception>
     public static string Deformat(string input)
     {
-        return deformatRegex.Replace(input, "$1");
+        return Deformat(input, -1);
     }
 
     /// <summary>
     /// Deformats a string from Trackmania/Shootmania format.
     /// </summary>
     /// <param name="input">A string input.</param>
-    /// <param name="maxReplacementCount">The maximum number of deformat actions (replacements) to make.</param>
+    /// <param name="maxReplacementCount">The maximum number of formatting codes to remove. The rest of the string is kept as is. A negative value removes all of them.</param>
     /// <returns>A deformatted string.</returns>
     /// <exception cref="ArgumentNullException">Input is null.</exception>
-    /// <exception cref="RegexMatchTimeoutException">Regex match timeout.</exception>
     public static string Deformat(string input, int maxReplacementCount)
     {
-        return deformatRegex.Replace(input, "$1", maxReplacementCount);
+        if (input is null)
+        {
+            throw new ArgumentNullException(nameof(input));
+        }
+
+        var output = new StringBuilder(input.Length);
+        var inLink = false;
+        var savedLinkStates = new Stack<bool>();
+        var replacementCount = 0;
+
+        for (var i = 0; i < input.Length; i++)
+        {
+            var c = input[i];
+
+            if (c != '$')
+            {
+                if (c != '\r')
+                {
+                    output.Append(c);
+                }
+
+                continue;
+            }
+
+            if (maxReplacementCount >= 0 && replacementCount >= maxReplacementCount)
+            {
+                output.Append(input, i, input.Length - i);
+                break;
+            }
+
+            replacementCount++;
+
+            var markup = ReadMarkup(input, i, inLink);
+            i += markup.Length - 1;
+
+            switch (markup.Type)
+            {
+                case MarkupType.Literal:
+                    output.Append(markup.Literal);
+                    break;
+                case MarkupType.Push:
+                    if (savedLinkStates.Count < MaxStyleStackCount)
+                    {
+                        savedLinkStates.Push(inLink);
+                    }
+                    break;
+                case MarkupType.Pop:
+                    if (savedLinkStates.Count > 0)
+                    {
+                        inLink = savedLinkStates.Pop();
+                    }
+                    break;
+                case MarkupType.Reset:
+                    inLink = savedLinkStates.Count > 0 && savedLinkStates.Peek();
+                    break;
+                case MarkupType.LinkStart:
+                    inLink = true;
+                    break;
+                case MarkupType.LinkEnd:
+                    inLink = false;
+                    break;
+            }
+        }
+
+        return output.ToString();
     }
 
     /// <summary>
     /// Formats a string to ANSI format.
     /// </summary>
-    /// <param name="input"></param>
-    /// <returns></returns>
+    /// <param name="input">A string input.</param>
+    /// <returns>A string with colors as ANSI escape codes.</returns>
     /// <exception cref="ArgumentNullException">Input is null.</exception>
-    /// <exception cref="RegexMatchTimeoutException">Regex match timeout.</exception>
     public static string FormatAnsi(string input)
     {
         if (input is null)
@@ -90,17 +137,82 @@ public static partial class TextFormatter
         }
 
         var output = new StringBuilder();
-        
-        var split = deformatRegexOld.Split(input);
+        var state = default(AnsiState);
+        var savedStates = new Stack<AnsiState>();
 
-        foreach (var element in split)
+        for (var i = 0; i < input.Length; i++)
         {
-            AppendAnsiText(output, element);
+            var c = input[i];
+
+            if (c != '$')
+            {
+                if (c != '\r')
+                {
+                    output.Append(state.Uppercase ? char.ToUpperInvariant(c) : c);
+                }
+
+                continue;
+            }
+
+            var markup = ReadMarkup(input, i, state.InLink);
+            i += markup.Length - 1;
+
+            switch (markup.Type)
+            {
+                case MarkupType.Literal:
+                    output.Append(markup.Literal);
+                    break;
+                case MarkupType.Color:
+                    state.Color = markup.Color;
+                    AppendAnsiColor(output, state.Color);
+                    break;
+                case MarkupType.DefaultColor:
+                    state.Color = savedStates.Count > 0 ? savedStates.Peek().Color : null;
+                    AppendAnsiColor(output, state.Color);
+                    break;
+                case MarkupType.Reset:
+                    state = savedStates.Count > 0 ? savedStates.Peek() : default;
+                    AppendAnsiColor(output, state.Color);
+                    break;
+                case MarkupType.Push:
+                    if (savedStates.Count < MaxStyleStackCount)
+                    {
+                        savedStates.Push(state);
+                    }
+                    break;
+                case MarkupType.Pop:
+                    if (savedStates.Count > 0)
+                    {
+                        state = savedStates.Pop();
+                        AppendAnsiColor(output, state.Color);
+                    }
+                    break;
+                case MarkupType.Uppercase:
+                    state.Uppercase = !state.Uppercase;
+                    break;
+                case MarkupType.LinkStart:
+                    state.InLink = true;
+                    break;
+                case MarkupType.LinkEnd:
+                    state.InLink = false;
+                    break;
+            }
         }
 
         output.Append(AnsiDefault);
 
         return output.ToString();
+    }
+
+    private static void AppendAnsiColor(StringBuilder output, string? color)
+    {
+        if (color is null)
+        {
+            output.Append(AnsiDefault);
+            return;
+        }
+
+        AppendAnsiText(output, "$" + color);
     }
 
     internal static void AppendAnsiText(StringBuilder output, string element)
@@ -203,7 +315,7 @@ public static partial class TextFormatter
     /// </summary>
     /// <param name="input">The input Nadeo string.</param>
     /// <param name="allowLinks">Whether standard links ($l) should be processed.</param>
-    /// <param name="allowManialinks">Whether manialinks ($h) should be processed.</param>
+    /// <param name="allowManialinks">Whether manialinks ($h and $p) should be processed.</param>
     /// <returns>A Nadeo string formatted as HTML.</returns>
     public static string FormatHtml(string? input, bool allowLinks = false, bool allowManialinks = false)
     {
@@ -213,186 +325,95 @@ public static partial class TextFormatter
         }
 
         var segments = new List<Segment>();
-        var styleStack = new Stack<Style>();
-        var currentStyle = new Style();
+        var savedStyles = new Stack<Style>();
+        var defaultStyle = new Style();
+        var style = new Style();
         var textBuffer = new StringBuilder();
-        var linkStack = new Stack<LinkInfo>();
 
         void FlushBuffer()
         {
             if (textBuffer.Length > 0)
             {
-                var segment = new Segment { Text = textBuffer.ToString(), Style = currentStyle.Clone() };
-                if (linkStack.Count > 0)
-                {
-                    var linkInfo = linkStack.Peek();
-                    segment.LinkUrl = linkInfo.IsManialink ? $"maniaplanet:///:{linkInfo.Url}" : linkInfo.Url;
-                }
-                segments.Add(segment);
+                segments.Add(new Segment { Text = textBuffer.ToString(), Style = style.Clone() });
                 textBuffer.Clear();
             }
         }
 
-        for (int i = 0; i < input.Length; i++)
+        Style GetSavedStyle() => savedStyles.Count > 0 ? savedStyles.Peek() : defaultStyle;
+
+        for (var i = 0; i < input.Length; i++)
         {
-            if (input[i] == '$' && i + 1 < input.Length)
+            var c = input[i];
+
+            if (c != '$')
             {
-                char code = char.ToLowerInvariant(input[i + 1]);
-
-                // Literal $$
-                if (code == '$')
+                if (c != '\r')
                 {
-                    textBuffer.Append('$');
-                    i++;
-                    continue;
+                    textBuffer.Append(style.Uppercase ? char.ToUpperInvariant(c) : c);
                 }
 
-                // Color code: 3 hex digits
-                if (i + 3 < input.Length && IsHex(input[i + 1]) && IsHex(input[i + 2]) && IsHex(input[i + 3]))
-                {
-                    FlushBuffer();
-                    string hex3 = input.Substring(i + 1, 3);
-                    currentStyle.Color = $"#{hex3[0]}{hex3[1]}{hex3[2]}";
-                    i += 3;
-                    continue;
-                }
-
-                // Check for link closing tag first
-                if (linkStack.Count > 0 && (code == 'l' || code == 'h'))
-                {
-                    FlushBuffer();
-                    linkStack.Pop();
-
-                    // Check if there are brackets with content after the closing tag
-                    if (i + 2 < input.Length && input[i + 2] == '[')
-                    {
-                        int closingBracket = input.IndexOf(']', i + 3);
-                        if (closingBracket != -1)
-                        {
-                            // Keep the brackets and content as regular text
-                            string bracketContent = input.Substring(i + 2, closingBracket - (i + 2) + 1);
-                            textBuffer.Append(bracketContent);
-                            i = closingBracket;
-                        }
-                        else
-                        {
-                            i++;
-                        }
-                    }
-                    else
-                    {
-                        i++;
-                    }
-                    continue;
-                }
-
-                // Links ($l) and manialinks ($h)
-                if ((code == 'l' && allowLinks) || (code == 'h' && allowManialinks))
-                {
-                    FlushBuffer();
-
-                    // Check if it's bracketed format: $l[url]text$l or $h[url]text$h
-                    if (i + 2 < input.Length && input[i + 2] == '[')
-                    {
-                        int urlStart = i + 3;
-                        int urlEnd = input.IndexOf(']', urlStart);
-                        if (urlEnd != -1)
-                        {
-                            string url = input.Substring(urlStart, urlEnd - urlStart);
-                            linkStack.Push(new LinkInfo { Url = url, IsManialink = code == 'h' });
-                            i = urlEnd;
-                        }
-                        else
-                        {
-                            i++;
-                        }
-                    }
-                    else
-                    {
-                        // Simple format: $lurl$l or $hurl$h (or until end)
-                        int urlStart = i + 2;
-                        int urlEnd = FindClosingTag(input, urlStart, code);
-                        if (urlEnd == -1)
-                            urlEnd = input.Length;
-
-                        string url = input.Substring(urlStart, urlEnd - urlStart);
-
-                        var linkSegment = new Segment
-                        {
-                            Text = url,
-                            Style = currentStyle.Clone(),
-                            LinkUrl = code == 'h' ? $"maniaplanet:///:{url}" : url
-                        };
-                        segments.Add(linkSegment);
-
-                        // Skip the closing tag if found
-                        i = urlEnd < input.Length && urlEnd + 1 < input.Length ? urlEnd + 1 : urlEnd - 1;
-                    }
-                    continue;
-                }
-
-                // Links ($l/$h) will be deformatted if links are disabled
-                if (code == 'l' || code == 'h')
-                {
-                    // if next is not [, continue
-                    if (i + 2 >= input.Length || input[i + 2] != '[')
-                    {
-                        FlushBuffer();
-                        i++;
-                        continue;
-                    }
-
-                    // if next is [, find the closing ]
-                    int closingBracket = input.IndexOf(']', i + 2);
-                    if (closingBracket == -1)
-                    {
-                        FlushBuffer();
-                        i++;
-                        continue;
-                    }
-
-                    i = closingBracket;
-                    continue;
-                }
-
-                // Other control codes
-                FlushBuffer();
-                switch (code)
-                {
-                    case 'o': currentStyle.Bold = !currentStyle.Bold; break;
-                    case 'i': currentStyle.Italic = !currentStyle.Italic; break;
-                    case 't': currentStyle.Uppercase = !currentStyle.Uppercase; break;
-                    case 's': currentStyle.DropShadow = !currentStyle.DropShadow; break;
-                    case 'w': currentStyle.Wide = !currentStyle.Wide; break;
-                    case 'n': currentStyle.Narrow = !currentStyle.Narrow; break;
-                    case 'g': currentStyle.Color = null; break;
-                    case 'z':
-                        currentStyle.Bold = currentStyle.Italic = currentStyle.Uppercase =
-                        currentStyle.DropShadow = currentStyle.Wide = currentStyle.Narrow = false;
-                        linkStack.Clear();
-                        break;
-                    case '<':
-                        styleStack.Push(currentStyle.Clone());
-                        break;
-                    case '>':
-                        if (styleStack.Count > 0)
-                        {
-                            currentStyle = styleStack.Pop();
-                            linkStack.Clear(); // Clear links when popping style stack
-                        }
-                        break;
-                    default:
-                        // Unknown or unhandled control: do not display
-                        break;
-                }
-                i++;
+                continue;
             }
-            else
+
+            var markup = ReadMarkup(input, i, style.InLink);
+            i += markup.Length - 1;
+
+            if (markup.Type == MarkupType.Literal)
             {
-                char c = input[i];
-                if (currentStyle.Uppercase)
-                    c = char.ToUpperInvariant(c);
-                textBuffer.Append(c);
+                textBuffer.Append(markup.Literal);
+                continue;
+            }
+
+            if (markup.Type is MarkupType.Ignored or MarkupType.Underline)
+            {
+                continue;
+            }
+
+            FlushBuffer();
+
+            switch (markup.Type)
+            {
+                case MarkupType.Color:
+                    style.Color = "#" + markup.Color;
+                    break;
+                case MarkupType.DefaultColor:
+                    style.Color = GetSavedStyle().Color;
+                    break;
+                case MarkupType.Reset:
+                    style = GetSavedStyle().Clone();
+                    break;
+                case MarkupType.Push:
+                    if (savedStyles.Count < MaxStyleStackCount)
+                    {
+                        savedStyles.Push(style.Clone());
+                    }
+                    break;
+                case MarkupType.Pop:
+                    if (savedStyles.Count > 0)
+                    {
+                        style = savedStyles.Pop();
+                    }
+                    break;
+                case MarkupType.Italic: style.Italic = !style.Italic; break;
+                case MarkupType.Bold: style.Bold = !style.Bold; break;
+                case MarkupType.Shadow: style.DropShadow = !style.DropShadow; break;
+                case MarkupType.Uppercase: style.Uppercase = !style.Uppercase; break;
+                case MarkupType.Wide: style.Width = TextWidth.Wide; break;
+                case MarkupType.Medium: style.Width = TextWidth.Medium; break;
+                case MarkupType.Narrow: style.Width = TextWidth.Narrow; break;
+                case MarkupType.LinkStart:
+                    style.InLink = true;
+                    style.LinkUrl = markup.LinkType switch
+                    {
+                        LinkType.External when allowLinks => markup.LinkUrl,
+                        LinkType.Manialink when allowManialinks => $"maniaplanet:///:{markup.LinkUrl}",
+                        _ => null
+                    };
+                    break;
+                case MarkupType.LinkEnd:
+                    style.InLink = false;
+                    style.LinkUrl = null;
+                    break;
             }
         }
 
@@ -402,59 +423,214 @@ public static partial class TextFormatter
         var sb = new StringBuilder();
         foreach (var seg in segments)
         {
-            string style = seg.Style.ToCss();
-            string encoded = WebUtility.HtmlEncode(seg.Text);
+            var css = seg.Style.ToCss();
+            var encoded = WebUtility.HtmlEncode(seg.Text);
 
-            if (!string.IsNullOrEmpty(seg.LinkUrl))
+            if (!string.IsNullOrEmpty(seg.Style.LinkUrl))
             {
-                string linkStyle = string.IsNullOrEmpty(style) ? "" : $" style=\"{style}\"";
-                string encodedUrl = WebUtility.HtmlEncode(seg.LinkUrl);
+                var linkStyle = string.IsNullOrEmpty(css) ? "" : $" style=\"{css}\"";
+                var encodedUrl = WebUtility.HtmlEncode(seg.Style.LinkUrl);
                 sb.Append($"<a href=\"{encodedUrl}\"{linkStyle}>{encoded}</a>");
             }
-            else if (string.IsNullOrEmpty(style))
+            else if (string.IsNullOrEmpty(css))
             {
                 sb.Append(encoded);
             }
             else
             {
-                sb.Append($"<span style=\"{style}\">{encoded}</span>");
+                sb.Append($"<span style=\"{css}\">{encoded}</span>");
             }
         }
 
         return sb.ToString();
     }
 
+    /// <summary>
+    /// Reads the formatting code starting at the dollar sign at <paramref name="index"/>,
+    /// the same way as <c>CFastStringFormatting::GetMarkup</c> in ManiaPlanet.
+    /// </summary>
+    private static Markup ReadMarkup(string input, int index, bool inLink)
+    {
+        var codeIndex = index + 1;
+
+        // A dollar sign at the end of the string is not displayed
+        if (codeIndex >= input.Length)
+        {
+            return new Markup(MarkupType.Ignored, 1);
+        }
+
+        var code = input[codeIndex];
+
+        switch (code)
+        {
+            case '$':
+            case '[':
+            case ']':
+                return new Markup(MarkupType.Literal, 2, literal: code);
+            case '<': return new Markup(MarkupType.Push, 2);
+            case '>': return new Markup(MarkupType.Pop, 2);
+            case 'g' or 'G': return new Markup(MarkupType.DefaultColor, 2);
+            case 'i' or 'I': return new Markup(MarkupType.Italic, 2);
+            case 'm' or 'M': return new Markup(MarkupType.Medium, 2);
+            case 'n' or 'N': return new Markup(MarkupType.Narrow, 2);
+            case 'o' or 'O': return new Markup(MarkupType.Bold, 2);
+            case 's' or 'S': return new Markup(MarkupType.Shadow, 2);
+            case 't' or 'T': return new Markup(MarkupType.Uppercase, 2);
+            case 'u' or 'U': return new Markup(MarkupType.Underline, 2);
+            case 'w' or 'W': return new Markup(MarkupType.Wide, 2);
+            case 'z' or 'Z': return new Markup(MarkupType.Reset, 2);
+            case 'h' or 'H' or 'l' or 'L' or 'p' or 'P':
+                // Any link code closes the current link, regardless of its type
+                return inLink ? new Markup(MarkupType.LinkEnd, 2) : ReadLinkStart(input, index, code);
+        }
+
+        if (char.IsHighSurrogate(code))
+        {
+            // The game reads a surrogate pair as one character, so the whole pair is the unknown code
+            return new Markup(MarkupType.Ignored, codeIndex + 1 < input.Length ? 3 : 2);
+        }
+
+        if (!IsHex(code))
+        {
+            // Unknown codes are not displayed
+            return new Markup(MarkupType.Ignored, 2);
+        }
+
+        // 1 to 3 hex digits, missing color channels are zero
+        var color = new[] { code, '0', '0' };
+        var length = 2;
+
+        while (length < 4 && index + length < input.Length && IsHex(input[index + length]))
+        {
+            color[length - 1] = input[index + length];
+            length++;
+        }
+
+        return new Markup(MarkupType.Color, length, color: new string(color));
+    }
+
+    private static Markup ReadLinkStart(string input, int index, char code)
+    {
+        var linkType = code is 'l' or 'L' ? LinkType.External : LinkType.Manialink;
+        var afterCode = index + 2;
+
+        if (afterCode < input.Length && input[afterCode] == '[')
+        {
+            var urlStart = afterCode + 1;
+            var urlEnd = input.IndexOf(']', urlStart);
+
+            // Without a closing bracket, the rest of the string is the URL and it stays visible
+            if (urlEnd == -1)
+            {
+                return new Markup(MarkupType.LinkStart, 3, linkType: linkType, linkUrl: input.Substring(urlStart));
+            }
+
+            return new Markup(MarkupType.LinkStart, urlEnd - index + 1, linkType: linkType, linkUrl: input.Substring(urlStart, urlEnd - urlStart));
+        }
+
+        // Without brackets, the visible text is the URL
+        var textEnd = FindLinkTextEnd(input, afterCode);
+
+        return new Markup(MarkupType.LinkStart, 2, linkType: linkType, linkUrl: input.Substring(afterCode, textEnd - afterCode));
+    }
+
+    /// <summary>
+    /// Finds where the text of a link without brackets ends: before <c>$&lt;</c>, <c>$&gt;</c>, or any link code.
+    /// </summary>
+    private static int FindLinkTextEnd(string input, int startIndex)
+    {
+        var afterDollar = false;
+
+        for (var i = startIndex; i < input.Length; i++)
+        {
+            var c = input[i];
+
+            if (c == '$')
+            {
+                afterDollar = true;
+                continue;
+            }
+
+            if (afterDollar && c is '<' or '>' or 'h' or 'H' or 'l' or 'L' or 'p' or 'P')
+            {
+                return i - 1;
+            }
+
+            afterDollar = false;
+        }
+
+        return input.Length;
+    }
+
     private static bool IsHex(char c) => (c >= '0' && c <= '9') ||
                                          (c >= 'a' && c <= 'f') ||
                                          (c >= 'A' && c <= 'F');
 
-    private static int FindClosingTag(string input, int startIndex, char code)
+    private enum MarkupType
     {
-        for (int i = startIndex; i < input.Length - 1; i++)
-        {
-            if (input[i] == '$' && i + 1 < input.Length)
-            {
-                char nextChar = input[i + 1];
-                if (nextChar == code || nextChar == char.ToUpperInvariant(code))
-                {
-                    return i;
-                }
-            }
-        }
-        return -1;
+        Ignored,
+        Literal,
+        Color,
+        DefaultColor,
+        Push,
+        Pop,
+        Reset,
+        Italic,
+        Bold,
+        Shadow,
+        Underline,
+        Uppercase,
+        Wide,
+        Medium,
+        Narrow,
+        LinkStart,
+        LinkEnd
     }
 
-    private sealed class LinkInfo
+    private enum LinkType
     {
-        public string Url { get; set; } = string.Empty;
-        public bool IsManialink { get; set; }
+        External,
+        Manialink
+    }
+
+    private enum TextWidth
+    {
+        Medium,
+        Narrow,
+        Wide
+    }
+
+    private readonly struct Markup
+    {
+        public MarkupType Type { get; }
+        public int Length { get; }
+        public char Literal { get; }
+        public string? Color { get; }
+        public LinkType LinkType { get; }
+        public string? LinkUrl { get; }
+
+        public Markup(MarkupType type, int length, char literal = '\0', string? color = null, LinkType linkType = default, string? linkUrl = null)
+        {
+            Type = type;
+            Length = length;
+            Literal = literal;
+            Color = color;
+            LinkType = linkType;
+            LinkUrl = linkUrl;
+        }
+    }
+
+    private struct AnsiState
+    {
+        public string? Color;
+        public bool InLink;
+        public bool Uppercase;
     }
 
     private sealed class Segment
     {
         public string Text { get; set; } = string.Empty;
         public Style Style { get; set; } = new Style();
-        public string? LinkUrl { get; set; }
     }
 
     private sealed class Style
@@ -463,12 +639,13 @@ public static partial class TextFormatter
         public bool Italic { get; set; }
         public bool Uppercase { get; set; }
         public bool DropShadow { get; set; }
-        public bool Wide { get; set; }
-        public bool Narrow { get; set; }
+        public TextWidth Width { get; set; }
         public string? Color { get; set; }
+        public bool InLink { get; set; }
+        public string? LinkUrl { get; set; }
 
         // Note: Clone() uses MemberwiseClone(), which performs a shallow copy.
-        // If reference-type properties are added to Style, this may cause bugs.
+        // If mutable reference-type properties are added to Style, this may cause bugs.
         public Style Clone() => (Style)MemberwiseClone();
 
         public string ToCss()
@@ -479,7 +656,7 @@ public static partial class TextFormatter
             if (Italic) parts.Add("font-style:italic");
             if (Uppercase) parts.Add("text-transform:uppercase");
             if (DropShadow) parts.Add("text-shadow:1px 1px 2px black");
-            if (Narrow) parts.Add("letter-spacing:-0.05em");
+            if (Width == TextWidth.Narrow) parts.Add("letter-spacing:-0.05em");
             return string.Join(";", parts);
         }
     }
