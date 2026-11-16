@@ -201,6 +201,11 @@ public class TimeInt32Tests
     [Arguments(60_000, 0)]
     [Arguments(60_999, 0)]
     [Arguments(61_000, 1)]
+    [Arguments(16_777_999, 37)]
+    [Arguments(36_000_999, 0)]
+    [Arguments(86_399_999, 59)]
+    [Arguments(int.MaxValue, 23)]
+    [Arguments(-36_000_999, 0)]
     public async Task Seconds_WithTotalMilliseconds_ReturnsSecondsComponent(int totalMilliseconds, int expected)
     {
         // Arrange
@@ -220,6 +225,8 @@ public class TimeInt32Tests
     [Arguments(61_000, 1)]
     [Arguments(320_000, 5)]
     [Arguments(3_680_000, 1)]
+    [Arguments(86_399_999, 59)]
+    [Arguments(int.MaxValue, 31)]
     public async Task Minutes_WithTotalMilliseconds_ReturnsMinutesComponent(int totalMilliseconds, int expected)
     {
         // Arrange
@@ -239,6 +246,8 @@ public class TimeInt32Tests
     [Arguments(3_601_000, 1)]
     [Arguments(10_000_000, 2)]
     [Arguments(10_800_000, 3)]
+    [Arguments(86_399_999, 23)]
+    [Arguments(int.MaxValue, 20)]
     public async Task Hours_WithTotalMilliseconds_ReturnsHoursComponent(int totalMilliseconds, int expected)
     {
         // Arrange
@@ -254,7 +263,10 @@ public class TimeInt32Tests
     [Test]
     [Arguments(0, 0)]
     [Arguments(86_399_990, 0)]
+    [Arguments(86_399_999, 0)]
     [Arguments(86_400_000, 1)]
+    [Arguments(int.MaxValue, 24)]
+    [Arguments(int.MinValue, -24)]
     [Arguments(86_401_000, 1)]
     [Arguments(172_799_000, 1)]
     [Arguments(172_800_000, 2)]
@@ -1086,6 +1098,25 @@ public class TimeInt32Tests
 
         // Assert
         await Assert.That(result).IsEqualTo("2:17:09:27.890");
+    }
+
+    [Test]
+    [Arguments(16_777_999, "4:39:37.999")]
+    [Arguments(36_000_999, "10:00:00.999")]
+    [Arguments(86_399_999, "23:59:59.999")]
+    [Arguments(-86_399_999, "-23:59:59.999")]
+    [Arguments(int.MaxValue, "24:20:31:23.647")]
+    [Arguments(int.MinValue, "-24:20:31:23.648")]
+    public async Task ToString_WithLargeTime_DoesNotRoundUp(int totalMilliseconds, string expected)
+    {
+        // Arrange
+        var time = new TimeInt32(totalMilliseconds);
+
+        // Act
+        var result = time.ToString();
+
+        // Assert
+        await Assert.That(result).IsEqualTo(expected);
     }
 
     [Test]

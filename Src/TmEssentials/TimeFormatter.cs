@@ -37,8 +37,6 @@ internal static class TimeFormatter
                                     int minutes,
                                     int seconds,
                                     int milliseconds,
-                                    float totalHours,
-                                    float totalDays,
                                     bool isNegative,
                                     bool useHundredths = false,
                                     bool useApostrophe = false,
@@ -121,12 +119,6 @@ internal static class TimeFormatter
 
         return new string(buffer.Slice(0, pos));
 #else
-        if (isNegative)
-        {
-            totalHours = -totalHours;
-            totalDays = -totalDays;
-        }
-
         var formatBuilder = new StringBuilder();
 
         if (isNegative)
@@ -138,21 +130,21 @@ internal static class TimeFormatter
         }
         else
         {
-            if (totalDays >= 1)
+            if (days > 0)
             {
                 formatBuilder.Append(days);
                 formatBuilder.Append(colonSeparator);
             }
 
-            if (totalHours >= 1)
+            if (days > 0 || hours > 0)
             {
-                if (totalDays >= 1 && hours < 10)
+                if (days > 0 && hours < 10)
                     formatBuilder.Append('0');
                 formatBuilder.Append(hours);
                 formatBuilder.Append(colonSeparator);
             }
 
-            if (totalHours >= 1 && minutes < 10)
+            if ((days > 0 || hours > 0) && minutes < 10)
                 formatBuilder.Append('0');
             formatBuilder.Append(minutes);
 

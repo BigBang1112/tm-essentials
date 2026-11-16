@@ -35,15 +35,15 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime,
     public static readonly TimeInt32 MinValue = new(int.MinValue);
 
     /// <inheritdoc />
-    public int Days => (int)TotalDays;
+    public int Days => TotalMilliseconds / 86_400_000;
     /// <inheritdoc />
-    public int Hours => (int)TotalHours % 24;
+    public int Hours => TotalMilliseconds / 3_600_000 % 24;
     /// <inheritdoc />
     public int Milliseconds => TotalMilliseconds % 1000;
     /// <inheritdoc />
-    public int Minutes => (int)TotalMinutes % 60;
+    public int Minutes => TotalMilliseconds / 60_000 % 60;
     /// <inheritdoc />
-    public int Seconds => (int)TotalSeconds % 60;
+    public int Seconds => TotalMilliseconds / 1_000 % 60;
     /// <inheritdoc />
     public long Ticks => (long)TotalMilliseconds * 10_000;
     /// <inheritdoc />
@@ -93,7 +93,7 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime,
     /// <returns>A string representation of Trackmania time format.</returns>
     public string ToString(bool useHundredths = false, bool useApostrophe = false, bool compact = false)
     {
-        return TimeFormatter.ToTmString(Days, Hours, Minutes, Seconds, Milliseconds, TotalHours, TotalDays, IsNegative, useHundredths, useApostrophe, compact);
+        return TimeFormatter.ToTmString(Days, Hours, Minutes, Seconds, Milliseconds, IsNegative, useHundredths, useApostrophe, compact);
     }
 
     /// <summary>

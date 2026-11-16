@@ -30,8 +30,6 @@ public static class TimeSpanExtensions
                                         timeSpan.Minutes,
                                         timeSpan.Seconds,
                                         timeSpan.Milliseconds,
-                                        (float)timeSpan.TotalHours,
-                                        (float)timeSpan.TotalDays,
                                         timeSpan.Ticks < 0,
                                         useHundredths,
                                         useApostrophe,

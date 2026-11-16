@@ -91,7 +91,7 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime,
     /// <returns>A string representation of Trackmania time format.</returns>
     public string ToString(bool useHundredths = false, bool useApostrophe = false, bool compact = false)
     {
-        return TimeFormatter.ToTmString(Days, Hours, Minutes, Seconds, (int)Milliseconds, TotalHours, TotalDays, IsNegative, useHundredths, useApostrophe, compact);
+        return TimeFormatter.ToTmString(Days, Hours, Minutes, Seconds, (int)Milliseconds, IsNegative, useHundredths, useApostrophe, compact);
     }
 
     /// <summary>
