@@ -47,4 +47,31 @@ public class AccountUtilsTests
         // Assert
         await Assert.That(act).ThrowsExactly<FormatException>();
     }
+
+    [Test]
+    [Arguments("")]
+    [Arguments("AAAA")]
+    [Arguments("AAAAAAAA")]
+    [Arguments("v89i_w-eQKq5JBG5xwuK")]
+    [Arguments("v89i_w-eQKq5JBG5xwuKCQAA")]
+    [Arguments("v89i_w-eQKq5JBG5xwuKCQAAAAAA")]
+    [Arguments("v89i_w-eQKq5JBG5xwuKCQ_")]
+    public async Task ToAccountId_WithLoginOfWrongLength_ThrowsFormatException(string login)
+    {
+        // Act
+        var act = () => AccountUtils.ToAccountId(login);
+
+        // Assert
+        await Assert.That(act).ThrowsExactly<FormatException>();
+    }
+
+    [Test]
+    public async Task ToAccountId_WithEmptyAccountLogin_ReturnsEmptyGuid()
+    {
+        // Act
+        var accountId = AccountUtils.ToAccountId("AAAAAAAAAAAAAAAAAAAAAA");
+
+        // Assert
+        await Assert.That(accountId).IsEqualTo(Guid.Empty);
+    }
 }

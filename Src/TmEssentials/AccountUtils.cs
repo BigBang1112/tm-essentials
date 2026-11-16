@@ -89,7 +89,7 @@ public static class AccountUtils
     /// <param name="login">The login to be converted.</param>
     /// <returns>An account ID of the login.</returns>
     /// <exception cref="ArgumentNullException">Login is null.</exception>
-    /// <exception cref="FormatException">Login is invalid.</exception>
+    /// <exception cref="FormatException">Login is not base64url, or it does not decode to exactly 16 bytes.</exception>
     public static Guid ToAccountId(string login)
     {
         if (login is null)
@@ -113,6 +113,11 @@ public static class AccountUtils
 
         var b = Convert.FromBase64String(base64);
 
+        if (b.Length != 16)
+        {
+            throw new FormatException("Invalid login.");
+        }
+
         return new Guid([
             b[3], b[2], b[1], b[0],
             b[5], b[4],
@@ -124,7 +129,8 @@ public static class AccountUtils
 
         Span<byte> b = stackalloc byte[GuidByteLength];
 
-        if (!Convert.TryFromBase64String(base64, b, out var _))
+        // Fails when the login is longer than 16 bytes, and the written length catches the shorter ones
+        if (!Convert.TryFromBase64String(base64, b, out var bytesWritten) || bytesWritten != GuidByteLength)
         {
             throw new FormatException("Invalid login.");
         }
