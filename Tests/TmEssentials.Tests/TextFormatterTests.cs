@@ -445,6 +445,8 @@ public class TextFormatterTests
     [Arguments("$l[www.example.com]Site$l", "<a href=\"http://www.example.com\">Site</a>")]
     [Arguments("$l[example.com/a:b]Site$l", "<a href=\"http://example.com/a:b\">Site</a>")]
     [Arguments("$l[//example.com]Site$l", "<a href=\"http:////example.com\">Site</a>")]
+    [Arguments("$l[ https://example.com ]Site$l", "<a href=\"https://example.com\">Site</a>")]
+    [Arguments("$l[\t\nwww.example.com\r\n]Site$l", "<a href=\"http://www.example.com\">Site</a>")]
     public async Task FormatHtml_WithLink_HrefStartsWithHttp(string input, string expected)
     {
         // Act
@@ -461,6 +463,9 @@ public class TextFormatterTests
     [Arguments("$l[vbscript:msgbox(1)]Site$l")]
     [Arguments("$l[mailto:a@example.com]Site$l")]
     [Arguments("$l[]Site$l")]
+    [Arguments("$l[ ]Site$l")]
+    [Arguments("$l[ javascript:alert(1)]Site$l")]
+    [Arguments("$l[\t\r\njavascript:alert(1)]Site$l")]
     public async Task FormatHtml_WithLinkOfOtherScheme_ReturnsLinkTextOnly(string input)
     {
         // Act
@@ -471,11 +476,23 @@ public class TextFormatterTests
     }
 
     [Test]
-    [Arguments("$l[ javascript:alert(1)]Site$l", "<a href=\"http:// javascript:alert(1)\">Site</a>")]
+    [Arguments("$l[ javascript:alert(1)]Site$l", "<a href=\"http://&#160;javascript:alert(1)\">Site</a>")]
     [Arguments("$l[java\tscript:alert(1)]Site$l", "<a href=\"http://java\tscript:alert(1)\">Site</a>")]
     [Arguments("$l[java\nscript:alert(1)]Site$l", "<a href=\"http://java\nscript:alert(1)\">Site</a>")]
     [Arguments("$l[\u0001javascript:alert(1)]Site$l", "<a href=\"http://\u0001javascript:alert(1)\">Site</a>")]
     public async Task FormatHtml_WithObfuscatedScriptLink_PrefixesHttp(string input, string expected)
+    {
+        // Act
+        var actual = TextFormatter.FormatHtml(input, allowLinks: true);
+
+        // Assert
+        await Assert.That(actual).IsEqualTo(expected);
+    }
+
+    [Test]
+    [Arguments("$lhttps://x.com$f00red$l", "<a href=\"https://x.com$f00red\">https://x.com</a><a href=\"https://x.com$f00red\" style=\"color:#f00\">red</a>")]
+    [Arguments("$l[https://x.com/$oa]Site$l", "<a href=\"https://x.com/$oa\">Site</a>")]
+    public async Task FormatHtml_WithFormattingCodesInLinkUrl_KeepsThemInHrefLikeTheGame(string input, string expected)
     {
         // Act
         var actual = TextFormatter.FormatHtml(input, allowLinks: true);

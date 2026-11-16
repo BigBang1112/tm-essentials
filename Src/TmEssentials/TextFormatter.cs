@@ -37,6 +37,11 @@ public static class TextFormatter
     private const int MaxStyleStackCount = 7;
 
     /// <summary>
+    /// The characters that the game trims around a link URL before opening it (<c>CFastString::s_DefaultWhiteSpaceChars</c>).
+    /// </summary>
+    private static readonly char[] UrlWhiteSpaceChars = [' ', '\t', '\r', '\n'];
+
+    /// <summary>
     /// Deformats a string from Nadeo format.
     /// </summary>
     /// <param name="input">A string input.</param>
@@ -480,6 +485,8 @@ public static class TextFormatter
     /// <returns>A URL that starts with <c>http://</c> or <c>https://</c>, or null if the link should not be clickable.</returns>
     private static string? ToSafeExternalUrl(string? url)
     {
+        url = url?.Trim(UrlWhiteSpaceChars);
+
         if (string.IsNullOrEmpty(url))
         {
             return null;
