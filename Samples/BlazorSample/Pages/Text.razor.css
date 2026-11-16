@@ -1,0 +1,46 @@
+textarea {
+    resize: vertical;
+}
+
+.options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+}
+
+.outputs {
+    margin-top: 1rem;
+}
+
+.icons {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+    gap: 0.75rem;
+}
+
+.icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.75rem;
+    text-align: center;
+}
+
+    .icon .game-text {
+        width: 100%;
+        font-size: 200%;
+    }
+
+    .icon span {
+        font-size: 90%;
+    }
+
+    .icon code {
+        color: var(--color-text-secondary);
+        font-size: 80%;
+    }
+
+.icon-notes {
+    margin-top: 1rem;
+}

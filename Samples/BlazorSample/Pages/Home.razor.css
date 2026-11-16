@@ -1,0 +1,25 @@
+.info ::deep .nuget {
+    align-self: flex-start;
+    gap: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    font-weight: bold;
+}
+
+.preview {
+    color: var(--color-text-primary);
+    transition: border-color 0.2s ease;
+}
+
+    .preview:hover {
+        border-color: var(--color-link);
+        color: var(--color-text-primary);
+        text-decoration: none;
+    }
+
+    .preview p {
+        flex: 1;
+    }
+
+    .preview code {
+        font-size: 85%;
+    }

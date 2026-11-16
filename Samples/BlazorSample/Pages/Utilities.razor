@@ -1,0 +1,101 @@
+@page "/utilities"
+
+<PageTitle>Utilities - TmEssentials</PageTitle>
+
+<h1 class="page-title">Utilities</h1>
+<p class="page-text">Small helpers for identifiers that Trackmania uses.</p>
+
+<h2 class="section-title">Accounts</h2>
+<p class="section-text">
+    Trackmania (2020) identifies players by an account ID, which is shown as a shorter login in some places.
+    <code>AccountUtils</code> converts between them.
+</p>
+
+<div class="card-grid">
+    <div class="card info">
+        <label for="account-id"><code>Guid</code> account ID</label>
+        <input id="account-id" @bind="AccountId" @bind:event="oninput" class="@(accountIdError is null ? "" : "invalid")" spellcheck="false" />
+        @if (accountIdError is not null)
+        {
+            <div class="validation-message">@accountIdError</div>
+        }
+        <code class="snippet">AccountUtils.ToLogin(accountId)</code>
+    </div>
+    <div class="card info">
+        <label for="login"><code>string</code> login</label>
+        <input id="login" @bind="Login" @bind:event="oninput" class="@(loginError is null ? "" : "invalid")" spellcheck="false" />
+        @if (loginError is not null)
+        {
+            <div class="validation-message">@loginError</div>
+        }
+        <code class="snippet">AccountUtils.ToAccountId(login)</code>
+    </div>
+</div>
+
+<h2 class="section-title">Map UIDs</h2>
+<p class="section-text"><code>MapUtils</code> generates map UIDs in the format of the game, randomly or from a seed.</p>
+
+<div class="card info">
+    <div class="map-uid">
+        <code>@mapUid</code>
+    </div>
+    <div class="seed">
+        <label for="seed">Seed</label>
+        <input id="seed" type="number" @bind="seed" @bind:event="oninput" />
+        <ReuButton OnClick="() => mapUid = MapUtils.GenerateMapUid(seed)">Generate from seed</ReuButton>
+        <ReuButton OnClick="() => mapUid = MapUtils.GenerateMapUid()" Variant="ReuButtonVariant.Blue">Generate random</ReuButton>
+    </div>
+    <code class="snippet">MapUtils.GenerateMapUid(seed: @seed); // the same UID for the same seed</code>
+</div>
+
+@code {
+    private static readonly Guid SampleAccountId = Guid.Parse("bfcf62ff-0f9e-40aa-b924-11b9c70b8a09");
+
+    private string accountId = SampleAccountId.ToString();
+    private string login = AccountUtils.ToLogin(SampleAccountId);
+    private string? accountIdError;
+    private string? loginError;
+
+    private int seed = 1112;
+    private string mapUid = MapUtils.GenerateMapUid(1112);
+
+    private string AccountId
+    {
+        get => accountId;
+        set
+        {
+            accountId = value;
+
+            if (Guid.TryParse(value, out var parsed))
+            {
+                accountIdError = null;
+                login = AccountUtils.ToLogin(parsed);
+                loginError = null;
+            }
+            else
+            {
+                accountIdError = "Not a valid account ID.";
+            }
+        }
+    }
+
+    private string Login
+    {
+        get => login;
+        set
+        {
+            login = value;
+
+            try
+            {
+                accountId = AccountUtils.ToAccountId(value).ToString();
+                accountIdError = null;
+                loginError = null;
+            }
+            catch (FormatException)
+            {
+                loginError = "Not a valid login.";
+            }
+        }
+    }
+}

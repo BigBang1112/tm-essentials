@@ -1,20 +1,38 @@
-<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <OverrideHtmlAssetPlaceholders>true</OverrideHtmlAssetPlaceholders>
+    <ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
+  </PropertyGroup>
+
+  <!-- No InvariantTimezone, as it relinks the runtime, which needs the wasm-tools workload even for a normal build -->
+  <PropertyGroup>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <!-- Prerendering on publish. The pages are saved as text.html etc., which GitHub Pages
+       serves for /text without redirecting to /text/ first. -->
+  <PropertyGroup>
+    <BlazorWasmPrerenderingOutputStyle>AppendHtmlExtension</BlazorWasmPrerenderingOutputStyle>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="BlazorWasmPreRendering.Build" Version="10.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.7" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.7" PrivateAssets="all" />
+    <PackageReference Include="Reuniverse.Razor" Version="0.12.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Src\TmEssentials.Razor\TmEssentials.Razor.csproj" />
     <ProjectReference Include="..\..\Src\TmEssentials\TmEssentials.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
   </ItemGroup>
 
 </Project>

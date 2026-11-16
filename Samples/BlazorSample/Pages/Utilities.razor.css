@@ -1,0 +1,32 @@
+#account-id, #login {
+    font-family: var(--font-mono), monospace;
+}
+
+.map-uid {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--color-input-border);
+    border-radius: 0.5rem;
+    background: var(--color-input-bg);
+    font-size: 140%;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+    .map-uid code {
+        user-select: all;
+    }
+
+.seed {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+    .seed input {
+        width: 8rem;
+    }
+
+    .seed ::deep .reu-button {
+        padding: 0.3rem 0.7rem;
+    }
