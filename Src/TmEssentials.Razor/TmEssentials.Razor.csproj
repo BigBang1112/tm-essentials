@@ -37,7 +37,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <None Include="../logo_icon_outline.png" Pack="true" PackagePath="\" />
+        <None Include="../../logo_icon_outline.png" Pack="true" PackagePath="\" />
     </ItemGroup>
 
     <ItemGroup>

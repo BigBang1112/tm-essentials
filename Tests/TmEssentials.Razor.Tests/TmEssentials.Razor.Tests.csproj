@@ -17,12 +17,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\TmEssentials.Razor\TmEssentials.Razor.csproj" />
+		<ProjectReference Include="..\..\Src\TmEssentials.Razor\TmEssentials.Razor.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<!-- the static web assets of the library, served to the browser tests -->
-		<None Include="..\TmEssentials.Razor\wwwroot\**" LinkBase="wwwroot" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\Src\TmEssentials.Razor\wwwroot\**" LinkBase="wwwroot" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 	<ItemGroup>

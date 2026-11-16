@@ -13,8 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\TmEssentials.Razor\TmEssentials.Razor.csproj" />
-    <ProjectReference Include="..\..\TmEssentials\TmEssentials.csproj" />
+    <ProjectReference Include="..\..\Src\TmEssentials.Razor\TmEssentials.Razor.csproj" />
+    <ProjectReference Include="..\..\Src\TmEssentials\TmEssentials.csproj" />
   </ItemGroup>
 
 </Project>

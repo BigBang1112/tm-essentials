@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TmEssentials\TmEssentials.csproj" />
+    <ProjectReference Include="..\..\Src\TmEssentials\TmEssentials.csproj" />
   </ItemGroup>
 
   <ItemGroup>
