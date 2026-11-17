@@ -121,13 +121,13 @@ public static class MapUtils
     /// <param name="mapUid">The map UID.</param>
     /// <param name="uuid">The UUID, if decoded.</param>
     /// <param name="crc32">The CRC32, if decoded.</param>
-    /// <returns>True if the map UID consists only of base-63 digits and fits into 20 bytes, otherwise false.</returns>
+    /// <returns>True if the map UID is not empty, consists only of base-63 digits, and fits into 20 bytes, otherwise false.</returns>
     public static bool TryDecodeMapUid(string? mapUid, out Guid uuid, out uint crc32)
     {
         uuid = Guid.Empty;
         crc32 = 0;
 
-        if (mapUid is null || mapUid.Length > MaxMapUidLength)
+        if (mapUid is null or "" || mapUid.Length > MaxMapUidLength)
         {
             return false;
         }

@@ -33,6 +33,7 @@ public class MapUtilsTests
 
     [Test]
     [Arguments(null)]
+    [Arguments("")]
     [Arguments("az8D4K6OKOuyGtUjHV_ui39x4x-")]
     [Arguments("az8D4K6OKOuyGtUjHV_ui39x4xia")]
     [Arguments("ZZZZZZZZZZZZZZZZZZZZZZZZZZZ")]
