@@ -321,7 +321,7 @@ public static class TextFormatter
     /// </summary>
     /// <param name="c">A character.</param>
     /// <returns>True if the character is a Font Awesome 4.7 icon, otherwise false.</returns>
-    public static bool IsFontAwesomeIcon(char c) => c is >= '' and <= '';
+    public static bool IsFontAwesomeIcon(char c) => c is >= '\uF000' and <= '\uF2E0';
 
     /// <summary>
     /// Formats a Nadeo string into a HTML format.
