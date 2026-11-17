@@ -2,10 +2,6 @@
 using System.Text;
 #endif
 
-#if NET6_0_OR_GREATER
-using System.Runtime.InteropServices;
-#endif
-
 namespace TmEssentials;
 
 internal static class TimeFormatter
@@ -23,14 +19,6 @@ internal static class TimeFormatter
         @"\-h\:mm\:ss\.FFFFFFF",
         @"\-d\:hh\:mm\:ss\.FFFFFFF"
     ];
-
-#if NET6_0_OR_GREATER
-    [UnmanagedCallersOnly(EntryPoint = "totmstring")]
-    public static nint ToTmString(uint time)
-    {
-        return Marshal.StringToCoTaskMemUTF8(new TimeInt32((int)time).ToString());
-    }
-#endif
 
     public static string ToTmString(int days,
                                     int hours,
