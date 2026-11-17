@@ -433,14 +433,13 @@ public static class TextFormatter
                 case MarkupType.Narrow: style.Width = TextWidth.Narrow; break;
                 case MarkupType.LinkStart:
                     style.InLink = true;
-                    style.LinkUrl = markup.LinkType switch
-                    {
-                        LinkType.External when allowLinks => ToSafeExternalUrl(markup.LinkUrl),
-                        LinkType.Manialink when allowManialinks => $"maniaplanet:///:{markup.LinkUrl}",
-                        _ => null
-                    };
+                    // The URL of a link start is never null
+                    style.LinkUrl = markup.LinkType == LinkType.External
+                        ? (allowLinks ? ToSafeExternalUrl(markup.LinkUrl!) : null)
+                        : (allowManialinks ? $"maniaplanet:///:{markup.LinkUrl}" : null);
                     break;
-                case MarkupType.LinkEnd:
+                default:
+                    // MarkupType.LinkEnd is the only one left, the markups without style were skipped above
                     style.InLink = false;
                     style.LinkUrl = null;
                     break;
@@ -483,16 +482,16 @@ public static class TextFormatter
     /// (like <c>www.example.com</c>), and URLs with any other scheme are not linked.
     /// </summary>
     /// <returns>A URL that starts with <c>http://</c> or <c>https://</c>, or null if the link should not be clickable.</returns>
-    private static string? ToSafeExternalUrl(string? url)
+    private static string? ToSafeExternalUrl(string url)
     {
-        url = url?.Trim(UrlWhiteSpaceChars);
+        url = url.Trim(UrlWhiteSpaceChars);
 
-        if (string.IsNullOrEmpty(url))
+        if (url.Length == 0)
         {
             return null;
         }
 
-        if (url!.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+        if (url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
             url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
         {
             return url;

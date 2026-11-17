@@ -16,6 +16,19 @@ public class AccountUtilsTests
     }
 
     [Test]
+    [Arguments("00000000-0000-0000-0000-000000000000", "AAAAAAAAAAAAAAAAAAAAAA")]
+    [Arguments("ffffffff-ffff-ffff-ffff-ffffffffffff", "_____________________w")]
+    [Arguments("fbefbefb-efbe-fbef-befb-efbefbefbefb", "---------------------w")]
+    public async Task ToLogin_WithAccountId_ReturnsBase64UrlWithoutPadding(string accountId, string expected)
+    {
+        // Act
+        var login = AccountUtils.ToLogin(Guid.Parse(accountId));
+
+        // Assert
+        await Assert.That(login).IsEqualTo(expected);
+    }
+
+    [Test]
     public async Task ToAccountId_WithLogin_ReturnsAccountId()
     {
         // Act

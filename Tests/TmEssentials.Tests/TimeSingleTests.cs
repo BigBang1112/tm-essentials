@@ -1175,4 +1175,129 @@ public class TimeSingleTests
         // Assert
         await Assert.That(mismatch).IsEqualTo(-1);
     }
+
+    [Test]
+    public async Task ToString_AsObject_ReturnsTmFormat()
+    {
+        // Arrange
+        object time = new TimeSingle(83.456f);
+
+        // Act
+        var result = time.ToString();
+
+        // Assert
+        await Assert.That(result).IsEqualTo("1:23.456");
+    }
+
+    [Test]
+    public async Task ITimeAdd_WithTimeInt32_ReturnsTimeSingleSum()
+    {
+        // Arrange
+        ITime time = new TimeSingle(1f);
+
+        // Act
+        var result = time.Add(new TimeInt32(500));
+
+        // Assert
+        await Assert.That(result).IsEqualTo(new TimeSingle(1.5f));
+    }
+
+    [Test]
+    public async Task Add_WithITime_ReturnsTimeSingleSum()
+    {
+        // Act
+        var result = new TimeSingle(1f).Add((ITime)new TimeInt32(500));
+
+        // Assert
+        await Assert.That(result).IsEqualTo(new TimeSingle(1.5f));
+    }
+
+    [Test]
+    public async Task ITimeDivide_WithFloatDivisor_ReturnsTimeSingleQuotient()
+    {
+        // Arrange
+        ITime time = new TimeSingle(1f);
+
+        // Act
+        var result = time.Divide(4f);
+
+        // Assert
+        await Assert.That(result).IsEqualTo(new TimeSingle(0.25f));
+    }
+
+    [Test]
+    public async Task Divide_WithITime_ReturnsRatio()
+    {
+        // Act
+        var result = new TimeSingle(3f).Divide((ITime)new TimeInt32(1_500));
+
+        // Assert
+        await Assert.That(result).IsEqualTo(2f);
+    }
+
+    [Test]
+    public async Task ITimeDuration_WithNegativeTime_ReturnsPositiveTimeSingle()
+    {
+        // Arrange
+        ITime time = new TimeSingle(-1.5f);
+
+        // Act
+        var result = time.Duration();
+
+        // Assert
+        await Assert.That(result).IsEqualTo(new TimeSingle(1.5f));
+    }
+
+    [Test]
+    public async Task ITimeMultiply_WithFloatFactor_ReturnsTimeSingleProduct()
+    {
+        // Arrange
+        ITime time = new TimeSingle(1f);
+
+        // Act
+        var result = time.Multiply(2.5f);
+
+        // Assert
+        await Assert.That(result).IsEqualTo(new TimeSingle(2.5f));
+    }
+
+    [Test]
+    public async Task ITimeNegate_WithPositiveTime_ReturnsNegativeTimeSingle()
+    {
+        // Arrange
+        ITime time = new TimeSingle(1.5f);
+
+        // Act
+        var result = time.Negate();
+
+        // Assert
+        await Assert.That(result).IsEqualTo(new TimeSingle(-1.5f));
+    }
+
+    [Test]
+    [Arguments(1.5f, true)]
+    [Arguments(2.5f, false)]
+    public async Task Equals_WithTimeSingleAsITime_ComparesTotalSeconds(float otherTotalSeconds, bool expected)
+    {
+        // Arrange
+        var time = new TimeSingle(1.5f);
+        ITime other = new TimeSingle(otherTotalSeconds);
+
+        // Act
+        var result = time.Equals(other);
+
+        // Assert
+        await Assert.That(result).IsEqualTo(expected);
+    }
+
+    [Test]
+    public async Task TryParse_WithNegativeSpan_ReturnsTrueAndNegativeTime()
+    {
+        // Act
+        var success = TimeSingle.TryParse("-1:23.456".AsSpan(), out var time);
+
+        // Assert
+        await Assert.That(success).IsTrue();
+        await Assert.That(time.TotalSeconds).IsEqualTo(-83.456f);
+    }
 }

@@ -1334,4 +1334,166 @@ public class TimeInt32Tests
         // Assert
         await Assert.That(time.TotalMilliseconds).IsEqualTo(expectedTotalMilliseconds);
     }
+
+    [Test]
+    public async Task ToString_AsObject_ReturnsTmFormat()
+    {
+        // Arrange
+        object time = new TimeInt32(83_456);
+
+        // Act
+        var result = time.ToString();
+
+        // Assert
+        await Assert.That(result).IsEqualTo("1:23.456");
+    }
+
+    [Test]
+    public async Task ITimeTotalMilliseconds_WithTotalMilliseconds_ReturnsSameValue()
+    {
+        // Arrange
+        ITime time = new TimeInt32(1_500);
+
+        // Act
+        var result = time.TotalMilliseconds;
+
+        // Assert
+        await Assert.That(result).IsEqualTo(1_500f);
+    }
+
+    [Test]
+    public async Task ITimeAdd_WithTimeInt32_ReturnsTimeInt32Sum()
+    {
+        // Arrange
+        ITime time = new TimeInt32(1_000);
+
+        // Act
+        var result = time.Add(new TimeInt32(500));
+
+        // Assert
+        await Assert.That(result).IsEqualTo(new TimeInt32(1_500));
+    }
+
+    [Test]
+    public async Task Add_WithOtherITimeImplementation_AddsWholeMilliseconds()
+    {
+        // Act
+        var result = new TimeInt32(1_000).Add(new FakeTime(250.9f));
+
+        // Assert
+        await Assert.That(result).IsEqualTo(new TimeInt32(1_250));
+    }
+
+    [Test]
+    public async Task Add_WithOtherITimeImplementationOverflowing_ThrowsOverflowException()
+    {
+        // Act
+        var act = () => TimeInt32.MaxValue.Add(new FakeTime(1f));
+
+        // Assert
+        await Assert.That(act).ThrowsExactly<OverflowException>();
+    }
+
+    [Test]
+    public async Task ITimeDivide_WithFloatDivisor_ReturnsTimeSingleQuotient()
+    {
+        // Arrange
+        ITime time = new TimeInt32(1_000);
+
+        // Act
+        var result = time.Divide(4f);
+
+        // Assert
+        await Assert.That(result).IsEqualTo(new TimeSingle(0.25f));
+    }
+
+    [Test]
+    public async Task Divide_WithITime_ReturnsRatio()
+    {
+        // Act
+        var result = new TimeInt32(3_000).Divide((ITime)new TimeSingle(1.5f));
+
+        // Assert
+        await Assert.That(result).IsEqualTo(2f);
+    }
+
+    [Test]
+    public async Task ITimeDuration_WithNegativeTime_ReturnsPositiveTimeInt32()
+    {
+        // Arrange
+        ITime time = new TimeInt32(-1_000);
+
+        // Act
+        var result = time.Duration();
+
+        // Assert
+        await Assert.That(result).IsEqualTo(new TimeInt32(1_000));
+    }
+
+    [Test]
+    public async Task ITimeMultiply_WithFloatFactor_ReturnsTimeSingleProduct()
+    {
+        // Arrange
+        ITime time = new TimeInt32(1_000);
+
+        // Act
+        var result = time.Multiply(2.5f);
+
+        // Assert
+        await Assert.That(result).IsEqualTo(new TimeSingle(2.5f));
+    }
+
+    [Test]
+    public async Task Multiply_WithInt32Factor_ReturnsTimeInt32Product()
+    {
+        // Act
+        var result = new TimeInt32(1_500).Multiply(3);
+
+        // Assert
+        await Assert.That(result).IsEqualTo(new TimeInt32(4_500));
+    }
+
+    [Test]
+    public async Task ITimeNegate_WithPositiveTime_ReturnsNegativeTimeInt32()
+    {
+        // Arrange
+        ITime time = new TimeInt32(1_000);
+
+        // Act
+        var result = time.Negate();
+
+        // Assert
+        await Assert.That(result).IsEqualTo(new TimeInt32(-1_000));
+    }
+
+    /// <summary>
+    /// An <see cref="ITime"/> that is neither <see cref="TimeInt32"/> nor <see cref="TimeSingle"/>.
+    /// </summary>
+    private sealed class FakeTime(float totalMilliseconds) : ITime
+    {
+        public float TotalMilliseconds => totalMilliseconds;
+
+        public int Days => throw new NotSupportedException();
+        public int Hours => throw new NotSupportedException();
+        public int Milliseconds => throw new NotSupportedException();
+        public int Minutes => throw new NotSupportedException();
+        public int Seconds => throw new NotSupportedException();
+        public long Ticks => throw new NotSupportedException();
+        public float TotalDays => throw new NotSupportedException();
+        public float TotalHours => throw new NotSupportedException();
+        public float TotalMinutes => throw new NotSupportedException();
+        public float TotalSeconds => throw new NotSupportedException();
+        public bool IsNegative => throw new NotSupportedException();
+
+        public ITime Add(ITime ts) => throw new NotSupportedException();
+        public ITime Divide(float divisor) => throw new NotSupportedException();
+        public float Divide(ITime ts) => throw new NotSupportedException();
+        public ITime Duration() => throw new NotSupportedException();
+        public ITime Multiply(float factor) => throw new NotSupportedException();
+        public ITime Negate() => throw new NotSupportedException();
+        public string ToString(bool useHundredths = false, bool useApostrophe = false, bool compact = false) => throw new NotSupportedException();
+        public int CompareTo(object? obj) => throw new NotSupportedException();
+        public int CompareTo(ITime? other) => throw new NotSupportedException();
+        public bool Equals(ITime? other) => throw new NotSupportedException();
+    }
 }

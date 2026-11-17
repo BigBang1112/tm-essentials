@@ -660,4 +660,268 @@ public class TextFormatterTests
         // Assert
         await Assert.That(output.ToString()).IsEqualTo("\u001b[1;37m");
     }
+
+    [Test]
+    [Arguments("$ff0", "\u001b[1;33m")]
+    [Arguments("$880", "\u001b[0;33m")]
+    public async Task AppendAnsiText_WithYellowColorCode_AppendsAnsiYellow(string element, string expected)
+    {
+        // Arrange
+        var output = new StringBuilder();
+
+        // Act
+        TextFormatter.AppendAnsiText(output, element);
+
+        // Assert
+        await Assert.That(output.ToString()).IsEqualTo(expected);
+    }
+
+    [Test]
+    [Arguments("$000")]
+    [Arguments("$1")]
+    [Arguments("$001")]
+    public async Task AppendAnsiText_WithVeryDarkColorCode_AppendsBoldAnsiBlack(string element)
+    {
+        // Arrange
+        var output = new StringBuilder();
+
+        // Act
+        TextFormatter.AppendAnsiText(output, element);
+
+        // Assert
+        await Assert.That(output.ToString()).IsEqualTo("\u001b[1;30m");
+    }
+
+    [Test]
+    [Arguments("$F", "\u001b[1;31m")]
+    [Arguments("$A", "\u001b[0;31m")]
+    public async Task AppendAnsiText_WithOneUppercaseDigitColorCode_AppendsAnsiColor(string element, string expected)
+    {
+        // Arrange
+        var output = new StringBuilder();
+
+        // Act
+        TextFormatter.AppendAnsiText(output, element);
+
+        // Assert
+        await Assert.That(output.ToString()).IsEqualTo(expected);
+    }
+
+    [Test]
+    public async Task FormatAnsi_WithDefaultColorOutsideScope_ResetsToDefaultColor()
+    {
+        // Act
+        var actual = TextFormatter.FormatAnsi("$f00A$gB");
+
+        // Assert
+        await Assert.That(actual).IsEqualTo($"{AnsiRed}A{AnsiDefault}B{AnsiDefault}");
+    }
+
+    [Test]
+    public async Task FormatAnsi_WithResetInsideScope_RestoresColorFromScopeStart()
+    {
+        // Act
+        var actual = TextFormatter.FormatAnsi("$f00$<$0f0A$zB");
+
+        // Assert
+        await Assert.That(actual).IsEqualTo($"{AnsiRed}{AnsiGreen}A{AnsiRed}B{AnsiDefault}");
+    }
+
+    [Test]
+    public async Task Deformat_WithResetInsideScopeInsideLink_KeepsLinkFromScopeStart()
+    {
+        // Arrange
+        // The reset restores the link state saved by $<, so the next $l closes the link and [b] stays visible
+        var input = "$l[a]$<X$z$l[b]Y";
+
+        // Act
+        var actual = TextFormatter.Deformat(input);
+
+        // Assert
+        await Assert.That(actual).IsEqualTo("X[b]Y");
+    }
+
+    [Test]
+    public async Task Deformat_WithResetOutsideScopeInsideLink_EndsLink()
+    {
+        // Arrange
+        // The reset ends the link, so the next $l starts a new link and [b] is its URL
+        var input = "$l[a]X$z$l[b]Y";
+
+        // Act
+        var actual = TextFormatter.Deformat(input);
+
+        // Assert
+        await Assert.That(actual).IsEqualTo("XY");
+    }
+
+    [Test]
+    [Arguments("$uName", "Name")]
+    [Arguments("$<$I$M$N$O$S$T$U$W$G$Z$>Name", "Name")]
+    public async Task Deformat_WithStyleCodesOfAnyCase_RemovesStyleCodes(string input, string expected)
+    {
+        // Act
+        var actual = TextFormatter.Deformat(input);
+
+        // Assert
+        await Assert.That(actual).IsEqualTo(expected);
+    }
+
+    [Test]
+    public async Task Deformat_WithHighSurrogateAtEnd_RemovesCode()
+    {
+        // Arrange
+        var input = "Name$\uD83D";
+
+        // Act
+        var actual = TextFormatter.Deformat(input);
+
+        // Assert
+        await Assert.That(actual).IsEqualTo("Name");
+    }
+
+    [Test]
+    [Arguments("$iA", "<span style=\"font-style:italic\">A</span>")]
+    [Arguments("$IA", "<span style=\"font-style:italic\">A</span>")]
+    [Arguments("$oA", "<span style=\"font-weight:bold\">A</span>")]
+    [Arguments("$OA", "<span style=\"font-weight:bold\">A</span>")]
+    [Arguments("$sA", "<span style=\"text-shadow:1px 1px 2px black\">A</span>")]
+    [Arguments("$SA", "<span style=\"text-shadow:1px 1px 2px black\">A</span>")]
+    [Arguments("$tAb", "<span style=\"text-transform:uppercase\">AB</span>")]
+    [Arguments("$TAb", "<span style=\"text-transform:uppercase\">AB</span>")]
+    [Arguments("$f00$o$i$t$sa", "<span style=\"color:#f00;font-weight:bold;font-style:italic;text-transform:uppercase;text-shadow:1px 1px 2px black\">A</span>")]
+    public async Task FormatHtml_WithStyleCode_StylesText(string input, string expected)
+    {
+        // Act
+        var actual = TextFormatter.FormatHtml(input);
+
+        // Assert
+        await Assert.That(actual).IsEqualTo(expected);
+    }
+
+    [Test]
+    [Arguments("$iA$iB", "<span style=\"font-style:italic\">A</span>B")]
+    [Arguments("$oA$oB", "<span style=\"font-weight:bold\">A</span>B")]
+    [Arguments("$sA$sB", "<span style=\"text-shadow:1px 1px 2px black\">A</span>B")]
+    [Arguments("$tA$tb", "<span style=\"text-transform:uppercase\">A</span>b")]
+    public async Task FormatHtml_WithStyleCodeTwice_TogglesStyleOff(string input, string expected)
+    {
+        // Act
+        var actual = TextFormatter.FormatHtml(input);
+
+        // Assert
+        await Assert.That(actual).IsEqualTo(expected);
+    }
+
+    [Test]
+    [Arguments("$nA$wB", "<span style=\"letter-spacing:-0.05em\">A</span>B")]
+    [Arguments("$NA$WB", "<span style=\"letter-spacing:-0.05em\">A</span>B")]
+    [Arguments("$NA$MB", "<span style=\"letter-spacing:-0.05em\">A</span>B")]
+    public async Task FormatHtml_WithWidthCode_OnlyNarrowHasStyle(string input, string expected)
+    {
+        // Act
+        var actual = TextFormatter.FormatHtml(input);
+
+        // Assert
+        await Assert.That(actual).IsEqualTo(expected);
+    }
+
+    [Test]
+    [Arguments("$uA")]
+    [Arguments("$UA")]
+    public async Task FormatHtml_WithUnderline_IgnoresIt(string input)
+    {
+        // Act
+        var actual = TextFormatter.FormatHtml(input);
+
+        // Assert
+        await Assert.That(actual).IsEqualTo("A");
+    }
+
+    [Test]
+    [Arguments("$h[mx]Play$h")]
+    [Arguments("$p[mx]Play$p")]
+    public async Task FormatHtml_WithDisallowedManialink_ReturnsLinkTextOnly(string input)
+    {
+        // Act
+        var actual = TextFormatter.FormatHtml(input, allowLinks: true, allowManialinks: false);
+
+        // Assert
+        await Assert.That(actual).IsEqualTo("Play");
+    }
+
+    [Test]
+    [Arguments("$lwww.x.com$<")]
+    [Arguments("$lwww.x.com$>")]
+    [Arguments("$lwww.x.com$h")]
+    [Arguments("$lwww.x.com$H")]
+    [Arguments("$lwww.x.com$l")]
+    [Arguments("$lwww.x.com$L")]
+    [Arguments("$lwww.x.com$p")]
+    [Arguments("$lwww.x.com$P")]
+    public async Task FormatHtml_WithLinkWithoutBrackets_EndsLinkTextBeforeScopeOrLinkCode(string input)
+    {
+        // Act
+        var actual = TextFormatter.FormatHtml(input, allowLinks: true);
+
+        // Assert
+        await Assert.That(actual).IsEqualTo("<a href=\"http://www.x.com\">www.x.com</a>");
+    }
+
+    [Test]
+    [Arguments('0')]
+    [Arguments('=')]
+    [Arguments('?')]
+    [Arguments('I')]
+    [Arguments('M')]
+    [Arguments('Z')]
+    [Arguments('i')]
+    [Arguments('m')]
+    [Arguments('z')]
+    public async Task FormatHtml_WithLinkWithoutBracketsContainingOtherCode_KeepsCodeInUrl(char code)
+    {
+        // Act
+        var actual = TextFormatter.FormatHtml($"$lab${code}cd", allowLinks: true);
+
+        // Assert
+        await Assert.That(actual).StartsWith($"<a href=\"http://ab${code}cd\">");
+    }
+
+    [Test]
+    [Arguments("$l[svn+ssh://example.com]Site$l")]
+    [Arguments("$l[a1-b.c:x]Site$l")]
+    [Arguments("$l[Z9:x]Site$l")]
+    public async Task FormatHtml_WithLinkOfSchemeWithDigitsOrSymbols_ReturnsLinkTextOnly(string input)
+    {
+        // Act
+        var actual = TextFormatter.FormatHtml(input, allowLinks: true);
+
+        // Assert
+        await Assert.That(actual).IsEqualTo("Site");
+    }
+
+    [Test]
+    [Arguments("$l[a~b:x]Site$l", "<a href=\"http://a~b:x\">Site</a>")]
+    [Arguments("$l[a_b:x]Site$l", "<a href=\"http://a_b:x\">Site</a>")]
+    [Arguments("$l[a@b:x]Site$l", "<a href=\"http://a@b:x\">Site</a>")]
+    [Arguments("$l[a{b:x]Site$l", "<a href=\"http://a{b:x\">Site</a>")]
+    [Arguments("$l[~ab:x]Site$l", "<a href=\"http://~ab:x\">Site</a>")]
+    public async Task FormatHtml_WithLinkOfInvalidSchemeCharacter_PrefixesHttp(string input, string expected)
+    {
+        // Act
+        var actual = TextFormatter.FormatHtml(input, allowLinks: true);
+
+        // Assert
+        await Assert.That(actual).IsEqualTo(expected);
+    }
+
+    [Test]
+    public async Task FormatHtml_WithHighSurrogateAtEnd_IgnoresCode()
+    {
+        // Act
+        var actual = TextFormatter.FormatHtml("A$\uD83D");
+
+        // Assert
+        await Assert.That(actual).IsEqualTo("A");
+    }
 }

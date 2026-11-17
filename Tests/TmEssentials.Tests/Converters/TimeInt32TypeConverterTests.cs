@@ -120,6 +120,16 @@ public class TimeInt32TypeConverterTests
     }
 
     [Test]
+    public async Task ConvertTo_WithStringTypeAndNullValue_ReturnsEmptyString()
+    {
+        // Act
+        var result = converter.ConvertTo(null, CultureInfo.InvariantCulture, null, typeof(string));
+
+        // Assert
+        await Assert.That(result).IsEqualTo(string.Empty);
+    }
+
+    [Test]
     public async Task ConvertTo_WithNonStringType_ThrowsNotSupportedException()
     {
         // Arrange

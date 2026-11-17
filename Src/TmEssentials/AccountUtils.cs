@@ -55,30 +55,26 @@ public static class AccountUtils
 
 #endif
 
-        Span<char> chars = stackalloc char[32];
-        _ = Convert.TryToBase64Chars(span, chars, out var charsWritten);
+        Span<char> chars = stackalloc char[24];
+        _ = Convert.TryToBase64Chars(span, chars, out _);
 
-        for (int i = 0; i < charsWritten; i++)
+        // 16 bytes are always 22 base64 characters followed by "==" padding, which is not part of the login
+        var login = chars.Slice(0, 22);
+
+        for (int i = 0; i < login.Length; i++)
         {
-            if (chars[i] == '=')
+            switch (login[i])
             {
-                return chars.Slice(0, i).ToString();
-            }
-
-            if (chars[i] == '+')
-            {
-                chars[i] = '-';
-                continue;
-            }
-
-            if (chars[i] == '/')
-            {
-                chars[i] = '_';
-                continue;
+                case '+':
+                    login[i] = '-';
+                    break;
+                case '/':
+                    login[i] = '_';
+                    break;
             }
         }
 
-        return chars.Slice(0, charsWritten).ToString();
+        return login.ToString();
 
 #endif
     }
