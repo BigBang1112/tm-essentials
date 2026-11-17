@@ -3,7 +3,7 @@
 [![NuGet](https://img.shields.io/nuget/v/TmEssentials?style=for-the-badge&logo=nuget&label=TmEssentials)](https://www.nuget.org/packages/TmEssentials/)
 [![NuGet](https://img.shields.io/nuget/v/TmEssentials.Razor?style=for-the-badge&logo=nuget&label=TmEssentials.Razor)](https://www.nuget.org/packages/TmEssentials.Razor/)
 [![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/BigBang1112/tm-essentials?include_prereleases&style=for-the-badge&logo=github)](https://github.com/BigBang1112/tm-essentials/releases)
-[![Code Coverage](https://img.shields.io/badge/Code%20Coverage-96%25-success?style=for-the-badge)](https://github.com/BigBang1112/tm-essentials)
+[![Code Coverage](https://img.shields.io/badge/Code%20Coverage-100%25-success?style=for-the-badge)](https://github.com/BigBang1112/tm-essentials)
 
 Welcome to TmEssentials!
 
