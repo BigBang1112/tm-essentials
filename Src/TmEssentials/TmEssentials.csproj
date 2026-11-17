@@ -36,13 +36,14 @@
 - Changed `TimeInt32` equality and comparison with `TimeSingle` and other `ITime` values to use `TotalSeconds`, so `new TimeInt32(251) == new TimeSingle(0.251f)`
 - Fixed `AccountUtils.ToAccountId` returning an account ID for logins that do not decode to exactly 16 bytes. It now throws `FormatException`
 - Improved performance and reduced allocations, for example time parsing is up to 12 times faster, map UIDs up to 14 times faster and `TextFormatter.FormatHtml` up to 19 times faster
+- Added .NET 11 support
 - Removed the `totmstring` native entry point
 		</PackageReleaseNotes>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<TargetFrameworks>net10.0;net9.0;net8.0;netstandard2.1;netstandard2.0;net462</TargetFrameworks>
+		<TargetFrameworks>net11.0;net10.0;net9.0;net8.0;netstandard2.1;netstandard2.0;net462</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<LangVersion>14</LangVersion>
