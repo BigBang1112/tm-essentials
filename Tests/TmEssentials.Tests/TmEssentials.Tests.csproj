@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net11.0;net10.0;net9.0;net8.0</TargetFrameworks>
+		<!-- Tests the netstandard2.0/net462 build of the library (its separate #if code). .NET Framework only runs on Windows. -->
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('Windows'))">$(TargetFrameworks);net48</TargetFrameworks>
+		<LangVersion>13</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+
+		<!-- TUnit sets this too, but restore needs to see it, so that it restores the win-x86 runtime of the net48 executable -->
+		<OutputType>Exe</OutputType>
+
+		<IsPackable>false</IsPackable>
+		<IsTestProject>true</IsTestProject>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="RichardSzalay.MockHttp" Version="7.0.0" />
+		<PackageReference Include="TUnit" Version="1.85.7" />
+	</ItemGroup>
+
+	<!-- The net462 build of the library has no HttpClientExtensions and no System.Text.Json converters -->
+	<ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+		<Compile Remove="HttpClientExtensionsTests.cs" />
+		<Compile Remove="Converters\Json*ConverterTests.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\Src\TmEssentials\TmEssentials.csproj" />
+	</ItemGroup>
+
+</Project>

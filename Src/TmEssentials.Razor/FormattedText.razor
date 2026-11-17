@@ -1,0 +1,39 @@
+﻿@using Microsoft.AspNetCore.Components
+
+@if (!string.IsNullOrEmpty(Text))
+{
+    @((MarkupString)TextFormatter.FormatHtml(Text, AllowLinks, AllowManialinks, IconCssClass))
+}
+
+@code {
+    /// <summary>
+    /// The CSS class that <c>_content/TmEssentials.Razor/tm-essentials.css</c> displays Font Awesome icons with.
+    /// </summary>
+    public const string DefaultIconCssClass = "tm-icon";
+
+    /// <summary>
+    /// The Nadeo formatted text.
+    /// </summary>
+    [Parameter]
+    public string? Text { get; set; }
+
+    /// <summary>
+    /// Whether standard links ($l) are clickable.
+    /// </summary>
+    [Parameter]
+    public bool AllowLinks { get; set; }
+
+    /// <summary>
+    /// Whether manialinks ($h and $p) are clickable.
+    /// </summary>
+    [Parameter]
+    public bool AllowManialinks { get; set; }
+
+    /// <summary>
+    /// The CSS class of the elements wrapped around Font Awesome icons.
+    /// The default works with <c>_content/TmEssentials.Razor/tm-essentials.css</c>.
+    /// Use <c>fa</c> if the page loads the Font Awesome 4.7 stylesheet instead, or null to not wrap the icons.
+    /// </summary>
+    [Parameter]
+    public string? IconCssClass { get; set; } = DefaultIconCssClass;
+}

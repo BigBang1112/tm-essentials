@@ -1,0 +1,127 @@
+@page "/text"
+
+<PageTitle>Text formatting - TmEssentials</PageTitle>
+
+<h1 class="page-title">Text formatting</h1>
+<p class="page-text">
+    Trackmania styles text with codes that start with <code>$</code>. <code>TextFormatter</code> reads them by the same rules
+    as the parser of the game, and turns the text into plain text, HTML, or ANSI for terminals.
+</p>
+
+<h2 class="section-title">Playground</h2>
+
+<div class="card info">
+    <textarea @bind="input" @bind:event="oninput" rows="3" spellcheck="false" aria-label="Formatted text"></textarea>
+    <div class="button-row">
+        @foreach (var preset in presets)
+        {
+            <ReuButton OnClick="() => input = preset.Text">@preset.Name</ReuButton>
+        }
+    </div>
+    <div class="options">
+        <ReuCheckbox @bind-IsChecked="allowLinks" Size="24">Links (<code>$l</code>)</ReuCheckbox>
+        <ReuCheckbox @bind-IsChecked="allowManialinks" Size="24">Manialinks (<code>$h</code>, <code>$p</code>)</ReuCheckbox>
+        <ReuCheckbox @bind-IsChecked="showIcons" Size="24">Icons</ReuCheckbox>
+    </div>
+</div>
+
+<div class="card-grid stacked outputs">
+    <div class="card info">
+        <h3 class="method">&lt;FormattedText&gt;</h3>
+        <div class="game-text large">
+            <FormattedText Text="@input" AllowLinks="allowLinks" AllowManialinks="allowManialinks" IconCssClass="@IconCssClass" />
+        </div>
+    </div>
+    <div class="card info">
+        <h3 class="method">TextFormatter.Deformat</h3>
+        <code class="output">@TextFormatter.Deformat(input)</code>
+    </div>
+    <div class="card info">
+        <h3 class="method">TextFormatter.FormatHtml</h3>
+        <code class="output">@TextFormatter.FormatHtml(input, allowLinks, allowManialinks, IconCssClass)</code>
+    </div>
+    <div class="card info">
+        <h3 class="method">TextFormatter.FormatAnsi</h3>
+        <code class="output">@TextFormatter.FormatAnsi(input).Replace("\x1B", "\\e")</code>
+    </div>
+</div>
+
+<h2 class="section-title">Icons</h2>
+<p class="section-text">
+    The game shows the characters U+F000 to U+F2E0 as <a href="https://fontawesome.com/v4/icons/">Font Awesome 4.7</a> icons.
+    <code>FormattedText</code> wraps them in <code>&lt;span class="tm-icon"&gt;</code>, which the stylesheet of TmEssentials.Razor displays with the icon font.
+</p>
+
+<div class="icons">
+    @foreach (var icon in icons)
+    {
+        <div class="card icon">
+            <div class="game-text"><FormattedText Text="@icon.Text" /></div>
+            <span>@icon.Name</span>
+            <code>U+@(((int)icon.Text[0]).ToString("X4"))</code>
+        </div>
+    }
+</div>
+
+<div class="card-grid stacked icon-notes">
+    <div class="card info">
+        <h3>Use the stylesheet</h3>
+        <code class="snippet">@StylesheetSnippet</code>
+        <p>Or keep your own Font Awesome 4.7 stylesheet with <code>IconCssClass="fa"</code>, or turn the wrapping off with <code>IconCssClass="@@null"</code>.</p>
+    </div>
+    <div class="card info">
+        <h3>Platform icons</h3>
+        <p>
+            The game also has icons for platforms at U+F7AE to U+F7B2 (PlayStation, Ubisoft, Stadia, Xbox, Luna).
+            They come from the font of the game and are not part of Font Awesome, so they are left as they are.
+        </p>
+    </div>
+</div>
+
+@code {
+    private string input = presets[0].Text;
+    private bool allowLinks = true;
+    private bool allowManialinks = true;
+    private bool showIcons = true;
+
+    private string? IconCssClass => showIcons ? FormattedText.DefaultIconCssClass : null;
+
+    private const string StylesheetSnippet = """<link rel="stylesheet" href="_content/TmEssentials.Razor/tm-essentials.css" />""";
+
+    private static readonly Preset[] presets =
+    [
+        new("Nickname", "$s$fc0\uF091 $o$fffBig$0afBang$fc01112$z $f44\uF004"),
+        new("Colors", "$F00T$D01M$C13U$A14.$815K$727r$528a$329z$23By$03CC$03Co$04Bl$059o$068r$077s$085 $094v$0A30$0B1.$0C01"),
+        new("Styles", "$oBold$o $iItalic$i $wWide$m $nNarrow$m $tUppercase$t $sShadow"),
+        new("Scopes", "$f00Red $<$0f0$oGreen and bold$> red again"),
+        new("Links", "Visit $l[https://trackmania.io]Trackmania.io$l or $h[bigbang1112]my manialink$h"),
+        new("Escapes", "Prices: 10$$ $[sale$]"),
+        new("Icons", "\uF11E Finish  \uF017 1:23.456  \uF091 1st  \uF06D Hot")
+    ];
+
+    private static readonly Preset[] icons =
+    [
+        new("user", "\uF007"),
+        new("users", "\uF0C0"),
+        new("trophy", "\uF091"),
+        new("flag-checkered", "\uF11E"),
+        new("clock-o", "\uF017"),
+        new("car", "\uF1B9"),
+        new("gamepad", "\uF11B"),
+        new("star", "\uF005"),
+        new("heart", "\uF004"),
+        new("fire", "\uF06D"),
+        new("bolt", "\uF0E7"),
+        new("rocket", "\uF135"),
+        new("globe", "\uF0AC"),
+        new("music", "\uF001"),
+        new("camera", "\uF030"),
+        new("lock", "\uF023"),
+        new("check", "\uF00C"),
+        new("times", "\uF00D"),
+        new("arrow-up", "\uF062"),
+        new("arrow-down", "\uF063")
+    ];
+
+    private sealed record Preset(string Name, string Text);
+}

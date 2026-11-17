@@ -1,3 +1,30 @@
 ﻿@inherits LayoutComponentBase
 
-@Body
+<ReuNavMenu Brand="TmEssentials">
+    <ReuNavItem Name="Home" Href="" IconType="IconType.Home" NavLinkMatch="NavLinkMatch.All"></ReuNavItem>
+    <ReuNavItem Name="Text" Href="text" IconType="IconType.Draft"></ReuNavItem>
+    <ReuNavItem Name="Time" Href="time" IconType="IconType.Results"></ReuNavItem>
+    <ReuNavItem Name="Utilities" Href="utilities" IconType="IconType.Folder"></ReuNavItem>
+    <ReuNavItem Name="GitHub" Href="https://github.com/BigBang1112/tm-essentials" IconType="IconType.GitHub" IsNavLink="false" IconOnly="true" IconWidth="28" IconHeight="28"></ReuNavItem>
+</ReuNavMenu>
+
+<ReuMain>
+    <ReuContainer>
+        @Body
+    </ReuContainer>
+</ReuMain>
+
+<ReuFooter>
+    <CopyrightContent>
+        © 2026 Petr '<a href="https://bigbang1112.cz">BigBang1112</a>' Pivoňka
+    </CopyrightContent>
+    <LinkContent>
+        <a href="https://github.com/BigBang1112/tm-essentials">GitHub</a>
+    </LinkContent>
+    <ExtraContent>
+        <div class="footer-extra">
+            <span>Styled with <a href="https://github.com/BigBang1112/reuniverse">Reuniverse</a></span>
+            <ReuThemeToggle />
+        </div>
+    </ExtraContent>
+</ReuFooter>

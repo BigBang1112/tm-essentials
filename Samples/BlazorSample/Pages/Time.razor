@@ -1,0 +1,133 @@
+@page "/time"
+@using System.Globalization
+
+<PageTitle>Time formatting - TmEssentials</PageTitle>
+
+<h1 class="page-title">Time formatting</h1>
+<p class="page-text">
+    <code>TimeInt32</code> stores milliseconds and <code>TimeSingle</code> stores seconds, the way the games store times.
+    Both take half the size of <code>TimeSpan</code> and format the way Trackmania shows times.
+</p>
+
+<h2 class="section-title">Formats</h2>
+
+<div class="card info">
+    <label for="time-input">Time</label>
+    <input id="time-input" @bind="Text" @bind:event="oninput" class="@(IsValid ? "" : "invalid")" spellcheck="false" />
+    @if (!IsValid)
+    {
+        <div class="validation-message">Use a format like 1:23.456, 59.999, 1:02:03.456 or -0:05.120.</div>
+    }
+    <div class="button-row">
+        @foreach (var preset in presets)
+        {
+            <ReuButton OnClick="() => Text = preset">@preset</ReuButton>
+        }
+    </div>
+</div>
+
+<div class="card results">
+    <table>
+        <tbody>
+            @foreach (var format in formats)
+            {
+                <tr>
+                    <th scope="row"><code>@format.Code</code></th>
+                    <td><div class="game-text">@format.Format(time)</div></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<h2 class="section-title">Parts</h2>
+
+<div class="parts">
+    @foreach (var part in parts)
+    {
+        <div class="card part">
+            <code>@part.Name</code>
+            <span>@part.Value(time)</span>
+        </div>
+    }
+</div>
+
+<h2 class="section-title">More</h2>
+
+<div class="card-grid narrow">
+    <div class="card info">
+        <h3>No time</h3>
+        <p>Nullable times format to the placeholder the game shows.</p>
+        <div class="game-text">@noTime.ToTmString()</div>
+        <div class="game-text">@noTime.ToTmString(useApostrophe: true)</div>
+        <code class="snippet">TimeInt32? time = null;
+time.ToTmString();</code>
+    </div>
+    <div class="card info">
+        <h3>Bind to inputs</h3>
+        <p>A <code>TypeConverter</code> lets inputs bind to the time directly.</p>
+        <input @bind="boundTime" aria-label="Bound time" spellcheck="false" />
+        <div class="game-text">@boundTime.ToTmString(useHundredths: true)</div>
+        <code class="snippet">&lt;input @@bind="time" /&gt;</code>
+    </div>
+    <div class="card info">
+        <h3>TimeSingle</h3>
+        <p>The same formats for seconds as a <code>float</code>, like checkpoint times in replays.</p>
+        <div class="game-text">@(new TimeSingle(83.456f).ToTmString())</div>
+        <code class="snippet">new TimeSingle(83.456f)
+    .ToTmString();</code>
+    </div>
+</div>
+
+@code {
+    private string text = presets[0];
+    private TimeInt32 time = TimeInt32.Parse(presets[0]);
+    private TimeInt32 boundTime = new(83_456);
+    private readonly TimeInt32? noTime = null;
+
+    private bool IsValid { get; set; } = true;
+
+    private string Text
+    {
+        get => text;
+        set
+        {
+            text = value;
+            IsValid = TimeInt32.TryParse(value, out var parsed);
+
+            if (IsValid)
+            {
+                time = parsed;
+            }
+        }
+    }
+
+    private static readonly string[] presets = ["1:23.456", "59.999", "1:02:03.456", "2:01:02:03.456", "-0:05.120"];
+
+    private static readonly TimeFormat[] formats =
+    [
+        new("ToTmString()", t => t.ToTmString()),
+        new("ToTmString(useHundredths: true)", t => t.ToTmString(useHundredths: true)),
+        new("ToTmString(useApostrophe: true)", t => t.ToTmString(useApostrophe: true)),
+        new("ToTmString(compact: true)", t => t.ToTmString(compact: true)),
+        new("ToTmString(useHundredths: true, useApostrophe: true, compact: true)", t => t.ToTmString(useHundredths: true, useApostrophe: true, compact: true)),
+        new("ToTimeSingle().ToTmString()", t => t.ToTimeSingle().ToTmString()),
+        new("((TimeSpan)time).ToTmString()", t => ((TimeSpan)t).ToTmString())
+    ];
+
+    private static readonly TimePart[] parts =
+    [
+        new("TotalMilliseconds", t => t.TotalMilliseconds.ToString(CultureInfo.InvariantCulture)),
+        new("TotalSeconds", t => t.TotalSeconds.ToString(CultureInfo.InvariantCulture)),
+        new("Days", t => t.Days.ToString()),
+        new("Hours", t => t.Hours.ToString()),
+        new("Minutes", t => t.Minutes.ToString()),
+        new("Seconds", t => t.Seconds.ToString()),
+        new("Milliseconds", t => t.Milliseconds.ToString()),
+        new("IsNegative", t => t.IsNegative.ToString())
+    ];
+
+    private sealed record TimeFormat(string Code, Func<TimeInt32, string> Format);
+
+    private sealed record TimePart(string Name, Func<TimeInt32, string> Value);
+}

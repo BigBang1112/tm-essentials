@@ -1,0 +1,60 @@
+#account-id, #login, #map-uid, #uuid, #crc32 {
+    font-family: var(--font-mono), monospace;
+}
+
+.map-uid {
+    padding: 0.75rem 0.5rem;
+    border: 1px solid var(--color-input-border);
+    border-radius: 0.5rem;
+    background: var(--color-input-bg);
+    /* Shrinks on narrow screens, so that 27 characters still fit on one line */
+    font-size: clamp(75%, 3.4vw, 140%);
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+    .map-uid code {
+        user-select: all;
+    }
+
+.seed {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+    .seed input {
+        width: 8rem;
+    }
+
+    .seed ::deep .reu-button {
+        padding: 0.3rem 0.7rem;
+    }
+
+.facts {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--color-text-secondary);
+}
+
+    .facts li::before {
+        content: "•";
+        display: inline-block;
+        width: 1.1em;
+    }
+
+    .facts li.good::before {
+        content: "✓";
+        color: var(--color-green);
+    }
+
+    .facts li.warning::before {
+        content: "!";
+        color: var(--color-yellow);
+        font-weight: bold;
+    }

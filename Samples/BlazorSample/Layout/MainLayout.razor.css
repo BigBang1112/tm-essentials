@@ -1,0 +1,10 @@
+.footer-extra {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    margin-top: 0.75rem;
+    color: var(--color-text-secondary);
+    font-size: 90%;
+}

@@ -1,28 +1,81 @@
 ﻿@page "/"
-@using TmEssentials
-@using TmEssentials.Razor
 
-<PageTitle>Home</PageTitle>
+<PageTitle>TmEssentials</PageTitle>
 
-<h1>Hello, world!</h1>
+<section class="hero">
+    <h1 class="title">TmEssentials</h1>
+    <p class="punchline">Everyday utilities for Trackmania projects.</p>
+</section>
 
-Welcome to your new app.
+<div class="card-grid">
+    <div class="card info">
+        <h2>TmEssentials</h2>
+        <p>Formatted text to plain, HTML or ANSI, Trackmania time types, account and map utilities. Works from .NET Framework 4.6.2 to .NET 10.</p>
+        <code class="snippet">dotnet add package TmEssentials</code>
+        <ReuButton CssClass="nuget" Href="https://www.nuget.org/packages/TmEssentials" Variant="ReuButtonVariant.Blue">
+            <img src="_content/Reuniverse.Razor/icons/nuget.svg" width="24" height="24" alt="" />
+            NuGet
+        </ReuButton>
+    </div>
+    <div class="card info">
+        <h2>TmEssentials.Razor</h2>
+        <p>The <code>FormattedText</code> Blazor component, with the Font Awesome icons the game shows in text.</p>
+        <code class="snippet">dotnet add package TmEssentials.Razor</code>
+        <ReuButton CssClass="nuget" Href="https://www.nuget.org/packages/TmEssentials.Razor" Variant="ReuButtonVariant.Blue">
+            <img src="_content/Reuniverse.Razor/icons/nuget.svg" width="24" height="24" alt="" />
+            NuGet
+        </ReuButton>
+    </div>
+</div>
 
-<input @bind="time" />
+<h2 class="section-title">Explore</h2>
 
-<p><FormattedText Text="Visit $l[https://gbx.tools]gbx.tools website!" AllowLinks="true" /></p>
-<p><FormattedText Text="Check out $lhttps://example.com$l for more info" AllowLinks="true" /></p>
+<div class="card-grid narrow">
+    <a class="card info preview" href="text">
+        <h3>Text formatting</h3>
+        <div class="game-text">
+            <FormattedText Text="@TextPreview" />
+        </div>
+        <p>A live playground for formatted text, and icons.</p>
+    </a>
+    <a class="card info preview" href="time">
+        <h3>Time formatting</h3>
+        <div class="game-text">@TimePreview</div>
+        <p><code>TimeInt32</code> and <code>TimeSingle</code> in all the Trackmania formats.</p>
+    </a>
+    <a class="card info preview" href="utilities">
+        <h3>Utilities</h3>
+        <div class="game-text"><code>@LoginPreview</code></div>
+        <p>Account IDs to logins and back, and map UIDs made and decoded like in the game.</p>
+    </a>
+</div>
 
-<p><FormattedText Text="Contact $h[bigbang1112]BigBang1112 for help!" AllowManialinks="true" /></p>
-<p><FormattedText Text="Visit $hbigbang1112$h profile" AllowManialinks="true" /></p>
+<h2 class="section-title">Get started</h2>
 
-<p>
-    <FormattedText Text="$o$l[https://gbx.tools]Bold Link$l and $i$h[user123]Italic Manialink$z"
-                   AllowLinks="false" AllowManialinks="true" />
-</p>
-
-<p><FormattedText Text="Cancelling $inow$i properly $oworks$o right?" AllowManialinks="true" /></p>
+<div class="card-grid stacked">
+    <div class="card info">
+        <h3>Format text in Blazor</h3>
+        <p>Render formatted text with the component, and link the stylesheet to show the icons.</p>
+        <code class="snippet">@ComponentSnippet</code>
+        <code class="snippet">@StylesheetSnippet</code>
+    </div>
+    <div class="card info">
+        <h3>Format text anywhere else</h3>
+        <p>The same parser is available without Blazor.</p>
+        <code class="snippet">@CodeSnippet</code>
+    </div>
+</div>
 
 @code {
-    private TimeInt32 time;
+    private const string TextPreview = "$f00 $o$fffHot$z $0afLap ";
+    private static readonly string TimePreview = new TimeInt32(83_456).ToTmString();
+    private static readonly string LoginPreview = AccountUtils.ToLogin(Guid.Parse("bfcf62ff-0f9e-40aa-b924-11b9c70b8a09"));
+
+    private const string ComponentSnippet = """<FormattedText Text="$f00Red $l[https://trackmania.io]link$l" AllowLinks="true" />""";
+    private const string StylesheetSnippet = """<link rel="stylesheet" href="_content/TmEssentials.Razor/tm-essentials.css" />""";
+    private const string CodeSnippet = """
+        TextFormatter.Deformat("$f00Red text");   // Red text
+        TextFormatter.FormatHtml("$f00Red text"); // <span style="color:#f00">Red text</span>
+        new TimeInt32(83456).ToTmString();        // 1:23.456
+        """;
 }

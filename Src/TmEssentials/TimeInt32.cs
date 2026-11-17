@@ -1,0 +1,580 @@
+﻿#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
+using System.ComponentModel;
+using TmEssentials.Converters;
+
+namespace TmEssentials;
+
+/// <summary>
+/// Represents a time interval as a 32-bit integer, with <paramref name="TotalMilliseconds"/> as the unit.
+/// This struct offers accuracy and high performance for scenarios where time precision to the millisecond is sufficient - driven Trackmania times for example.
+/// Operators for comparing and arithmetic operations are included.
+/// </summary>
+/// <remarks>
+/// <para>
+/// Like <see cref="TimeSpan"/>, arithmetic and the <c>From</c> methods throw <see cref="OverflowException"/> when the result
+/// does not fit into <see cref="int"/> milliseconds, instead of wrapping around.
+/// </para>
+/// <para>
+/// Two <see cref="TimeInt32"/> values are compared by their exact milliseconds. A <see cref="TimeInt32"/> and a <see cref="TimeSingle"/>
+/// (or any other <see cref="ITime"/>) are compared by <see cref="TotalSeconds"/>, the same way as <see cref="TimeSingle"/> compares them,
+/// so <c>new TimeInt32(251) == new TimeSingle(0.251f)</c>.
+/// </para>
+/// <para>
+/// Parsing accepts the formats that <see cref="ToString()"/> writes with milliseconds or hundredths (like <c>1:23.456</c>, <c>1:02:03.45</c>
+/// or <c>36.217</c>), optionally with a leading minus sign. A bare number is read as a fraction of a second,
+/// so <c>5</c> is 500 milliseconds, <c>05</c> is 50 milliseconds and <c>500</c> is 500 milliseconds.
+/// </para>
+/// </remarks>
+/// <param name="TotalMilliseconds">The total number of milliseconds.</param>
+[TypeConverter(typeof(TimeInt32TypeConverter))]
+public readonly record struct TimeInt32(int TotalMilliseconds) : ITime,
+    IComparable<TimeInt32>, IComparable<TimeSingle>, IEquatable<TimeSingle>
+#if NET7_0_OR_GREATER
+    , IParsable<TimeInt32>, ISpanParsable<TimeInt32>
+#endif
+{
+    /// <summary>
+    /// Represents a zero time interval.
+    /// </summary>
+    public static readonly TimeInt32 Zero = new();
+
+    /// <summary>
+    /// Represents the maximum time interval that can be represented by this struct.
+    /// </summary>
+    public static readonly TimeInt32 MaxValue = new(int.MaxValue);
+
+    /// <summary>
+    /// Represents the minimum time interval that can be represented by this struct.
+    /// </summary>
+    public static readonly TimeInt32 MinValue = new(int.MinValue);
+
+    /// <inheritdoc />
+    public int Days => TotalMilliseconds / 86_400_000;
+    /// <inheritdoc />
+    public int Hours => TotalMilliseconds / 3_600_000 % 24;
+    /// <inheritdoc />
+    public int Milliseconds => TotalMilliseconds % 1000;
+    /// <inheritdoc />
+    public int Minutes => TotalMilliseconds / 60_000 % 60;
+    /// <inheritdoc />
+    public int Seconds => TotalMilliseconds / 1_000 % 60;
+    /// <inheritdoc />
+    public long Ticks => (long)TotalMilliseconds * 10_000;
+    /// <inheritdoc />
+    public float TotalDays => TotalMilliseconds / 86_400_000f;
+    /// <inheritdoc />
+    public float TotalHours => TotalMilliseconds / 3_600_000f;
+    /// <inheritdoc />
+    public float TotalMinutes => TotalMilliseconds / 60_000f;
+    /// <inheritdoc />
+    public float TotalSeconds => TotalMilliseconds / 1_000f;
+    /// <inheritdoc />
+    public bool IsNegative => TotalMilliseconds < 0;
+
+    float ITime.TotalMilliseconds => TotalMilliseconds;
+
+    /// <summary>
+    /// Constructs a <see cref="TimeInt32"/> instance from hours, minutes, and seconds.
+    /// </summary>
+    /// <param name="hours">The number of hours.</param>
+    /// <param name="minutes">The number of minutes.</param>
+    /// <param name="seconds">The number of seconds.</param>
+    public TimeInt32(int hours, int minutes, int seconds) : this(0, hours, minutes, seconds)
+    {
+
+    }
+
+    /// <summary>
+    /// Constructs a <see cref="TimeInt32"/> instance from days, hours, minutes, seconds, and optional milliseconds.
+    /// </summary>
+    /// <param name="days">The number of days.</param>
+    /// <param name="hours">The number of hours.</param>
+    /// <param name="minutes">The number of minutes.</param>
+    /// <param name="seconds">The number of seconds.</param>
+    /// <param name="milliseconds">The number of milliseconds (optional).</param>
+    /// <exception cref="OverflowException">The time is out of the <see cref="TimeInt32"/> range (about ±24.8 days).</exception>
+    public TimeInt32(int days, int hours, int minutes, int seconds, int milliseconds = 0)
+         : this(checked(milliseconds + seconds * 1_000 + minutes * 60_000 + hours * 3_600_000 + days * 86_400_000))
+    {
+
+    }
+
+    /// <summary>
+    /// Converts the value of the current <see cref="TimeInt32"/> to a Trackmania familiar time format.
+    /// </summary>
+    /// <param name="useHundredths">If to use the hundredths instead of milliseconds (for better looks on TMUF for example)</param>
+    /// <param name="useApostrophe">If to use ' instead of a colon and '' instead of a dot (to resolve cases where colon is not allowed for example).</param>
+    /// <param name="compact">Whether to omit leading zeros and separators for times under 1 minute. Ideal for time deltas.</param>
+    /// <returns>A string representation of Trackmania time format.</returns>
+    public string ToString(bool useHundredths = false, bool useApostrophe = false, bool compact = false)
+    {
+        return TimeFormatter.ToTmString(Days, Hours, Minutes, Seconds, Milliseconds, IsNegative, useHundredths, useApostrophe, compact);
+    }
+
+    /// <summary>
+    /// Converts the value of the current <see cref="TimeInt32"/> to a Trackmania familiar time format with milliseconds and without apostrophes.
+    /// </summary>
+    /// <returns>A string representation of Trackmania time format.</returns>
+    public override string ToString()
+    {
+        return ToString(useHundredths: false);
+    }
+
+    /// <summary>
+    /// Creates a new <see cref="TimeInt32"/> instance representing a specified number of days, rounded to the nearest millisecond.
+    /// </summary>
+    /// <param name="value">The number of days.</param>
+    /// <returns>A <see cref="TimeInt32"/> instance equivalent to the specified number of days.</returns>
+    /// <exception cref="OverflowException"><paramref name="value"/> is out of the <see cref="TimeInt32"/> range (about ±24.8 days) or infinite.</exception>
+    /// <exception cref="ArgumentException"><paramref name="value"/> is NaN.</exception>
+    public static TimeInt32 FromDays(float value) => FromUnits(value, 86_400_000);
+
+    /// <summary>
+    /// Creates a new <see cref="TimeInt32"/> instance representing a specified number of hours, rounded to the nearest millisecond.
+    /// </summary>
+    /// <param name="value">The number of hours.</param>
+    /// <returns>A <see cref="TimeInt32"/> instance equivalent to the specified number of hours.</returns>
+    /// <exception cref="OverflowException"><paramref name="value"/> is out of the <see cref="TimeInt32"/> range (about ±24.8 days) or infinite.</exception>
+    /// <exception cref="ArgumentException"><paramref name="value"/> is NaN.</exception>
+    public static TimeInt32 FromHours(float value) => FromUnits(value, 3_600_000);
+
+    /// <summary>
+    /// Creates a new <see cref="TimeInt32"/> instance representing a specified number of milliseconds, rounded to the nearest millisecond.
+    /// </summary>
+    /// <param name="value">The number of milliseconds.</param>
+    /// <returns>A <see cref="TimeInt32"/> instance equivalent to the specified number of milliseconds.</returns>
+    /// <exception cref="OverflowException"><paramref name="value"/> is out of the <see cref="TimeInt32"/> range (about ±24.8 days) or infinite.</exception>
+    /// <exception cref="ArgumentException"><paramref name="value"/> is NaN.</exception>
+    public static TimeInt32 FromMilliseconds(float value) => FromUnits(value, 1);
+
+    /// <summary>
+    /// Creates a new <see cref="TimeInt32"/> instance representing a specified number of minutes, rounded to the nearest millisecond.
+    /// </summary>
+    /// <param name="value">The number of minutes.</param>
+    /// <returns>A <see cref="TimeInt32"/> instance equivalent to the specified number of minutes.</returns>
+    /// <exception cref="OverflowException"><paramref name="value"/> is out of the <see cref="TimeInt32"/> range (about ±24.8 days) or infinite.</exception>
+    /// <exception cref="ArgumentException"><paramref name="value"/> is NaN.</exception>
+    public static TimeInt32 FromMinutes(float value) => FromUnits(value, 60_000);
+
+    /// <summary>
+    /// Creates a new <see cref="TimeInt32"/> instance representing a specified number of seconds, rounded to the nearest millisecond.
+    /// </summary>
+    /// <param name="value">The number of seconds.</param>
+    /// <returns>A <see cref="TimeInt32"/> instance equivalent to the specified number of seconds.</returns>
+    /// <exception cref="OverflowException"><paramref name="value"/> is out of the <see cref="TimeInt32"/> range (about ±24.8 days) or infinite.</exception>
+    /// <exception cref="ArgumentException"><paramref name="value"/> is NaN.</exception>
+    public static TimeInt32 FromSeconds(float value) => FromUnits(value, 1_000);
+
+    /// <summary>
+    /// Creates a new <see cref="TimeInt32"/> instance representing a specified number of ticks, truncated to whole milliseconds
+    /// like the explicit conversion from <see cref="TimeSpan"/>.
+    /// </summary>
+    /// <param name="value">The number of ticks (1 tick = 100 nanoseconds).</param>
+    /// <returns>A <see cref="TimeInt32"/> instance equivalent to the specified number of ticks.</returns>
+    /// <exception cref="OverflowException"><paramref name="value"/> is out of the <see cref="TimeInt32"/> range (about ±24.8 days).</exception>
+    public static TimeInt32 FromTicks(long value) => (TimeInt32)new TimeSpan(value);
+
+    /// <summary>
+    /// Converts a number of units to whole milliseconds the way <see cref="TimeSpan"/> does on .NET Framework, where its precision
+    /// is also a millisecond: rounded to the nearest millisecond (halves away from zero), so float errors like 0.251 seconds being
+    /// 250.99998 milliseconds do not lose a millisecond.
+    /// </summary>
+    private static TimeInt32 FromUnits(float value, int millisecondsPerUnit)
+    {
+        if (float.IsNaN(value))
+        {
+            throw new ArgumentException("TimeInt32 does not accept NaN.", nameof(value));
+        }
+
+        var milliseconds = Math.Round((double)value * millisecondsPerUnit, MidpointRounding.AwayFromZero);
+
+        // Infinity fails this check too
+        if (milliseconds is < int.MinValue or > int.MaxValue)
+        {
+            throw new OverflowException("The time is out of the TimeInt32 range.");
+        }
+
+        return new((int)milliseconds);
+    }
+
+    /// <inheritdoc />
+    ITime ITime.Add(ITime time) => Add(time);
+
+    /// <summary>
+    /// Adds a specified time interval to the current instance, returning a new <see cref="TimeInt32"/> that represents the sum of the two intervals.
+    /// </summary>
+    /// <param name="time">The time interval to add.</param>
+    /// <returns>A new <see cref="TimeInt32"/> instance representing the sum of the two intervals.</returns>
+    public TimeInt32 Add(ITime time) => time switch
+    {
+        TimeInt32 timeInt32 => Add(timeInt32),
+        TimeSingle timeSingle => Add(timeSingle.ToTimeInt32()), // Rounded to whole milliseconds
+        _ => new(checked(TotalMilliseconds + (int)time.TotalMilliseconds))
+    };
+
+    /// <summary>
+    /// Adds a specified time interval to the current instance, returning a new <see cref="TimeInt32"/> that represents the sum of the two intervals.
+    /// </summary>
+    /// <param name="time">The time interval to add.</param>
+    /// <returns>A new <see cref="TimeInt32"/> instance representing the sum of the two intervals.</returns>
+    public TimeInt32 Add(TimeInt32 time) => this + time;
+
+    /// <inheritdoc />
+    ITime ITime.Divide(float divisor) => Divide(divisor);
+
+    /// <summary>
+    /// Divides the current time interval by a specified divisor, returning a new <see cref="TimeSingle"/> that represents the quotient of the division.
+    /// </summary>
+    /// <param name="divisor">The divisor to divide the time interval by.</param>
+    /// <returns>A new <see cref="TimeSingle"/> instance representing the quotient of the division.</returns>
+    public TimeSingle Divide(float divisor) => this / divisor;
+
+    /// <inheritdoc />
+    public float Divide(ITime time) => TotalSeconds / time.TotalSeconds;
+
+    /// <summary>
+    /// Divides the current time interval by another <see cref="TimeInt32"/> instance, returning a float that represents how many times the divisor interval fits into the current interval.
+    /// </summary>
+    /// <param name="time">The time interval to divide by.</param>
+    /// <returns>A float representing how many times the divisor interval fits into the current interval.</returns>
+    public float Divide(TimeInt32 time) => this / time;
+
+    /// <inheritdoc />
+    ITime ITime.Duration() => Duration();
+
+    /// <summary>
+    /// Returns a new instance representing the absolute duration of the current time interval.
+    /// </summary>
+    /// <returns>A <see cref="TimeInt32"/> value whose magnitude is equal to the absolute value of the current interval's total milliseconds.</returns>
+    /// <exception cref="OverflowException">The value is <see cref="MinValue"/>.</exception>
+    public TimeInt32 Duration() => new(TotalMilliseconds >= 0 ? TotalMilliseconds : checked(-TotalMilliseconds));
+
+    /// <inheritdoc />
+    ITime ITime.Multiply(float factor) => Multiply(factor);
+
+    /// <summary>
+    /// Multiplies the current time interval by a specified factor, resulting in a new <see cref="TimeSingle"/> instance.
+    /// </summary>
+    /// <param name="factor">The factor to multiply by.</param>
+    /// <returns>A new <see cref="TimeSingle"/> instance representing the scaled time interval.</returns>
+    public TimeSingle Multiply(float factor) => this * factor;
+
+    /// <summary>
+    /// Returns a new instance of <see cref="TimeInt32"/> whose value is the product of the current instance and the
+    /// specified factor.
+    /// </summary>
+    /// <param name="factor">The multiplier to apply to the current value.</param>
+    /// <returns>A new <see cref="TimeInt32"/> representing the result of multiplying the current value by <paramref name="factor"/>.</returns>
+    public TimeInt32 Multiply(int factor) => this * factor;
+
+    /// <inheritdoc />
+    ITime ITime.Negate() => Negate();
+
+    /// <summary>
+    /// Returns a new <see cref="TimeInt32"/> instance that represents the negation of the current time interval (i.e., the same duration with the opposite sign).
+    /// </summary>
+    /// <returns>A new <see cref="TimeInt32"/> instance representing the negated time interval.</returns>
+    /// <exception cref="OverflowException">The value is <see cref="MinValue"/>.</exception>
+    public TimeInt32 Negate() => -this;
+
+    /// <inheritdoc />
+    public int CompareTo(object? obj)
+    {
+        if (obj is null)
+        {
+            return 1;
+        }
+
+        if (obj is not ITime time)
+        {
+            throw new ArgumentException("Value must be ITime.", nameof(obj));
+        }
+
+        return CompareTo(time);
+    }
+
+    /// <summary>
+    /// Compares this instance to a specified <see cref="ITime"/> instance: by exact milliseconds with a <see cref="TimeInt32"/>,
+    /// otherwise by <see cref="TotalSeconds"/>.
+    /// </summary>
+    /// <param name="other">An <see cref="ITime"/> instance to compare.</param>
+    /// <returns>A signed number indicating the relative values of this instance and <paramref name="other"/>.</returns>
+    public int CompareTo(ITime? other)
+    {
+        if (other is null)
+        {
+            return 1;
+        }
+
+        if (other is TimeInt32 timeInt32)
+        {
+            return CompareTo(timeInt32);
+        }
+
+        return TotalSeconds.CompareTo(other.TotalSeconds);
+    }
+
+    /// <summary>
+    /// Compares this instance to a specified <see cref="TimeInt32"/> instance.
+    /// </summary>
+    /// <param name="other">A <see cref="TimeInt32"/> instance to compare.</param>
+    /// <returns>A signed number indicating the relative values of this instance and <paramref name="other"/>.</returns>
+    public int CompareTo(TimeInt32 other)
+    {
+        return TotalMilliseconds.CompareTo(other.TotalMilliseconds);
+    }
+
+    /// <summary>
+    /// Compares this instance to a specified <see cref="TimeSingle"/> instance.
+    /// </summary>
+    /// <param name="other">A <see cref="TimeSingle"/> instance to compare.</param>
+    /// <returns>A signed number indicating the relative values of this instance and <paramref name="other"/>.</returns>
+    public int CompareTo(TimeSingle other)
+    {
+        return TotalSeconds.CompareTo(other.TotalSeconds);
+    }
+
+    /// <summary>
+    /// Determines whether this instance and an <see cref="ITime"/> instance represent the same time interval:
+    /// by exact milliseconds with a <see cref="TimeInt32"/>, otherwise by <see cref="TotalSeconds"/>.
+    /// </summary>
+    /// <param name="other">An <see cref="ITime"/> instance to compare.</param>
+    /// <returns>True if both represent the same time interval, otherwise false.</returns>
+    public bool Equals(ITime? other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        if (other is TimeInt32 timeInt32)
+        {
+            return TotalMilliseconds == timeInt32.TotalMilliseconds;
+        }
+
+        return TotalSeconds == other.TotalSeconds;
+    }
+
+    /// <inheritdoc />
+    public bool Equals(TimeSingle other)
+    {
+        return TotalSeconds == other.TotalSeconds;
+    }
+
+    /// <summary>
+    /// Converts this <see cref="TimeInt32"/> to its equal <see cref="TimeSingle"/> value.
+    /// </summary>
+    /// <returns>A <see cref="TimeSingle"/>.</returns>
+    public TimeSingle ToTimeSingle() => new(TotalSeconds);
+
+    /// <inheritdoc />
+    public static bool TryParse(
+#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        [NotNullWhen(true)]
+#endif
+        string? s, IFormatProvider? provider,
+        out TimeInt32 result)
+    {
+        return TryParse(s.AsSpan(), provider, out result);
+    }
+
+    /// <summary>
+    /// Converts a <see cref="TimeSpan"/> to whole milliseconds (truncated), if it fits into <see cref="TimeInt32"/>.
+    /// </summary>
+    private static bool TryFromTimeSpan(TimeSpan timeSpan, out TimeInt32 result)
+    {
+        var totalMilliseconds = timeSpan.Ticks / TimeSpan.TicksPerMillisecond;
+
+        if (totalMilliseconds is < int.MinValue or > int.MaxValue)
+        {
+            result = default;
+            return false;
+        }
+
+        result = new((int)totalMilliseconds);
+        return true;
+    }
+
+    /// <summary>
+    /// Tries to parse a string into a value.
+    /// </summary>
+    /// <param name="s">The string to parse.</param>
+    /// <param name="result">When this method returns, contains the result of successfully parsing <paramref name="s"/> or an undefined value on failure.</param>
+    /// <returns><see langword="true"/> if <paramref name="s"/> was successfully parsed; otherwise, <see langword="false"/>.</returns>
+    public static bool TryParse(string s, out TimeInt32 result) => TryParse(s, null, out result);
+
+    /// <inheritdoc />
+    public static TimeInt32 Parse(string s, IFormatProvider? provider)
+    {
+        if (TryParse(s, provider, out var result))
+        {
+            return result;
+        }
+
+        throw new FormatException("Input string was not in a correct format.");
+    }
+
+    /// <summary>
+    /// Parses a string into a value.
+    /// </summary>
+    /// <param name="s">The string to parse.</param>
+    /// <returns>The result of parsing <paramref name="s"/>.</returns>
+    public static TimeInt32 Parse(string s) => Parse(s, null);
+
+    /// <inheritdoc />
+    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider,
+        out TimeInt32 result)
+    {
+        // The format does not depend on the culture, so the provider is not needed
+        if (TimeFormatter.TryParse(s, out var timeSpan))
+        {
+            return TryFromTimeSpan(timeSpan, out result);
+        }
+
+        result = default;
+        return false;
+    }
+
+    /// <summary>
+    /// Tries to parse a span of characters into a value.
+    /// </summary>
+    /// <param name="s">The span of characters to parse.</param>
+    /// <param name="result">When this method returns, contains the result of successfully parsing <paramref name="s"/>, or an undefined value on failure.</param>
+    /// <returns><see langword="true"/> if <paramref name="s"/> was successfully parsed; otherwise, <see langword="false"/>.</returns>
+    public static bool TryParse(ReadOnlySpan<char> s,
+        out TimeInt32 result) => TryParse(s, null, out result);
+
+    /// <inheritdoc />
+    public static TimeInt32 Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+    {
+        if (TryParse(s, provider, out var result))
+        {
+            return result;
+        }
+
+        throw new FormatException("Input string was not in a correct format.");
+    }
+
+    /// <summary>
+    /// Parses a span of characters into a value.
+    /// </summary>
+    /// <param name="s">The span of characters to parse.</param>
+    /// <returns>The result of parsing <paramref name="s"/>.</returns>
+    public static TimeInt32 Parse(ReadOnlySpan<char> s) => Parse(s, null);
+
+    /// <summary>
+    /// Compares two <see cref="TimeInt32"/> instances to determine if the first is greater than the second.
+    /// </summary>
+    public static bool operator >(TimeInt32 t1, TimeInt32 t2) => t1.TotalMilliseconds > t2.TotalMilliseconds;
+
+    /// <summary>
+    /// Compares two <see cref="TimeInt32"/> instances to determine if the first is greater than or equal to the second.
+    /// </summary>
+    public static bool operator >=(TimeInt32 t1, TimeInt32 t2) => t1.TotalMilliseconds >= t2.TotalMilliseconds;
+
+    /// <summary>
+    /// Compares two <see cref="TimeInt32"/> instances to determine if the first is less than the second.
+    /// </summary>
+    public static bool operator <(TimeInt32 t1, TimeInt32 t2) => t1.TotalMilliseconds < t2.TotalMilliseconds;
+
+    /// <summary>
+    /// Compares two <see cref="TimeInt32"/> instances to determine if the first is less than or equal to the second.
+    /// </summary>
+    public static bool operator <=(TimeInt32 t1, TimeInt32 t2) => t1.TotalMilliseconds <= t2.TotalMilliseconds;
+
+    /// <summary>
+    /// Determines if a <see cref="TimeInt32"/> instance and a <see cref="TimeSingle"/> instance represent the same time interval.
+    /// </summary>
+    public static bool operator ==(TimeInt32 t1, TimeSingle t2) => t1.Equals(t2);
+
+    /// <summary>
+    /// Determines if a <see cref="TimeInt32"/> instance and a <see cref="TimeSingle"/> instance do not represent the same time interval.
+    /// </summary>
+    public static bool operator !=(TimeInt32 t1, TimeSingle t2) => !t1.Equals(t2);
+
+    /// <summary>
+    /// Returns the same <see cref="TimeInt32"/> instance (identity operation).
+    /// </summary>
+    public static TimeInt32 operator +(TimeInt32 t) => t;
+
+    /// <summary>
+    /// Adds two <see cref="TimeInt32"/> instances together.
+    /// </summary>
+    public static TimeInt32 operator +(TimeInt32 t1, TimeInt32 t2) => new(checked(t1.TotalMilliseconds + t2.TotalMilliseconds));
+
+    /// <summary>
+    /// Adds a <see cref="TimeSpan"/> to a <see cref="TimeInt32"/> instance.
+    /// </summary>
+    public static TimeInt32 operator +(TimeInt32 t1, TimeSpan t2) => t1 + (TimeInt32)t2;
+
+    /// <summary>
+    /// Negates a <see cref="TimeInt32"/> instance (reverses the sign of the interval).
+    /// </summary>
+    public static TimeInt32 operator -(TimeInt32 t) => new(checked(-t.TotalMilliseconds));
+
+    /// <summary>
+    /// Subtracts one <see cref="TimeInt32"/> instance from another.
+    /// </summary>
+    public static TimeInt32 operator -(TimeInt32 t1, TimeInt32 t2) => new(checked(t1.TotalMilliseconds - t2.TotalMilliseconds));
+
+    /// <summary>
+    /// Subtracts a <see cref="TimeSpan"/> from a <see cref="TimeInt32"/> instance.
+    /// </summary>
+    public static TimeInt32 operator -(TimeInt32 t1, TimeSpan t2) => t1 - (TimeInt32)t2;
+
+    /// <summary>
+    /// Multiplies a <see cref="TimeInt32"/> instance by a float factor, resulting in a <see cref="TimeSingle"/> instance.
+    /// </summary>
+    public static TimeSingle operator *(float factor, TimeInt32 t) => new(factor * t.TotalSeconds);
+
+    /// <summary>
+    /// Multiplies a <see cref="TimeInt32"/> instance by an integer factor.
+    /// </summary>
+    public static TimeInt32 operator *(int factor, TimeInt32 t) => new(checked(factor * t.TotalMilliseconds));
+
+    /// <summary>
+    /// Multiplies a <see cref="TimeInt32"/> instance by a float factor, resulting in a <see cref="TimeSingle"/> instance.
+    /// </summary>
+    public static TimeSingle operator *(TimeInt32 t, float factor) => factor * t;
+
+    /// <summary>
+    /// Multiplies a <see cref="TimeInt32"/> instance by an integer factor.
+    /// </summary>
+    public static TimeInt32 operator *(TimeInt32 t, int factor) => factor * t;
+
+    /// <summary>
+    /// Divides a <see cref="TimeInt32"/> instance by a float divisor, resulting in a <see cref="TimeSingle"/> instance.
+    /// </summary>
+    public static TimeSingle operator /(TimeInt32 t, float divisor) => new(t.TotalSeconds / divisor);
+
+    /// <summary>
+    /// Divides one <see cref="TimeInt32"/> instance by another, resulting in a float.
+    /// </summary>
+    public static float operator /(TimeInt32 t1, TimeInt32 t2) => t1.TotalMilliseconds / (float)t2.TotalMilliseconds;
+
+    /// <summary>
+    /// Implicitly converts a <see cref="TimeInt32"/> instance to a <see cref="TimeSpan"/>.
+    /// </summary>
+    public static implicit operator TimeSpan(TimeInt32 t) => TimeSpan.FromMilliseconds(t.TotalMilliseconds);
+
+    /// <summary>
+    /// Explicitly converts a <see cref="TimeSpan"/> to a <see cref="TimeInt32"/> instance, truncated to whole milliseconds.
+    /// </summary>
+    /// <exception cref="OverflowException"><paramref name="t"/> is out of the <see cref="TimeInt32"/> range (about ±24.8 days).</exception>
+    public static explicit operator TimeInt32(TimeSpan t)
+    {
+        if (TryFromTimeSpan(t, out var result))
+        {
+            return result;
+        }
+
+        throw new OverflowException("TimeSpan is out of the TimeInt32 range.");
+    }
+
+    /// <summary>
+    /// Explicitly converts a <see cref="TimeSingle"/> to a <see cref="TimeInt32"/> instance, rounded to the nearest millisecond.
+    /// </summary>
+    public static explicit operator TimeInt32(TimeSingle t) => t.ToTimeInt32();
+}

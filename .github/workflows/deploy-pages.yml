@@ -1,0 +1,22 @@
+name: Deploy to Pages
+
+on:
+  push:
+    branches: [ dev ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  deploy:
+    name: Deploy to Pages
+    uses: bigbang1112/workflows/.github/workflows/blazor-wasm-github-pages.yml@main
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    with:
+      dotnet-version: latest
+      project: Samples/BlazorSample

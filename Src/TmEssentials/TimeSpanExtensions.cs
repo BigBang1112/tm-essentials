@@ -1,0 +1,70 @@
+﻿namespace TmEssentials;
+
+/// <summary>
+/// Provides extension methods for <see cref="TimeSpan"/> to enhance its functionality.
+/// </summary>
+public static class TimeSpanExtensions
+{
+    /// <summary>
+    /// Converts the <paramref name="timeSpan"/> to a truncated millisecond representation (floor rounding).
+    /// </summary>
+    /// <param name="timeSpan">A TimeSpan.</param>
+    /// <returns>Amount of milliseconds.</returns>
+    public static int ToMilliseconds(this TimeSpan timeSpan)
+    {
+        return (int)timeSpan.TotalMilliseconds;
+    }
+
+    /// <summary>
+    /// Converts the value of the current <see cref="TimeSpan"/> to a Trackmania familiar time format.
+    /// </summary>
+    /// <param name="timeSpan">A TimeSpan.</param>
+    /// <param name="useHundredths">If to use the hundredths instead of milliseconds (for better looks on TMUF for example).</param>
+    /// <param name="useApostrophe">If to use ' instead of a colon and '' instead of a dot (to resolve cases where colon is not allowed for example).</param>
+    /// <param name="compact">Whether to omit leading zeros and separators for times under 1 minute. Ideal for time deltas.</param>
+    /// <returns>A string representation of Trackmania time format.</returns>
+    public static string ToTmString(this TimeSpan timeSpan, bool useHundredths = false, bool useApostrophe = false, bool compact = false)
+    {
+        return TimeFormatter.ToTmString(timeSpan.Days,
+                                        timeSpan.Hours,
+                                        timeSpan.Minutes,
+                                        timeSpan.Seconds,
+                                        timeSpan.Milliseconds,
+                                        timeSpan.Ticks < 0,
+                                        useHundredths,
+                                        useApostrophe,
+                                        compact);
+    }
+
+    /// <summary>
+    /// Converts the value of the current <see cref="TimeSpan"/> to a Trackmania familiar time format. If the value is null, <paramref name="nullString"/> will be used.
+    /// </summary>
+    /// <param name="timeSpan">A TimeSpan.</param>
+    /// <param name="nullString">A string to use if <paramref name="timeSpan"/> is null.</param>
+    /// <param name="useHundredths">If to use the hundredths instead of milliseconds (for better looks on TMUF for example).</param>
+    /// <param name="useApostrophe">If to use ' instead of a colon and '' instead of a dot (to resolve cases where colon is not allowed for example).</param>
+    /// <param name="compact">Whether to omit leading zeros and separators for times under 1 minute. Ideal for time deltas.</param>
+    /// <returns>A string representation of Trackmania time format.</returns>
+    public static string ToTmString(this TimeSpan? timeSpan, string nullString, bool useHundredths = false, bool useApostrophe = false, bool compact = false)
+    {
+        return timeSpan.HasValue
+            ? ToTmString(timeSpan.Value, useHundredths, useApostrophe, compact)
+            : nullString;
+    }
+
+    /// <summary>
+    /// Converts the value of the current <see cref="TimeSpan"/> to a Trackmania familiar time format. If the value is null, -:--.--- will be used, or -'--''--- when <paramref name="useApostrophe"/> is true.
+    /// </summary>
+    /// <param name="timeSpan">A TimeSpan.</param>
+    /// <param name="useHundredths">If to use the hundredths instead of milliseconds (for better looks on TMUF for example).</param>
+    /// <param name="useApostrophe">If to use ' instead of a colon and '' instead of a dot (to resolve cases where colon is not allowed for example).</param>
+    /// <param name="compact">Whether to omit leading zeros and separators for times under 1 minute. Ideal for time deltas.</param>
+    /// <returns>A string representation of Trackmania time format.</returns>
+    public static string ToTmString(this TimeSpan? timeSpan, bool useHundredths = false, bool useApostrophe = false, bool compact = false)
+    {
+        var nullStr = useHundredths
+            ? (useApostrophe ? "-'--''--" : "-:--.--")
+            : (useApostrophe ? "-'--''---" : "-:--.---");
+        return ToTmString(timeSpan, nullStr, useHundredths, useApostrophe, compact);
+    }
+}
