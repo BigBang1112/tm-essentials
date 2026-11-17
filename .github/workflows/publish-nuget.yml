@@ -35,3 +35,4 @@ jobs:
           release-title-prefix: TmEssentials
           release-description: ${{ inputs.description }}
           nuget-user: ${{ vars.NUGET_USER }}
+          release-all-packages: true
