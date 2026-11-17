@@ -5,8 +5,8 @@ namespace TmEssentials.Tests;
 
 public class TextFormatterTests
 {
-    private const string AnsiRed = "\u001b[1;31m";
-    private const string AnsiGreen = "\u001b[1;32m";
+    private const string AnsiRed = "\u001b[91m";
+    private const string AnsiGreen = "\u001b[92m";
     private const string AnsiDefault = "\u001b[39m\u001b[22m";
     private static readonly Regex AnsiCodes = new("\u001b\\[[0-9;]*m");
 
@@ -242,7 +242,7 @@ public class TextFormatterTests
     public async Task FormatAnsi_WithColorCodes_ReturnsAnsiColoredText()
     {
         // Arrange
-        var expected = "\u001b[1;31mT\u001b[1;31mM\u001b[1;31mU\u001b[0;31m.\u001b[0;35mK\u001b[0;35mr\u001b[0;34ma\u001b[0;34mz\u001b[1;34my\u001b[0;34mC\u001b[0;34mo\u001b[0;34ml\u001b[0;36mo\u001b[0;36mr\u001b[0;36ms\u001b[0;32m \u001b[0;32mv\u001b[0;32m0\u001b[0;32m.\u001b[0;32m1\u001b[39m\u001b[22m";
+        var expected = "\u001b[91mT\u001b[91mM\u001b[91mU\u001b[31m.\u001b[35mK\u001b[35mr\u001b[34ma\u001b[34mz\u001b[94my\u001b[34mC\u001b[34mo\u001b[34ml\u001b[36mo\u001b[36mr\u001b[36ms\u001b[32m \u001b[32mv\u001b[32m0\u001b[32m.\u001b[32m1\u001b[39m\u001b[22m";
 
         // Act
         var actual = TextFormatter.FormatAnsi(KrazyColors);
@@ -258,7 +258,45 @@ public class TextFormatterTests
         var actual = TextFormatter.FormatAnsi("$fY");
 
         // Assert
-        await Assert.That(actual).IsEqualTo("\u001b[1;31mY\u001b[39m\u001b[22m");
+        await Assert.That(actual).IsEqualTo("\u001b[91mY\u001b[39m\u001b[22m");
+    }
+
+    [Test]
+    [Arguments("$000", "\u001b[90m")]
+    [Arguments("$444", "\u001b[90m")]
+    [Arguments("$888", "\u001b[90m")]
+    [Arguments("$aaa", "\u001b[90m")]
+    [Arguments("$bbb", "\u001b[37m")]
+    [Arguments("$ddd", "\u001b[37m")]
+    [Arguments("$eee", "\u001b[97m")]
+    [Arguments("$fff", "\u001b[97m")]
+    [Arguments("$988", "\u001b[90m")]
+    [Arguments("$899", "\u001b[90m")]
+    [Arguments("$bcb", "\u001b[37m")]
+    [Arguments("$fee", "\u001b[97m")]
+    public async Task FormatAnsi_WithGrayOrNearGrayColor_ReturnsAnsiGray(string code, string expectedAnsi)
+    {
+        // Act
+        var actual = TextFormatter.FormatAnsi(code + "X");
+
+        // Assert
+        await Assert.That(actual).IsEqualTo($"{expectedAnsi}X{AnsiDefault}");
+    }
+
+    [Test]
+    [Arguments("$400", "\u001b[31m")]
+    [Arguments("$422", "\u001b[31m")]
+    [Arguments("$a98", "\u001b[93m")]
+    [Arguments("$fcc", "\u001b[91m")]
+    [Arguments("$ccf", "\u001b[94m")]
+    [Arguments("$ff0", "\u001b[93m")]
+    public async Task FormatAnsi_WithColorAwayFromGray_KeepsHue(string code, string expectedAnsi)
+    {
+        // Act
+        var actual = TextFormatter.FormatAnsi(code + "X");
+
+        // Assert
+        await Assert.That(actual).IsEqualTo($"{expectedAnsi}X{AnsiDefault}");
     }
 
     [Test]
@@ -639,14 +677,14 @@ public class TextFormatterTests
     }
 
     [Test]
-    [Arguments("$f00", "\u001b[1;31m")]
-    [Arguments("$F00", "\u001b[1;31m")]
-    [Arguments("$f", "\u001b[1;31m")]
-    [Arguments("$f0", "\u001b[1;31m")]
-    [Arguments("$0f", "\u001b[1;32m")]
-    [Arguments("$00f", "\u001b[1;34m")]
-    [Arguments("$fff", "\u001b[1;37m")]
-    [Arguments("$aBc", "\u001b[1;36m")]
+    [Arguments("$f00", "\u001b[91m")]
+    [Arguments("$F00", "\u001b[91m")]
+    [Arguments("$f", "\u001b[91m")]
+    [Arguments("$f0", "\u001b[91m")]
+    [Arguments("$0f", "\u001b[92m")]
+    [Arguments("$00f", "\u001b[94m")]
+    [Arguments("$fff", "\u001b[97m")]
+    [Arguments("$aBc", "\u001b[96m")]
     public async Task AppendAnsiText_WithColorCode_AppendsAnsiColor(string element, string expected)
     {
         // Arrange
@@ -686,12 +724,12 @@ public class TextFormatterTests
         TextFormatter.AppendAnsiText(output, "$FFF");
 
         // Assert
-        await Assert.That(output.ToString()).IsEqualTo("\u001b[1;37m");
+        await Assert.That(output.ToString()).IsEqualTo("\u001b[97m");
     }
 
     [Test]
-    [Arguments("$ff0", "\u001b[1;33m")]
-    [Arguments("$880", "\u001b[0;33m")]
+    [Arguments("$ff0", "\u001b[93m")]
+    [Arguments("$880", "\u001b[33m")]
     public async Task AppendAnsiText_WithYellowColorCode_AppendsAnsiYellow(string element, string expected)
     {
         // Arrange
@@ -717,12 +755,12 @@ public class TextFormatterTests
         TextFormatter.AppendAnsiText(output, element);
 
         // Assert
-        await Assert.That(output.ToString()).IsEqualTo("\u001b[1;30m");
+        await Assert.That(output.ToString()).IsEqualTo("\u001b[90m");
     }
 
     [Test]
-    [Arguments("$F", "\u001b[1;31m")]
-    [Arguments("$A", "\u001b[0;31m")]
+    [Arguments("$F", "\u001b[91m")]
+    [Arguments("$A", "\u001b[31m")]
     public async Task AppendAnsiText_WithOneUppercaseDigitColorCode_AppendsAnsiColor(string element, string expected)
     {
         // Arrange

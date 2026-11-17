@@ -56,10 +56,15 @@ public static class TextFormatter
     private static readonly char[] SpecialChars = ['$', '\r'];
 
     /// <summary>
-    /// The ANSI attributes of the 4096 colors (<c>$000</c> to <c>$fff</c>), computed when first used, or 0 when not computed yet.
-    /// The high bit is the bold attribute, the rest is the color attribute (30 to 37).
+    /// The ANSI color codes of the 4096 colors (<c>$000</c> to <c>$fff</c>), computed when first used, or 0 when not computed yet.
+    /// 30 to 37 are the normal colors, 90 to 97 the bright ones.
     /// </summary>
-    private static readonly byte[] AnsiColorAttributes = new byte[4096];
+    private static readonly byte[] AnsiColorCodes = new byte[4096];
+
+    /// <summary>
+    /// The largest difference between the hex digits of a color (like 1 in <c>$988</c>) for which the ANSI formatter uses a gray instead of a color.
+    /// </summary>
+    private const int AnsiGrayMaxChannelSpread = 1;
 
     /// <summary>
     /// Deformats a string from Nadeo format.
@@ -259,47 +264,57 @@ public static class TextFormatter
             return;
         }
 
-        var attributes = AnsiColorAttributes[color];
+        var code = AnsiColorCodes[color];
 
-        // Computing the attributes twice in parallel is fine, the result is the same
-        if (attributes == 0)
+        // Computing the code twice in parallel is fine, the result is the same
+        if (code == 0)
         {
-            attributes = GetAnsiColorAttributes(color);
-            AnsiColorAttributes[color] = attributes;
+            code = GetAnsiColorCode(color);
+            AnsiColorCodes[color] = code;
         }
-
-        var boldAttr = attributes >> 7;
-        var colorAttr = attributes & 0x7F;
 
         output.Append('\x1B')
             .Append('[')
-            .Append((char)('0' + boldAttr))
-            .Append(';')
-            .Append('3')
-            .Append((char)('0' + colorAttr - 30))
+            .Append((char)('0' + code / 10))
+            .Append((char)('0' + code % 10))
             .Append('m');
     }
 
     /// <summary>
     /// Finds the ANSI color closest to a 12-bit color like <c>0xF00</c>.
     /// </summary>
-    /// <returns>The bold attribute in the high bit, and the color attribute (30 to 37) in the rest.</returns>
-    private static byte GetAnsiColorAttributes(int color)
+    /// <returns>The ANSI color code: 30 to 37 for a normal color, 90 to 97 for a bright one.</returns>
+    private static byte GetAnsiColorCode(int color)
     {
-        var r = 0x11 * ((color >> 8) & 0xF);
-        var g = 0x11 * ((color >> 4) & 0xF);
-        var b = 0x11 * (color & 0xF);
+        var r4 = (color >> 8) & 0xF;
+        var g4 = (color >> 4) & 0xF;
+        var b4 = color & 0xF;
 
-        var argb = Color.FromArgb(r, g, b);
+        var max = Math.Max(r4, Math.Max(g4, b4));
+        var min = Math.Min(r4, Math.Min(g4, b4));
 
-        var hue = argb.GetHue();
-
-        if (argb.GetSaturation() == 0)
+        // Grays and colors close to gray have no clear hue, so they get a gray by their lightness instead
+        if (max - min <= AnsiGrayMaxChannelSpread)
         {
-            hue = 0;
+            return GetAnsiGrayCode(max + min);
         }
 
-        var colorAttr = hue switch
+        var argb = Color.FromArgb(0x11 * r4, 0x11 * g4, 0x11 * b4);
+        var lightness = argb.GetBrightness();
+
+        // Very dark colors are dark gray (bright black), so that they stay visible on dark terminals
+        if (lightness < 0.1)
+        {
+            return 90;
+        }
+
+        // Very pale colors are white (bright white)
+        if (lightness > 0.9)
+        {
+            return 97;
+        }
+
+        byte code = argb.GetHue() switch
         {
             < 30 => 31,// red
             < 80 => 33,// yellow
@@ -310,28 +325,26 @@ public static class TextFormatter
             _ => 31,
         };
 
-        var boldAttr = 0;
+        // The bright colors are 60 above the normal ones
+        return lightness > 0.43 ? (byte)(code + 60) : code;
+    }
 
-        if (argb.GetBrightness() < 0.1)
+    /// <summary>
+    /// Finds the ANSI gray closest to a gray color.
+    /// </summary>
+    /// <param name="lightness">The sum of the highest and lowest hex digit of the color (0 to 30).</param>
+    /// <returns>The ANSI color code: 90 (dark gray), 37 (light gray) or 97 (white).</returns>
+    private static byte GetAnsiGrayCode(int lightness)
+    {
+        return lightness switch
         {
-            boldAttr = 1;
-            colorAttr = 30;
-        }
-        else
-        {
-            if (argb.GetBrightness() > 0.43)
-            {
-                boldAttr = 1;
-            }
-
-            if (argb.GetBrightness() > 0.9)
-            {
-                boldAttr = 1;
-                colorAttr = 37;
-            }
-        }
-
-        return (byte)((boldAttr << 7) | colorAttr);
+            // $000 to $aaa: dark gray (bright black), so that black stays visible on dark terminals
+            <= 20 => 90,
+            // $bbb to $ddd: light gray (white)
+            <= 27 => 37,
+            // $eee and $fff: white (bright white)
+            _ => 97,
+        };
     }
 
     internal static void AppendAnsiText(StringBuilder output, string element)

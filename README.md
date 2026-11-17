@@ -195,7 +195,7 @@ TextFormatter.FormatHtml(" Winner", allowLinks: false, allowManialinks: false
 
 ```cs
 TextFormatter.FormatAnsi("$f00Red $0f0Green $zDefault");
-// \x1B[1;31mRed \x1B[1;32mGreen \x1B[39m\x1B[22mDefault\x1B[39m\x1B[22m
+// \x1B[91mRed \x1B[92mGreen \x1B[39m\x1B[22mDefault\x1B[39m\x1B[22m
 ```
 
 ### Regex pattern
