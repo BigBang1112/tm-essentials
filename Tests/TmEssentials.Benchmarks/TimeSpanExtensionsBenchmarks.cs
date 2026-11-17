@@ -23,158 +23,158 @@ public class TimeSpanExtensionsBenchmarks
     private static readonly TimeSpan fullNegativeTime = -fullTime;
 
     [Benchmark(Description = "Null with milliseconds")]
-    public static void FormatNullTime()
+    public string FormatNullTime()
     {
-        nullTime.ToTmString();
+        return nullTime.ToTmString();
     }
 
     [Benchmark(Description = "Null with hundredths")]
-    public static void FormatNullTimeHundredths()
+    public string FormatNullTimeHundredths()
     {
-        nullTime.ToTmString(true);
+        return nullTime.ToTmString(true);
     }
 
     [Benchmark(Description = "Milliseconds only")]
-    public static void FormatFFF()
+    public string FormatFFF()
     {
-        fff.ToTmString();
+        return fff.ToTmString();
     }
 
     [Benchmark(Description = "Hundredths only")]
-    public static void FormatFF()
+    public string FormatFF()
     {
-        fff.ToTmString(true);
+        return fff.ToTmString(true);
     }
 
     [Benchmark(Description = "Seconds and milliseconds only")]
-    public static void FormatSSFFF()
+    public string FormatSSFFF()
     {
-        ssfff.ToTmString();
+        return ssfff.ToTmString();
     }
 
     [Benchmark(Description = "Seconds and hundredths only")]
-    public static void FormatSSFF()
+    public string FormatSSFF()
     {
-        ssfff.ToTmString(true);
+        return ssfff.ToTmString(true);
     }
 
     [Benchmark(Description = "1-digit minute, seconds and milliseconds only")]
-    public static void FormatMSSFFF()
+    public string FormatMSSFFF()
     {
-        mssfff.ToTmString();
+        return mssfff.ToTmString();
     }
 
     [Benchmark(Description = "1-digit minute, seconds and hundredths only")]
-    public static void FormatMSSFF()
+    public string FormatMSSFF()
     {
-        mssfff.ToTmString(true);
+        return mssfff.ToTmString(true);
     }
 
     [Benchmark(Description = "2-digit minute, seconds and milliseconds only")]
-    public static void FormatMMSSFFF()
+    public string FormatMMSSFFF()
     {
-        mmssfff.ToTmString();
+        return mmssfff.ToTmString();
     }
 
     [Benchmark(Description = "2-digit minute, seconds and hundredths only")]
-    public static void FormatMMSSFF()
+    public string FormatMMSSFF()
     {
-        mmssfff.ToTmString(true);
+        return mmssfff.ToTmString(true);
     }
 
     [Benchmark(Description = "Hours, minutes, seconds and milliseconds only")]
-    public static void FormatHMMSSFFF()
+    public string FormatHMMSSFFF()
     {
-        hmmssfff.ToTmString();
+        return hmmssfff.ToTmString();
     }
 
     [Benchmark(Description = "Hours, minutes, seconds and hundredths only")]
-    public static void FormatHMMSSFF()
+    public string FormatHMMSSFF()
     {
-        hmmssfff.ToTmString(true);
+        return hmmssfff.ToTmString(true);
     }
 
     [Benchmark(Description = "Fully-used TimeSpan with milliseconds")]
-    public static void FormatFullTime()
+    public string FormatFullTime()
     {
-        fullTime.ToTmString();
+        return fullTime.ToTmString();
     }
 
     [Benchmark(Description = "Fully-used TimeSpan with hundredths")]
-    public static void FormatFullTimeHundredths()
+    public string FormatFullTimeHundredths()
     {
-        fullTime.ToTmString(true);
+        return fullTime.ToTmString(true);
     }
 
     [Benchmark(Description = "Negative milliseconds only")]
-    public static void FormatNegativeFFF()
+    public string FormatNegativeFFF()
     {
-        fffNegative.ToTmString();
+        return fffNegative.ToTmString();
     }
 
     [Benchmark(Description = "Negative hundredths only")]
-    public static void FormatNegativeFF()
+    public string FormatNegativeFF()
     {
-        fffNegative.ToTmString(true);
+        return fffNegative.ToTmString(true);
     }
 
     [Benchmark(Description = "Negative seconds and milliseconds only")]
-    public static void FormatNegativeSSFFF()
+    public string FormatNegativeSSFFF()
     {
-        ssfffNegative.ToTmString();
+        return ssfffNegative.ToTmString();
     }
 
     [Benchmark(Description = "Negative seconds and hundredths only")]
-    public static void FormatNegativeSSFF()
+    public string FormatNegativeSSFF()
     {
-        ssfffNegative.ToTmString(true);
+        return ssfffNegative.ToTmString(true);
     }
 
     [Benchmark(Description = "Negative 1-digit minute, seconds and milliseconds only")]
-    public static void FormatNegativeMSSFFF()
+    public string FormatNegativeMSSFFF()
     {
-        mssfffNegative.ToTmString();
+        return mssfffNegative.ToTmString();
     }
 
     [Benchmark(Description = "Negative 1-digit minute, seconds and hundredths only")]
-    public static void FormatNegativeMSSFF()
+    public string FormatNegativeMSSFF()
     {
-        mssfffNegative.ToTmString(true);
+        return mssfffNegative.ToTmString(true);
     }
 
     [Benchmark(Description = "Negative 2-digit minute, seconds and milliseconds only")]
-    public static void FormatNegativeMMSSFFF()
+    public string FormatNegativeMMSSFFF()
     {
-        mmssfffNegative.ToTmString();
+        return mmssfffNegative.ToTmString();
     }
 
     [Benchmark(Description = "Negative 2-digit minute, seconds and hundredths only")]
-    public static void FormatNegativeMMSSFF()
+    public string FormatNegativeMMSSFF()
     {
-        mmssfffNegative.ToTmString(true);
+        return mmssfffNegative.ToTmString(true);
     }
 
     [Benchmark(Description = "Negative hours, minutes, seconds and milliseconds only")]
-    public static void FormatNegativeHMMSSFFF()
+    public string FormatNegativeHMMSSFFF()
     {
-        hmmssfffNegative.ToTmString();
+        return hmmssfffNegative.ToTmString();
     }
 
     [Benchmark(Description = "Negative hours, minutes, seconds and hundredths only")]
-    public static void FormatNegativeHMMSSFF()
+    public string FormatNegativeHMMSSFF()
     {
-        hmmssfffNegative.ToTmString(true);
+        return hmmssfffNegative.ToTmString(true);
     }
 
     [Benchmark(Description = "Fully-used negative TimeSpan with milliseconds")]
-    public static void FormatFullNegativeTime()
+    public string FormatFullNegativeTime()
     {
-        fullNegativeTime.ToTmString();
+        return fullNegativeTime.ToTmString();
     }
 
     [Benchmark(Description = "Fully-used negative TimeSpan with hundredths")]
-    public static void FormatFullNegativeTimeHundredths()
+    public string FormatFullNegativeTimeHundredths()
     {
-        fullNegativeTime.ToTmString(true);
+        return fullNegativeTime.ToTmString(true);
     }
 }

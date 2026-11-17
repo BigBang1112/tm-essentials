@@ -2,7 +2,7 @@
 
 [![Nuget](https://img.shields.io/nuget/v/TmEssentials?style=for-the-badge&logo=nuget)](https://www.nuget.org/packages/TmEssentials/)
 [![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/BigBang1112/tm-essentials?include_prereleases&style=for-the-badge&logo=github)](https://github.com/BigBang1112/tm-essentials/releases)
-[![Code Coverage](https://img.shields.io/badge/Code%20Coverage-87%25-success?style=for-the-badge)](https://github.com/BigBang1112/tm-essentials)
+[![Code Coverage](https://img.shields.io/badge/Code%20Coverage-96%25-success?style=for-the-badge)](https://github.com/BigBang1112/tm-essentials)
 
 A super light-weight library that provides formatting features.
 
@@ -179,39 +179,40 @@ Implements the HEAD request into a simple method. HEAD request is useful for get
 The library tries to be as effective as possible to an absurd level with using managed code only.
 
 ```
-BenchmarkDotNet v0.13.11, Windows 11 (10.0.22621.2861/22H2/2022Update/SunValley2)
-AMD Ryzen 7 3700X, 1 CPU, 16 logical and 8 physical cores
-.NET SDK 8.0.100
-  [Host]     : .NET 8.0.0 (8.0.23.53103), X64 RyuJIT AVX2 [AttachedDebugger]
-  DefaultJob : .NET 8.0.0 (8.0.23.53103), X64 RyuJIT AVX2
+BenchmarkDotNet v0.16.0-preview.2, Windows 11 (10.0.26300.9974)
+AMD Ryzen 9 9900X 4.39GHz, 1 CPU, 24 logical and 12 physical cores
+Memory: 31,14 GB Total, 14,11 GB Available
+.NET SDK 11.0.100
+  [Host]     : .NET 11.0.0 (11.0.0, 11.0.26.53018), X64 RyuJIT x86-64-v4
+  DefaultJob : .NET 11.0.0 (11.0.0, 11.0.26.53018), X64 RyuJIT x86-64-v4
 
 
-| Method                                                   | Mean       | Error     | StdDev    | Median     | Gen0   | Allocated |
-|--------------------------------------------------------- |-----------:|----------:|----------:|-----------:|-------:|----------:|
-| 'Null with hundredths'                                   |  0.2379 ns | 0.0154 ns | 0.0144 ns |  0.2363 ns |      - |         - |
-| 'Null with milliseconds'                                 |  1.9493 ns | 0.0123 ns | 0.0103 ns |  1.9540 ns |      - |         - |
-| 'Seconds and milliseconds only'                          | 30.5358 ns | 0.6123 ns | 1.0884 ns | 29.9976 ns | 0.0048 |      40 B |
-| '1-digit minute, seconds and milliseconds only'          | 30.5601 ns | 0.6134 ns | 0.5122 ns | 30.4337 ns | 0.0048 |      40 B |
-| '2-digit minute, seconds and hundredths only'            | 30.6992 ns | 0.2823 ns | 0.2358 ns | 30.6543 ns | 0.0048 |      40 B |
-| 'Milliseconds only'                                      | 30.9590 ns | 0.6381 ns | 0.8734 ns | 30.9244 ns | 0.0048 |      40 B |
-| 'Hundredths only'                                        | 31.0166 ns | 0.6434 ns | 1.1098 ns | 30.7131 ns | 0.0048 |      40 B |
-| 'Negative seconds and hundredths only'                   | 31.5512 ns | 0.6633 ns | 0.7896 ns | 31.3869 ns | 0.0048 |      40 B |
-| '1-digit minute, seconds and hundredths only'            | 31.6155 ns | 0.5243 ns | 0.5149 ns | 31.6675 ns | 0.0048 |      40 B |
-| 'Seconds and hundredths only'                            | 31.8579 ns | 0.6069 ns | 1.0140 ns | 31.6990 ns | 0.0048 |      40 B |
-| 'Negative milliseconds only'                             | 31.9256 ns | 0.3962 ns | 0.3513 ns | 31.8951 ns | 0.0048 |      40 B |
-| '2-digit minute, seconds and milliseconds only'          | 31.9811 ns | 0.6515 ns | 0.8698 ns | 31.6213 ns | 0.0048 |      40 B |
-| 'Negative hundredths only'                               | 31.9918 ns | 0.6653 ns | 0.7395 ns | 31.8978 ns | 0.0048 |      40 B |
-| 'Negative 1-digit minute, seconds and milliseconds only' | 32.0097 ns | 0.6535 ns | 0.8498 ns | 31.7147 ns | 0.0048 |      40 B |
-| 'Negative 2-digit minute, seconds and milliseconds only' | 32.2230 ns | 0.6680 ns | 0.7424 ns | 32.1323 ns | 0.0057 |      48 B |
-| 'Negative 1-digit minute, seconds and hundredths only'   | 32.3645 ns | 0.6732 ns | 0.8014 ns | 32.2189 ns | 0.0048 |      40 B |
-| 'Negative seconds and milliseconds only'                 | 33.3655 ns | 0.6869 ns | 1.2902 ns | 33.0008 ns | 0.0048 |      40 B |
-| 'Negative 2-digit minute, seconds and hundredths only'   | 33.8375 ns | 0.4832 ns | 0.4284 ns | 33.8595 ns | 0.0048 |      40 B |
-| 'Hours, minutes, seconds and hundredths only'            | 38.0449 ns | 0.7887 ns | 0.6991 ns | 37.9283 ns | 0.0057 |      48 B |
-| 'Hours, minutes, seconds and milliseconds only'          | 38.2250 ns | 0.7767 ns | 0.9822 ns | 38.2305 ns | 0.0057 |      48 B |
-| 'Negative hours, minutes, seconds and milliseconds only' | 38.2533 ns | 0.4994 ns | 0.4170 ns | 38.3381 ns | 0.0057 |      48 B |
-| 'Negative hours, minutes, seconds and hundredths only'   | 38.6611 ns | 0.5701 ns | 0.5333 ns | 38.5405 ns | 0.0057 |      48 B |
-| 'Fully-used TimeSpan with hundredths'                    | 40.3112 ns | 0.4293 ns | 0.3806 ns | 40.2566 ns | 0.0057 |      48 B |
-| 'Fully-used TimeSpan with milliseconds'                  | 40.4784 ns | 0.8199 ns | 0.8052 ns | 40.3464 ns | 0.0067 |      56 B |
-| 'Fully-used negative TimeSpan with milliseconds'         | 40.8930 ns | 0.4993 ns | 0.4670 ns | 40.7865 ns | 0.0067 |      56 B |
-| 'Fully-used negative TimeSpan with hundredths'           | 41.2768 ns | 0.6247 ns | 0.5843 ns | 41.3455 ns | 0.0067 |      56 B |
+| Method                                                   | Mean       | Error     | StdDev    | Gen0   | Allocated |
+|--------------------------------------------------------- |-----------:|----------:|----------:|-------:|----------:|
+| 'Null with hundredths'                                   |  0.9312 ns | 0.0029 ns | 0.0024 ns |      - |         - |
+| 'Null with milliseconds'                                 |  0.9352 ns | 0.0069 ns | 0.0058 ns |      - |         - |
+| '1-digit minute, seconds and milliseconds only'          |  9.4585 ns | 0.0532 ns | 0.0472 ns | 0.0024 |      40 B |
+| '2-digit minute, seconds and hundredths only'            |  9.5386 ns | 0.0673 ns | 0.0630 ns | 0.0024 |      40 B |
+| 'Negative 2-digit minute, seconds and hundredths only'   |  9.6299 ns | 0.0321 ns | 0.0301 ns | 0.0024 |      40 B |
+| 'Negative seconds and hundredths only'                   |  9.6422 ns | 0.0610 ns | 0.0571 ns | 0.0024 |      40 B |
+| 'Negative 1-digit minute, seconds and hundredths only'   |  9.7765 ns | 0.0748 ns | 0.0700 ns | 0.0024 |      40 B |
+| '1-digit minute, seconds and hundredths only'            |  9.7839 ns | 0.0973 ns | 0.0911 ns | 0.0024 |      40 B |
+| 'Negative 1-digit minute, seconds and milliseconds only' |  9.7875 ns | 0.0229 ns | 0.0191 ns | 0.0024 |      40 B |
+| 'Seconds and hundredths only'                            |  9.8086 ns | 0.0661 ns | 0.0618 ns | 0.0024 |      40 B |
+| 'Seconds and milliseconds only'                          |  9.8104 ns | 0.0679 ns | 0.0635 ns | 0.0024 |      40 B |
+| 'Negative hundredths only'                               |  9.8637 ns | 0.0628 ns | 0.0587 ns | 0.0024 |      40 B |
+| 'Negative milliseconds only'                             |  9.8754 ns | 0.0784 ns | 0.0734 ns | 0.0024 |      40 B |
+| 'Negative seconds and milliseconds only'                 |  9.9648 ns | 0.0209 ns | 0.0163 ns | 0.0024 |      40 B |
+| 'Hundredths only'                                        | 10.0018 ns | 0.1943 ns | 0.1908 ns | 0.0024 |      40 B |
+| 'Milliseconds only'                                      | 10.0217 ns | 0.1773 ns | 0.1658 ns | 0.0024 |      40 B |
+| '2-digit minute, seconds and milliseconds only'          | 10.0368 ns | 0.0647 ns | 0.0605 ns | 0.0024 |      40 B |
+| 'Negative 2-digit minute, seconds and milliseconds only' | 10.1620 ns | 0.0783 ns | 0.0732 ns | 0.0029 |      48 B |
+| 'Hours, minutes, seconds and hundredths only'            | 11.0210 ns | 0.0900 ns | 0.0842 ns | 0.0029 |      48 B |
+| 'Hours, minutes, seconds and milliseconds only'          | 11.0689 ns | 0.0841 ns | 0.0787 ns | 0.0029 |      48 B |
+| 'Negative hours, minutes, seconds and milliseconds only' | 11.2956 ns | 0.0226 ns | 0.0176 ns | 0.0029 |      48 B |
+| 'Negative hours, minutes, seconds and hundredths only'   | 11.6347 ns | 0.0687 ns | 0.0574 ns | 0.0029 |      48 B |
+| 'Fully-used TimeSpan with hundredths'                    | 11.8304 ns | 0.0577 ns | 0.0540 ns | 0.0029 |      48 B |
+| 'Fully-used negative TimeSpan with hundredths'           | 12.2413 ns | 0.0195 ns | 0.0162 ns | 0.0033 |      56 B |
+| 'Fully-used TimeSpan with milliseconds'                  | 12.4213 ns | 0.0826 ns | 0.0773 ns | 0.0033 |      56 B |
+| 'Fully-used negative TimeSpan with milliseconds'         | 12.6353 ns | 0.0227 ns | 0.0190 ns | 0.0033 |      56 B |
 ```

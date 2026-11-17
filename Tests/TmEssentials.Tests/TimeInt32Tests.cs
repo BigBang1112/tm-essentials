@@ -1210,4 +1210,128 @@ public class TimeInt32Tests
         // Assert
         await Assert.That(result).IsEqualTo("-1:23.456");
     }
+
+    [Test]
+    [Arguments(25, 0, 0, 0, 0)]
+    [Arguments(-25, 0, 0, 0, 0)]
+    [Arguments(24, 20, 31, 23, 648)]
+    [Arguments(0, 0, 0, int.MaxValue, 0)]
+    public async Task Constructor_WithTimeOutOfRange_ThrowsOverflowException(int days, int hours, int minutes, int seconds, int milliseconds)
+    {
+        // Act
+        var act = () => new TimeInt32(days, hours, minutes, seconds, milliseconds);
+
+        // Assert
+        await Assert.That(act).ThrowsExactly<OverflowException>();
+    }
+
+    [Test]
+    public async Task Constructor_WithMaxValueComponents_ReturnsMaxValue()
+    {
+        // Act
+        var time = new TimeInt32(24, 20, 31, 23, 647);
+
+        // Assert
+        await Assert.That(time).IsEqualTo(TimeInt32.MaxValue);
+    }
+
+    [Test]
+    public async Task Duration_WithMinValue_ThrowsOverflowException()
+    {
+        // Act
+        var act = () => TimeInt32.MinValue.Duration();
+
+        // Assert
+        await Assert.That(act).ThrowsExactly<OverflowException>();
+    }
+
+    [Test]
+    public async Task Negate_WithMinValue_ThrowsOverflowException()
+    {
+        // Act
+        var negate = () => TimeInt32.MinValue.Negate();
+        var unaryMinus = () => -TimeInt32.MinValue;
+
+        // Assert
+        await Assert.That(negate).ThrowsExactly<OverflowException>();
+        await Assert.That(unaryMinus).ThrowsExactly<OverflowException>();
+    }
+
+    [Test]
+    public async Task ArithmeticOperators_WhenResultIsOutOfRange_ThrowOverflowException()
+    {
+        // Act
+        var add = () => TimeInt32.MaxValue + new TimeInt32(1);
+        var addTimeSpan = () => TimeInt32.MaxValue + TimeSpan.FromMilliseconds(1);
+        var addMethod = () => TimeInt32.MaxValue.Add((ITime)new TimeInt32(1));
+        var subtract = () => TimeInt32.MinValue - new TimeInt32(1);
+        var subtractTimeSpan = () => TimeInt32.MinValue - TimeSpan.FromMilliseconds(1);
+        var multiply = () => TimeInt32.MaxValue * 2;
+
+        // Assert
+        await Assert.That(add).ThrowsExactly<OverflowException>();
+        await Assert.That(addTimeSpan).ThrowsExactly<OverflowException>();
+        await Assert.That(addMethod).ThrowsExactly<OverflowException>();
+        await Assert.That(subtract).ThrowsExactly<OverflowException>();
+        await Assert.That(subtractTimeSpan).ThrowsExactly<OverflowException>();
+        await Assert.That(multiply).ThrowsExactly<OverflowException>();
+    }
+
+    [Test]
+    [Arguments(251, 0.251f)]
+    [Arguments(9, 0.009f)]
+    [Arguments(-83_456, -83.456f)]
+    public async Task EqualityWithTimeSingle_IsConsistentAcrossOperatorsAndMethods(int totalMilliseconds, float totalSeconds)
+    {
+        // Arrange
+        var timeInt32 = new TimeInt32(totalMilliseconds);
+        var timeSingle = new TimeSingle(totalSeconds);
+
+        // Assert
+        await Assert.That(timeInt32 == timeSingle).IsTrue();
+        await Assert.That(timeInt32 != timeSingle).IsFalse();
+        await Assert.That(timeInt32.Equals(timeSingle)).IsTrue();
+        await Assert.That(timeInt32.Equals((ITime)timeSingle)).IsTrue();
+        await Assert.That(timeInt32.CompareTo(timeSingle)).IsEqualTo(0);
+        await Assert.That(timeInt32.CompareTo((ITime)timeSingle)).IsEqualTo(0);
+        await Assert.That(timeSingle == timeInt32).IsTrue();
+        await Assert.That(timeSingle.Equals(timeInt32)).IsTrue();
+    }
+
+    [Test]
+    public async Task EqualsAndCompareTo_WithLargeTimeInt32AsITime_UseExactMilliseconds()
+    {
+        // Arrange - one millisecond apart, but the same float number of seconds
+        var time = new TimeInt32(16_777_217);
+        ITime other = new TimeInt32(16_777_216);
+
+        // Assert
+        await Assert.That(time.TotalSeconds).IsEqualTo(other.TotalSeconds);
+        await Assert.That(time.Equals(other)).IsFalse();
+        await Assert.That(time.CompareTo(other)).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task Add_WithTimeSingleAsITime_RoundsToNearestMillisecond()
+    {
+        // Act
+        var result = new TimeInt32(1_000).Add((ITime)new TimeSingle(0.251f));
+
+        // Assert
+        await Assert.That(result.TotalMilliseconds).IsEqualTo(1_251);
+    }
+
+    [Test]
+    [Arguments("5", 500)]
+    [Arguments("05", 50)]
+    [Arguments("500", 500)]
+    [Arguments("-5", -500)]
+    public async Task Parse_WithBareNumber_ReadsFractionOfSecond(string input, int expectedTotalMilliseconds)
+    {
+        // Act
+        var time = TimeInt32.Parse(input);
+
+        // Assert
+        await Assert.That(time.TotalMilliseconds).IsEqualTo(expectedTotalMilliseconds);
+    }
 }
