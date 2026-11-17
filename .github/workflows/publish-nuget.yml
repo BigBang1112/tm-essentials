@@ -18,6 +18,6 @@ jobs:
         10.x.x
         9.x.x
         8.x.x
-      package-prefix: TmEssentials
+      project-path: "{TmEssentials,TmEssentials.Razor}"
     secrets:
       NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
