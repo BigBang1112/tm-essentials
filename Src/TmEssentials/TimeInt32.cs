@@ -345,13 +345,7 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime,
 #endif
         out TimeInt32 result)
     {
-        if (TimeSpan.TryParseExact(s, TimeFormatter.TimeFormats, provider, out var timeSpan))
-        {
-            return TryFromTimeSpan(s?.Length > 0 && s[0] == '-' ? -timeSpan : timeSpan, out result);
-        }
-
-        result = default;
-        return false;
+        return TryParse(s.AsSpan(), provider, out result);
     }
 
     /// <summary>
@@ -404,13 +398,10 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime,
 #endif
         out TimeInt32 result)
     {
-#if NET5_0_OR_GREATER || NET21_OR_GREATER
-        if (TimeSpan.TryParseExact(s, TimeFormatter.TimeFormats, provider, out var timeSpan))
-#else
-        if (TimeSpan.TryParseExact(s.ToString(), TimeFormatter.TimeFormats, provider, out var timeSpan))
-#endif
+        // The format does not depend on the culture, so the provider is not needed
+        if (TimeFormatter.TryParse(s, out var timeSpan))
         {
-            return TryFromTimeSpan(s.Length > 0 && s[0] == '-' ? -timeSpan : timeSpan, out result);
+            return TryFromTimeSpan(timeSpan, out result);
         }
 
         result = default;

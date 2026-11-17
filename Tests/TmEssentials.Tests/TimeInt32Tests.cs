@@ -1336,6 +1336,52 @@ public class TimeInt32Tests
     }
 
     [Test]
+    [Arguments("12345678")]
+    [Arguments("123456789")]
+    [Arguments("1.12345678")]
+    [Arguments("1.5x")]
+    [Arguments("001.0")]
+    [Arguments(".5")]
+    [Arguments("1:2.3")]
+    [Arguments("1:234.5")]
+    [Arguments("1:23")]
+    [Arguments("1:00:")]
+    [Arguments("1:00:00:00:00.0")]
+    [Arguments("x5")]
+    [Arguments("-x")]
+    [Arguments("--1")]
+    [Arguments("+1.5")]
+    [Arguments(" 1.5")]
+    [Arguments("1.5 ")]
+    [Arguments("١.5")]
+    public async Task TryParse_WithMalformedTime_ReturnsFalse(string input)
+    {
+        // Act
+        var successFromString = TimeInt32.TryParse(input, out _);
+        var successFromSpan = TimeInt32.TryParse(input.AsSpan(), out _);
+
+        // Assert
+        await Assert.That(successFromString).IsFalse();
+        await Assert.That(successFromSpan).IsFalse();
+    }
+
+    [Test]
+    [Arguments("1.", 1_000)]
+    [Arguments("1:23.", 83_000)]
+    [Arguments("59.9999999", 59_999)]
+    [Arguments("-", 0)]
+    [Arguments("x", 0)] // TimeSpan.TryParseExact quirk: any single non-digit character is zero, kept for compatibility
+    public async Task TryParse_WithEdgeFormat_ReturnsTime(string input, int expectedTotalMilliseconds)
+    {
+        // Act
+        var success = TimeInt32.TryParse(input, out var time);
+
+        // Assert
+        await Assert.That(success).IsTrue();
+        await Assert.That(time.TotalMilliseconds).IsEqualTo(expectedTotalMilliseconds);
+    }
+
+    [Test]
     public async Task ToString_AsObject_ReturnsTmFormat()
     {
         // Arrange

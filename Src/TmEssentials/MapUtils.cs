@@ -14,6 +14,14 @@ public static class MapUtils
     // 16 bytes of the UUID + 4 bytes of the CRC32
     private const int MapUidDataLength = 20;
 
+    // The 20 bytes as 32-bit limbs, the least significant first
+    private const int MapUidLimbCount = MapUidDataLength / sizeof(uint);
+
+    // 63^5, the largest power of 63 that fits into 32 bits. Dividing by it gives 5 digits at once,
+    // which is a lot faster than dividing the whole number by 63 for every digit.
+    private const int MapUidChunkLength = 5;
+    private const uint MapUidChunkBase = MapUidBase * MapUidBase * MapUidBase * MapUidBase * MapUidBase;
+
     /// <summary>
     /// The maximum length of a map UID made by <see cref="GenerateMapUid(Guid, uint)"/>. 63^27 is the first power of 63 above 2^160.
     /// </summary>
@@ -36,6 +44,13 @@ public static class MapUtils
         WriteGuid(uuid, data);
         BinaryPrimitives.WriteUInt32LittleEndian(data.Slice(16), crc32);
 
+        Span<uint> number = stackalloc uint[MapUidLimbCount];
+
+        for (var i = 0; i < number.Length; i++)
+        {
+            number[i] = BinaryPrimitives.ReadUInt32LittleEndian(data.Slice(i * sizeof(uint)));
+        }
+
 #if NETSTANDARD2_0 || NET462_OR_GREATER
         var mapUid = new char[MaxMapUidLength];
 #else
@@ -43,10 +58,19 @@ public static class MapUtils
 #endif
 
         var length = 0;
+        var limbCount = TrimZeroLimbs(number, number.Length);
 
-        while (!IsZero(data))
+        while (limbCount > 0)
         {
-            mapUid[length++] = MapUidChars[DivideBy(data, MapUidBase)];
+            var chunk = DivideByChunkBase(number.Slice(0, limbCount));
+            limbCount = TrimZeroLimbs(number, limbCount);
+
+            // A chunk below more digits has all 5 digits, zeros included. The last chunk ends at its highest non-zero digit.
+            for (var i = 0; i < MapUidChunkLength && (limbCount > 0 || chunk != 0); i++)
+            {
+                mapUid[length++] = MapUidChars[(int)(chunk % MapUidBase)];
+                chunk /= MapUidBase;
+            }
         }
 
 #if NETSTANDARD2_0 || NET462_OR_GREATER
@@ -132,67 +156,116 @@ public static class MapUtils
             return false;
         }
 
-        Span<byte> data = stackalloc byte[MapUidDataLength];
+        Span<uint> number = stackalloc uint[MapUidLimbCount];
 
-        // The first character is the least significant digit
-        for (var i = mapUid.Length - 1; i >= 0; i--)
+        // The last character is the most significant digit, so the digits are added from the end, up to 5 at once.
+        // The number only grows, so it overflows at the end of a chunk exactly when it overflows at any digit of it.
+        var index = mapUid.Length;
+
+        while (index > 0)
         {
-            var digit = MapUidChars.IndexOf(mapUid[i]);
+            var chunkLength = Math.Min(index, MapUidChunkLength);
+            var chunk = 0u;
+            var chunkBase = 1u;
 
-            if (digit < 0 || !MultiplyAdd(data, MapUidBase, (byte)digit))
+            for (var i = 0; i < chunkLength; i++)
+            {
+                var digit = GetMapUidDigit(mapUid[--index]);
+
+                if (digit < 0)
+                {
+                    return false;
+                }
+
+                chunk = chunk * MapUidBase + (uint)digit;
+                chunkBase *= MapUidBase;
+            }
+
+            if (!MultiplyAdd(number, chunkBase, chunk))
             {
                 return false;
             }
+        }
+
+        Span<byte> data = stackalloc byte[MapUidDataLength];
+
+        for (var i = 0; i < number.Length; i++)
+        {
+            BinaryPrimitives.WriteUInt32LittleEndian(data.Slice(i * sizeof(uint)), number[i]);
         }
 
         uuid = ReadGuid(data);
-        crc32 = BinaryPrimitives.ReadUInt32LittleEndian(data.Slice(16));
-
-        return true;
-    }
-
-    private static bool IsZero(ReadOnlySpan<byte> number)
-    {
-        foreach (var b in number)
-        {
-            if (b != 0)
-            {
-                return false;
-            }
-        }
+        crc32 = number[MapUidLimbCount - 1];
 
         return true;
     }
 
     /// <summary>
-    /// Divides a little-endian number in place and returns the remainder (DivBigNat in the game).
+    /// Returns the value of a base-63 digit (the index in <see cref="MapUidChars"/>), or -1 if the character is not a digit.
     /// </summary>
-    private static int DivideBy(Span<byte> number, int divisor)
+    private static int GetMapUidDigit(char c)
     {
-        var remainder = 0;
+        if ((uint)(c - '0') <= '9' - '0')
+        {
+            return c - '0' + 1;
+        }
+
+        if ((uint)(c - 'a') <= 'z' - 'a')
+        {
+            return c - 'a' + 11;
+        }
+
+        if ((uint)(c - 'A') <= 'Z' - 'A')
+        {
+            return c - 'A' + 37;
+        }
+
+        return c == '_' ? 0 : -1;
+    }
+
+    /// <summary>
+    /// Returns the number of limbs without the zero limbs at the most significant end.
+    /// </summary>
+    private static int TrimZeroLimbs(ReadOnlySpan<uint> number, int limbCount)
+    {
+        while (limbCount > 0 && number[limbCount - 1] == 0)
+        {
+            limbCount--;
+        }
+
+        return limbCount;
+    }
+
+    /// <summary>
+    /// Divides a little-endian number in place by 63^5 and returns the remainder (DivBigNat in the game, with 5 digits at once).
+    /// </summary>
+    private static uint DivideByChunkBase(Span<uint> number)
+    {
+        var remainder = 0ul;
 
         for (var i = number.Length - 1; i >= 0; i--)
         {
-            var value = (remainder << 8) | number[i];
-            number[i] = (byte)(value / divisor);
-            remainder = value % divisor;
+            var value = (remainder << 32) | number[i];
+            var quotient = value / MapUidChunkBase;
+            number[i] = (uint)quotient;
+            remainder = value - quotient * MapUidChunkBase;
         }
 
-        return remainder;
+        return (uint)remainder;
     }
 
     /// <summary>
     /// Multiplies a little-endian number in place and adds a value to it. Returns false when the result overflows.
     /// </summary>
-    private static bool MultiplyAdd(Span<byte> number, int multiplier, byte addend)
+    private static bool MultiplyAdd(Span<uint> number, uint multiplier, uint addend)
     {
-        var carry = (int)addend;
+        var carry = (ulong)addend;
 
         for (var i = 0; i < number.Length; i++)
         {
-            var value = number[i] * multiplier + carry;
-            number[i] = (byte)value;
-            carry = value >> 8;
+            var value = (ulong)number[i] * multiplier + carry;
+            number[i] = (uint)value;
+            carry = value >> 32;
         }
 
         return carry == 0;

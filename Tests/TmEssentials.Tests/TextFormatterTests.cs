@@ -916,6 +916,44 @@ public class TextFormatterTests
     }
 
     [Test]
+    [Arguments("")]
+    [Arguments("BigBang1112")]
+    public async Task Deformat_WithoutFormatting_ReturnsInput(string input)
+    {
+        // Act
+        var actual = TextFormatter.Deformat(input);
+
+        // Assert
+        await Assert.That(actual).IsEqualTo(input);
+    }
+
+    [Test]
+    [Arguments("")]
+    [Arguments("BigBang1112")]
+    public async Task FormatAnsi_WithoutFormatting_AppendsAnsiDefault(string input)
+    {
+        // Act
+        var actual = TextFormatter.FormatAnsi(input);
+
+        // Assert
+        await Assert.That(actual).IsEqualTo(input + AnsiDefault);
+    }
+
+    [Test]
+    [Arguments("$f00A$gB", "<span style=\"color:#f00\">A</span>B")]
+    [Arguments("$<$>$f00A$gB", "<span style=\"color:#f00\">A</span>B")]
+    [Arguments("$<$>$f00A$zB", "<span style=\"color:#f00\">A</span>B")]
+    [Arguments("$o$<$iA$zB$>", "<span style=\"font-weight:bold;font-style:italic\">A</span><span style=\"font-weight:bold\">B</span>")]
+    public async Task FormatHtml_WithDefaultColorOrResetWithoutSavedStyle_UsesSavedOrDefaultStyle(string input, string expected)
+    {
+        // Act
+        var actual = TextFormatter.FormatHtml(input);
+
+        // Assert
+        await Assert.That(actual).IsEqualTo(expected);
+    }
+
+    [Test]
     public async Task FormatHtml_WithHighSurrogateAtEnd_IgnoresCode()
     {
         // Act

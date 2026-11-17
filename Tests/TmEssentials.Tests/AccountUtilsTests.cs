@@ -39,6 +39,19 @@ public class AccountUtilsTests
     }
 
     [Test]
+    public async Task ToAccountId_WithLongWhitespaceAroundLogin_SkipsWhitespaceLikeBase64()
+    {
+        // Arrange
+        var login = Login + new string(' ', 100);
+
+        // Act
+        var accountId = AccountUtils.ToAccountId(login);
+
+        // Assert
+        await Assert.That(accountId).IsEqualTo(AccountId);
+    }
+
+    [Test]
     public async Task ToAccountId_WithNull_ThrowsArgumentNullException()
     {
         // Act

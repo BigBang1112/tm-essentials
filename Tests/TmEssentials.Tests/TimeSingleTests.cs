@@ -1177,6 +1177,37 @@ public class TimeSingleTests
     }
 
     [Test]
+    [Arguments("60.0")]
+    [Arguments("1:60.0")]
+    [Arguments("60:00.0")]
+    [Arguments("24:00:00.0")]
+    [Arguments("1:24:00:00.0")]
+    [Arguments("10675200:00:00:00.0")]
+    [Arguments("10675199:23:59:59.9")]
+    [Arguments("10675199:02:48:05.4775808")]
+    public async Task TryParse_WithPartOutOfRange_ReturnsFalse(string input)
+    {
+        // Act
+        var successFromString = TimeSingle.TryParse(input, out _);
+        var successFromSpan = TimeSingle.TryParse(input.AsSpan(), out _);
+
+        // Assert
+        await Assert.That(successFromString).IsFalse();
+        await Assert.That(successFromSpan).IsFalse();
+    }
+
+    [Test]
+    public async Task TryParse_WithLargestTimeSpan_ReturnsTime()
+    {
+        // Act
+        var success = TimeSingle.TryParse("10675199:02:48:05.4775807", out var time);
+
+        // Assert
+        await Assert.That(success).IsTrue();
+        await Assert.That(time.TotalSeconds).IsEqualTo((float)TimeSpan.MaxValue.TotalSeconds);
+    }
+
+    [Test]
     public async Task ToString_AsObject_ReturnsTmFormat()
     {
         // Arrange

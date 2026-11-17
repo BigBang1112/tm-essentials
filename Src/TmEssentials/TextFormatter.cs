@@ -42,6 +42,18 @@ public static class TextFormatter
     private static readonly char[] UrlWhiteSpaceChars = [' ', '\t', '\r', '\n'];
 
     /// <summary>
+    /// The characters that are not copied as they are: the start of a formatting code, and the carriage return that is not displayed.
+    /// Text without them is the same after formatting.
+    /// </summary>
+    private static readonly char[] SpecialChars = ['$', '\r'];
+
+    /// <summary>
+    /// The ANSI attributes of the 4096 colors (<c>$000</c> to <c>$fff</c>), computed when first used, or 0 when not computed yet.
+    /// The high bit is the bold attribute, the rest is the color attribute (30 to 37).
+    /// </summary>
+    private static readonly byte[] AnsiColorAttributes = new byte[4096];
+
+    /// <summary>
     /// Deformats a string from Nadeo format.
     /// </summary>
     /// <param name="input">A string input.</param>
@@ -66,10 +78,18 @@ public static class TextFormatter
             throw new ArgumentNullException(nameof(input));
         }
 
+        if (input.IndexOfAny(SpecialChars) == -1)
+        {
+            return input;
+        }
+
         var output = new StringBuilder(input.Length);
         var inLink = false;
-        var savedLinkStates = new Stack<bool>();
         var replacementCount = 0;
+
+        // The link states saved by $<, the last saved one in the lowest bit
+        var savedLinkStates = 0;
+        var savedCount = 0;
 
         for (var i = 0; i < input.Length; i++)
         {
@@ -79,7 +99,7 @@ public static class TextFormatter
             {
                 if (c != '\r')
                 {
-                    output.Append(c);
+                    i = AppendText(output, input, i, uppercase: false) - 1;
                 }
 
                 continue;
@@ -102,19 +122,22 @@ public static class TextFormatter
                     output.Append(markup.Literal);
                     break;
                 case MarkupType.Push:
-                    if (savedLinkStates.Count < MaxStyleStackCount)
+                    if (savedCount < MaxStyleStackCount)
                     {
-                        savedLinkStates.Push(inLink);
+                        savedLinkStates = (savedLinkStates << 1) | (inLink ? 1 : 0);
+                        savedCount++;
                     }
                     break;
                 case MarkupType.Pop:
-                    if (savedLinkStates.Count > 0)
+                    if (savedCount > 0)
                     {
-                        inLink = savedLinkStates.Pop();
+                        inLink = (savedLinkStates & 1) != 0;
+                        savedLinkStates >>= 1;
+                        savedCount--;
                     }
                     break;
                 case MarkupType.Reset:
-                    inLink = savedLinkStates.Count > 0 && savedLinkStates.Peek();
+                    inLink = savedCount > 0 && (savedLinkStates & 1) != 0;
                     break;
                 case MarkupType.LinkStart:
                     inLink = true;
@@ -141,9 +164,14 @@ public static class TextFormatter
             throw new ArgumentNullException(nameof(input));
         }
 
-        var output = new StringBuilder();
+        if (input.IndexOfAny(SpecialChars) == -1)
+        {
+            return input + AnsiDefault;
+        }
+
+        var output = new StringBuilder(input.Length + AnsiDefault.Length);
         var state = default(AnsiState);
-        var savedStates = new Stack<AnsiState>();
+        Stack<AnsiState>? savedStates = null;
 
         for (var i = 0; i < input.Length; i++)
         {
@@ -153,13 +181,14 @@ public static class TextFormatter
             {
                 if (c != '\r')
                 {
-                    output.Append(state.Uppercase ? char.ToUpperInvariant(c) : c);
+                    i = AppendText(output, input, i, state.Uppercase) - 1;
                 }
 
                 continue;
             }
 
             var markup = ReadMarkup(input, i, state.InLink);
+            var markupIndex = i;
             i += markup.Length - 1;
 
             switch (markup.Type)
@@ -168,25 +197,27 @@ public static class TextFormatter
                     output.Append(markup.Literal);
                     break;
                 case MarkupType.Color:
-                    state.Color = markup.Color;
+                    state.Color = ReadColor(input, markupIndex, markup.Length);
                     AppendAnsiColor(output, state.Color);
                     break;
                 case MarkupType.DefaultColor:
-                    state.Color = savedStates.Count > 0 ? savedStates.Peek().Color : null;
+                    state.Color = savedStates is { Count: > 0 } ? savedStates.Peek().Color : AnsiState.NoColor;
                     AppendAnsiColor(output, state.Color);
                     break;
                 case MarkupType.Reset:
-                    state = savedStates.Count > 0 ? savedStates.Peek() : default;
+                    state = savedStates is { Count: > 0 } ? savedStates.Peek() : default;
                     AppendAnsiColor(output, state.Color);
                     break;
                 case MarkupType.Push:
+                    savedStates ??= new Stack<AnsiState>(MaxStyleStackCount);
+
                     if (savedStates.Count < MaxStyleStackCount)
                     {
                         savedStates.Push(state);
                     }
                     break;
                 case MarkupType.Pop:
-                    if (savedStates.Count > 0)
+                    if (savedStates is { Count: > 0 })
                     {
                         state = savedStates.Pop();
                         AppendAnsiColor(output, state.Color);
@@ -209,15 +240,90 @@ public static class TextFormatter
         return output.ToString();
     }
 
-    private static void AppendAnsiColor(StringBuilder output, string? color)
+    /// <summary>
+    /// Appends the ANSI escape codes of a 12-bit color like <c>0xF00</c>, or of the default color if it is <see cref="AnsiState.NoColor"/>.
+    /// </summary>
+    private static void AppendAnsiColor(StringBuilder output, int color)
     {
-        if (color is null)
+        if (color == AnsiState.NoColor)
         {
             output.Append(AnsiDefault);
             return;
         }
 
-        AppendAnsiText(output, "$" + color);
+        var attributes = AnsiColorAttributes[color];
+
+        // Computing the attributes twice in parallel is fine, the result is the same
+        if (attributes == 0)
+        {
+            attributes = GetAnsiColorAttributes(color);
+            AnsiColorAttributes[color] = attributes;
+        }
+
+        var boldAttr = attributes >> 7;
+        var colorAttr = attributes & 0x7F;
+
+        output.Append('\x1B')
+            .Append('[')
+            .Append((char)('0' + boldAttr))
+            .Append(';')
+            .Append('3')
+            .Append((char)('0' + colorAttr - 30))
+            .Append('m');
+    }
+
+    /// <summary>
+    /// Finds the ANSI color closest to a 12-bit color like <c>0xF00</c>.
+    /// </summary>
+    /// <returns>The bold attribute in the high bit, and the color attribute (30 to 37) in the rest.</returns>
+    private static byte GetAnsiColorAttributes(int color)
+    {
+        var r = 0x11 * ((color >> 8) & 0xF);
+        var g = 0x11 * ((color >> 4) & 0xF);
+        var b = 0x11 * (color & 0xF);
+
+        var argb = Color.FromArgb(r, g, b);
+
+        var hue = argb.GetHue();
+
+        if (argb.GetSaturation() == 0)
+        {
+            hue = 0;
+        }
+
+        var colorAttr = hue switch
+        {
+            < 30 => 31,// red
+            < 80 => 33,// yellow
+            < 160 => 32,// green
+            < 214 => 36,// cyan
+            < 284 => 34,// blue
+            < 333 => 35,// magenta
+            _ => 31,
+        };
+
+        var boldAttr = 0;
+
+        if (argb.GetBrightness() < 0.1)
+        {
+            boldAttr = 1;
+            colorAttr = 30;
+        }
+        else
+        {
+            if (argb.GetBrightness() > 0.43)
+            {
+                boldAttr = 1;
+            }
+
+            if (argb.GetBrightness() > 0.9)
+            {
+                boldAttr = 1;
+                colorAttr = 37;
+            }
+        }
+
+        return (byte)((boldAttr << 7) | colorAttr);
     }
 
     internal static void AppendAnsiText(StringBuilder output, string element)
@@ -252,68 +358,7 @@ public static class TextFormatter
             }
         }
 
-        // Missing color channels are zero, like in the game ($f is $f00)
-        var r = 0x11 * HexValue(element[1]);
-        var g = element.Length > 2 ? 0x11 * HexValue(element[2]) : 0;
-        var b = element.Length > 3 ? 0x11 * HexValue(element[3]) : 0;
-
-        var color = Color.FromArgb(r, g, b);
-
-        var hue = color.GetHue();
-
-        if (color.GetSaturation() == 0)
-        {
-            hue = 0;
-        }
-
-        var colorAttr = hue switch
-        {
-            < 30 => 31,// red
-            < 80 => 33,// yellow
-            < 160 => 32,// green
-            < 214 => 36,// cyan
-            < 284 => 34,// blue
-            < 333 => 35,// magenta
-            _ => 31,
-        };
-
-        var boldAttr = 0;
-
-        if (color.GetBrightness() < 0.1)
-        {
-            boldAttr = 1;
-            colorAttr = 30;
-        }
-        else
-        {
-            if (color.GetBrightness() > 0.43)
-            {
-                boldAttr = 1;
-            }
-
-            if (color.GetBrightness() > 0.9)
-            {
-                boldAttr = 1;
-                colorAttr = 37;
-            }
-        }
-
-#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        ReadOnlySpan<char> span =
-        [
-            '\x1B',
-            '[',
-            (char)(boldAttr + 48),
-            ';',
-            '3',
-            (char)(colorAttr + 18),
-            'm'
-        ];
-
-        output.Append(span);
-#else
-        output.Append($"\x1B[{boldAttr};{colorAttr}m");
-#endif
+        AppendAnsiColor(output, ReadColor(element, 0, element.Length));
     }
 
     /// <summary>
@@ -321,7 +366,7 @@ public static class TextFormatter
     /// </summary>
     /// <param name="c">A character.</param>
     /// <returns>True if the character is a Font Awesome 4.7 icon, otherwise false.</returns>
-    public static bool IsFontAwesomeIcon(char c) => c is >= '\uF000' and <= '\uF2E0';
+    public static bool IsFontAwesomeIcon(char c) => c is >= '' and <= '';
 
     /// <summary>
     /// Formats a Nadeo string into a HTML format.
@@ -354,22 +399,25 @@ public static class TextFormatter
             return string.Empty;
         }
 
-        var segments = new List<Segment>();
-        var savedStyles = new Stack<Style>();
-        var defaultStyle = new Style();
-        var style = new Style();
-        var textBuffer = new StringBuilder();
+        var iconStartTag = string.IsNullOrEmpty(iconCssClass) ? null : $"<span class=\"{WebUtility.HtmlEncode(iconCssClass)}\">";
 
-        void FlushBuffer()
+        // Text without formatting only needs to be encoded
+        if (input.IndexOfAny(SpecialChars) == -1)
         {
-            if (textBuffer.Length > 0)
+            if (iconStartTag is null)
             {
-                segments.Add(new Segment { Text = textBuffer.ToString(), Style = style.Clone() });
-                textBuffer.Clear();
+                return WebUtility.HtmlEncode(input);
             }
+
+            var plainOutput = new StringBuilder();
+            AppendHtmlText(plainOutput, input, iconStartTag);
+            return plainOutput.ToString();
         }
 
-        Style GetSavedStyle() => savedStyles.Count > 0 ? savedStyles.Peek() : defaultStyle;
+        var output = new StringBuilder(input.Length * 2);
+        var text = new StringBuilder();
+        var style = default(HtmlStyle);
+        Stack<HtmlStyle>? savedStyles = null;
 
         for (var i = 0; i < input.Length; i++)
         {
@@ -379,18 +427,19 @@ public static class TextFormatter
             {
                 if (c != '\r')
                 {
-                    textBuffer.Append(style.Uppercase ? char.ToUpperInvariant(c) : c);
+                    i = AppendText(text, input, i, style.Uppercase) - 1;
                 }
 
                 continue;
             }
 
             var markup = ReadMarkup(input, i, style.InLink);
+            var markupIndex = i;
             i += markup.Length - 1;
 
             if (markup.Type == MarkupType.Literal)
             {
-                textBuffer.Append(markup.Literal);
+                text.Append(markup.Literal);
                 continue;
             }
 
@@ -399,27 +448,33 @@ public static class TextFormatter
                 continue;
             }
 
-            FlushBuffer();
+            // The text so far has the style before this code
+            AppendHtmlSegment(output, text, style, input, iconStartTag);
 
             switch (markup.Type)
             {
                 case MarkupType.Color:
-                    style.Color = "#" + markup.Color;
+                    style.ColorIndex = markupIndex + 1;
+                    style.ColorLength = markup.Length - 1;
                     break;
                 case MarkupType.DefaultColor:
-                    style.Color = GetSavedStyle().Color;
+                    var savedStyle = savedStyles is { Count: > 0 } ? savedStyles.Peek() : default;
+                    style.ColorIndex = savedStyle.ColorIndex;
+                    style.ColorLength = savedStyle.ColorLength;
                     break;
                 case MarkupType.Reset:
-                    style = GetSavedStyle().Clone();
+                    style = savedStyles is { Count: > 0 } ? savedStyles.Peek() : default;
                     break;
                 case MarkupType.Push:
+                    savedStyles ??= new Stack<HtmlStyle>(MaxStyleStackCount);
+
                     if (savedStyles.Count < MaxStyleStackCount)
                     {
-                        savedStyles.Push(style.Clone());
+                        savedStyles.Push(style);
                     }
                     break;
                 case MarkupType.Pop:
-                    if (savedStyles.Count > 0)
+                    if (savedStyles is { Count: > 0 })
                     {
                         style = savedStyles.Pop();
                     }
@@ -433,10 +488,9 @@ public static class TextFormatter
                 case MarkupType.Narrow: style.Width = TextWidth.Narrow; break;
                 case MarkupType.LinkStart:
                     style.InLink = true;
-                    // The URL of a link start is never null
                     style.LinkUrl = markup.LinkType == LinkType.External
-                        ? (allowLinks ? ToSafeExternalUrl(markup.LinkUrl!) : null)
-                        : (allowManialinks ? $"maniaplanet:///:{markup.LinkUrl}" : null);
+                        ? (allowLinks ? ToSafeExternalUrl(GetLinkUrl(input, markup)) : null)
+                        : (allowManialinks ? "maniaplanet:///:" + GetLinkUrl(input, markup) : null);
                     break;
                 default:
                     // MarkupType.LinkEnd is the only one left, the markups without style were skipped above
@@ -446,34 +500,80 @@ public static class TextFormatter
             }
         }
 
-        FlushBuffer();
+        AppendHtmlSegment(output, text, style, input, iconStartTag);
 
-        // Build HTML with inline styles
-        var sb = new StringBuilder();
-        var iconStartTag = string.IsNullOrEmpty(iconCssClass) ? null : $"<span class=\"{WebUtility.HtmlEncode(iconCssClass)}\">";
+        return output.ToString();
+    }
 
-        foreach (var seg in segments)
+    /// <summary>
+    /// Appends the text with its style as HTML, and clears the text.
+    /// </summary>
+    private static void AppendHtmlSegment(StringBuilder output, StringBuilder text, in HtmlStyle style, string input, string? iconStartTag)
+    {
+        if (text.Length == 0)
         {
-            var css = seg.Style.ToCss();
-            var encoded = EncodeHtmlText(seg.Text, iconStartTag);
-
-            if (!string.IsNullOrEmpty(seg.Style.LinkUrl))
-            {
-                var linkStyle = string.IsNullOrEmpty(css) ? "" : $" style=\"{css}\"";
-                var encodedUrl = WebUtility.HtmlEncode(seg.Style.LinkUrl);
-                sb.Append($"<a href=\"{encodedUrl}\"{linkStyle}>{encoded}</a>");
-            }
-            else if (string.IsNullOrEmpty(css))
-            {
-                sb.Append(encoded);
-            }
-            else
-            {
-                sb.Append($"<span style=\"{css}\">{encoded}</span>");
-            }
+            return;
         }
 
-        return sb.ToString();
+        var segmentText = text.ToString();
+        text.Clear();
+
+        if (!string.IsNullOrEmpty(style.LinkUrl))
+        {
+            output.Append("<a href=\"").Append(WebUtility.HtmlEncode(style.LinkUrl)).Append('"');
+
+            if (style.HasCss)
+            {
+                output.Append(" style=\"");
+                AppendCss(output, style, input);
+                output.Append('"');
+            }
+
+            output.Append('>');
+            AppendHtmlText(output, segmentText, iconStartTag);
+            output.Append("</a>");
+        }
+        else if (!style.HasCss)
+        {
+            AppendHtmlText(output, segmentText, iconStartTag);
+        }
+        else
+        {
+            output.Append("<span style=\"");
+            AppendCss(output, style, input);
+            output.Append("\">");
+            AppendHtmlText(output, segmentText, iconStartTag);
+            output.Append("</span>");
+        }
+    }
+
+    private static void AppendCss(StringBuilder output, in HtmlStyle style, string input)
+    {
+        var start = output.Length;
+
+        // Missing color channels are zero, like in the game ($f is $f00)
+        if (style.ColorLength > 0)
+        {
+            output.Append("color:#")
+                .Append(input, style.ColorIndex, style.ColorLength)
+                .Append('0', 3 - style.ColorLength);
+        }
+
+        if (style.Bold) AppendCssDeclaration(output, start, "font-weight:bold");
+        if (style.Italic) AppendCssDeclaration(output, start, "font-style:italic");
+        if (style.Uppercase) AppendCssDeclaration(output, start, "text-transform:uppercase");
+        if (style.DropShadow) AppendCssDeclaration(output, start, "text-shadow:1px 1px 2px black");
+        if (style.Width == TextWidth.Narrow) AppendCssDeclaration(output, start, "letter-spacing:-0.05em");
+    }
+
+    private static void AppendCssDeclaration(StringBuilder output, int cssStart, string declaration)
+    {
+        if (output.Length > cssStart)
+        {
+            output.Append(';');
+        }
+
+        output.Append(declaration);
     }
 
     /// <summary>
@@ -535,23 +635,18 @@ public static class TextFormatter
     private static bool IsAsciiLetter(char c) => c is (>= 'a' and <= 'z') or (>= 'A' and <= 'Z');
 
     /// <summary>
-    /// Encodes the text for HTML, with runs of Font Awesome icons wrapped in <paramref name="iconStartTag"/> if it is not null.
+    /// Appends the text encoded for HTML, with runs of Font Awesome icons wrapped in <paramref name="iconStartTag"/> if it is not null.
     /// </summary>
-    private static string EncodeHtmlText(string text, string? iconStartTag)
+    private static void AppendHtmlText(StringBuilder output, string text, string? iconStartTag)
     {
-        if (iconStartTag is null)
-        {
-            return WebUtility.HtmlEncode(text);
-        }
-
-        var iconStart = IndexOfFontAwesomeIcon(text, 0);
+        var iconStart = iconStartTag is null ? -1 : IndexOfFontAwesomeIcon(text, 0);
 
         if (iconStart == -1)
         {
-            return WebUtility.HtmlEncode(text);
+            output.Append(WebUtility.HtmlEncode(text));
+            return;
         }
 
-        var output = new StringBuilder();
         var textStart = 0;
 
         while (iconStart != -1)
@@ -573,8 +668,6 @@ public static class TextFormatter
         }
 
         output.Append(WebUtility.HtmlEncode(text.Substring(textStart)));
-
-        return output.ToString();
     }
 
     private static int IndexOfFontAwesomeIcon(string text, int startIndex)
@@ -588,6 +681,39 @@ public static class TextFormatter
         }
 
         return -1;
+    }
+
+    /// <summary>
+    /// Appends the text from <paramref name="index"/> up to the next dollar sign or carriage return, in one go.
+    /// </summary>
+    /// <returns>The index after the appended text.</returns>
+    private static int AppendText(StringBuilder output, string input, int index, bool uppercase)
+    {
+        // The text between formatting codes is mostly short, where a simple loop is faster than IndexOfAny
+        var end = index + 1;
+
+        while (end < input.Length && input[end] is not ('$' or '\r'))
+        {
+            end++;
+        }
+
+        if (uppercase)
+        {
+            for (var i = index; i < end; i++)
+            {
+                output.Append(char.ToUpperInvariant(input[i]));
+            }
+        }
+        else if (end - index == 1)
+        {
+            output.Append(input[index]);
+        }
+        else
+        {
+            output.Append(input, index, end - index);
+        }
+
+        return end;
     }
 
     /// <summary>
@@ -641,17 +767,27 @@ public static class TextFormatter
             return new Markup(MarkupType.Ignored, 2);
         }
 
-        // 1 to 3 hex digits, missing color channels are zero
-        var color = new[] { code, '0', '0' };
+        // 1 to 3 hex digits, read by ReadColor when needed
         var length = 2;
 
         while (length < 4 && index + length < input.Length && IsHex(input[index + length]))
         {
-            color[length - 1] = input[index + length];
             length++;
         }
 
-        return new Markup(MarkupType.Color, length, color: new string(color));
+        return new Markup(MarkupType.Color, length);
+    }
+
+    /// <summary>
+    /// Reads the color of the color code at <paramref name="index"/> as a 12-bit number like <c>0xF00</c>. Missing color channels are zero, like in the game.
+    /// </summary>
+    private static int ReadColor(string input, int index, int length)
+    {
+        var r = HexValue(input[index + 1]);
+        var g = length > 2 ? HexValue(input[index + 2]) : 0;
+        var b = length > 3 ? HexValue(input[index + 3]) : 0;
+
+        return (r << 8) | (g << 4) | b;
     }
 
     private static Markup ReadLinkStart(string input, int index, char code)
@@ -667,16 +803,23 @@ public static class TextFormatter
             // Without a closing bracket, the rest of the string is the URL and it stays visible
             if (urlEnd == -1)
             {
-                return new Markup(MarkupType.LinkStart, 3, linkType: linkType, linkUrl: input.Substring(urlStart));
+                return new Markup(MarkupType.LinkStart, 3, linkType: linkType, linkUrlStart: urlStart, linkUrlLength: input.Length - urlStart);
             }
 
-            return new Markup(MarkupType.LinkStart, urlEnd - index + 1, linkType: linkType, linkUrl: input.Substring(urlStart, urlEnd - urlStart));
+            return new Markup(MarkupType.LinkStart, urlEnd - index + 1, linkType: linkType, linkUrlStart: urlStart, linkUrlLength: urlEnd - urlStart);
         }
 
-        // Without brackets, the visible text is the URL
-        var textEnd = FindLinkTextEnd(input, afterCode);
+        // Without brackets, the visible text is the URL, found by GetLinkUrl only when needed
+        return new Markup(MarkupType.LinkStart, 2, linkType: linkType, linkUrlStart: afterCode, linkUrlLength: -1);
+    }
 
-        return new Markup(MarkupType.LinkStart, 2, linkType: linkType, linkUrl: input.Substring(afterCode, textEnd - afterCode));
+    private static string GetLinkUrl(string input, Markup markup)
+    {
+        var length = markup.LinkUrlLength >= 0
+            ? markup.LinkUrlLength
+            : FindLinkTextEnd(input, markup.LinkUrlStart) - markup.LinkUrlStart;
+
+        return input.Substring(markup.LinkUrlStart, length);
     }
 
     /// <summary>
@@ -750,64 +893,74 @@ public static class TextFormatter
         Wide
     }
 
+    /// <summary>
+    /// A formatting code. Its color and link URL are not copied out of the input, so that the formatters that do not need them do not allocate.
+    /// </summary>
     private readonly struct Markup
     {
         public MarkupType Type { get; }
         public int Length { get; }
         public char Literal { get; }
-        public string? Color { get; }
         public LinkType LinkType { get; }
-        public string? LinkUrl { get; }
 
-        public Markup(MarkupType type, int length, char literal = '\0', string? color = null, LinkType linkType = default, string? linkUrl = null)
+        /// <summary>
+        /// Where the URL of a link start begins in the input.
+        /// </summary>
+        public int LinkUrlStart { get; }
+
+        /// <summary>
+        /// The length of the URL of a link start, or -1 for a link without brackets, whose URL is its visible text.
+        /// </summary>
+        public int LinkUrlLength { get; }
+
+        public Markup(MarkupType type, int length, char literal = '\0', LinkType linkType = default, int linkUrlStart = 0, int linkUrlLength = 0)
         {
             Type = type;
             Length = length;
             Literal = literal;
-            Color = color;
             LinkType = linkType;
-            LinkUrl = linkUrl;
+            LinkUrlStart = linkUrlStart;
+            LinkUrlLength = linkUrlLength;
         }
     }
 
     private struct AnsiState
     {
-        public string? Color;
+        public const int NoColor = -1;
+
+        // Stored as color + 1, so that the default state has no color
+        private int colorPlusOne;
+
+        /// <summary>
+        /// A 12-bit color like <c>0xF00</c>, or <see cref="NoColor"/>.
+        /// </summary>
+        public int Color
+        {
+            readonly get => colorPlusOne - 1;
+            set => colorPlusOne = value + 1;
+        }
+
         public bool InLink;
         public bool Uppercase;
     }
 
-    private sealed class Segment
+    private struct HtmlStyle
     {
-        public string Text { get; set; } = string.Empty;
-        public Style Style { get; set; } = new Style();
-    }
+        public bool Bold;
+        public bool Italic;
+        public bool Uppercase;
+        public bool DropShadow;
+        public TextWidth Width;
 
-    private sealed class Style
-    {
-        public bool Bold { get; set; }
-        public bool Italic { get; set; }
-        public bool Uppercase { get; set; }
-        public bool DropShadow { get; set; }
-        public TextWidth Width { get; set; }
-        public string? Color { get; set; }
-        public bool InLink { get; set; }
-        public string? LinkUrl { get; set; }
+        /// <summary>
+        /// Where the hex digits of the color are in the input, and how many of them there are (0 for no color).
+        /// </summary>
+        public int ColorIndex;
+        public int ColorLength;
 
-        // Note: Clone() uses MemberwiseClone(), which performs a shallow copy.
-        // If mutable reference-type properties are added to Style, this may cause bugs.
-        public Style Clone() => (Style)MemberwiseClone();
+        public bool InLink;
+        public string? LinkUrl;
 
-        public string ToCss()
-        {
-            var parts = new List<string>();
-            if (Color is not null) parts.Add($"color:{Color}");
-            if (Bold) parts.Add("font-weight:bold");
-            if (Italic) parts.Add("font-style:italic");
-            if (Uppercase) parts.Add("text-transform:uppercase");
-            if (DropShadow) parts.Add("text-shadow:1px 1px 2px black");
-            if (Width == TextWidth.Narrow) parts.Add("letter-spacing:-0.05em");
-            return string.Join(";", parts);
-        }
+        public readonly bool HasCss => ColorLength > 0 || Bold || Italic || Uppercase || DropShadow || Width == TextWidth.Narrow;
     }
 }

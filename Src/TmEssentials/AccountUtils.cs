@@ -7,6 +7,7 @@ public static class AccountUtils
 {
 #if NETSTANDARD2_1 || NET8_0_OR_GREATER
     private const int GuidByteLength = 16;
+    private const int MaxStackBase64Length = 64;
 #endif
 
     /// <summary>
@@ -93,19 +94,17 @@ public static class AccountUtils
             throw new ArgumentNullException(nameof(login));
         }
 
-        var base64 = login.Replace('-', '+').Replace('_', '/');
-
-        switch (base64.Length % 4)
+        // Base64url without the padding, so the padding is added back
+        var paddingLength = (login.Length % 4) switch
         {
-            case 2:
-                base64 += "==";
-                break;
-            case 3:
-                base64 += "=";
-                break;
-        }
+            2 => 2,
+            3 => 1,
+            _ => 0
+        };
 
 #if NETSTANDARD2_0 || NET462_OR_GREATER
+
+        var base64 = login.Replace('-', '+').Replace('_', '/') + new string('=', paddingLength);
 
         var b = Convert.FromBase64String(base64);
 
@@ -123,10 +122,29 @@ public static class AccountUtils
         ]);
 #else
 
+        // A login has 22 characters. Longer input can still decode thanks to the whitespace that base64 skips, so it goes to the heap.
+        var base64Length = login.Length + paddingLength;
+        Span<char> base64 = base64Length <= MaxStackBase64Length ? stackalloc char[MaxStackBase64Length] : new char[base64Length];
+        base64 = base64.Slice(0, base64Length);
+
+        for (var i = 0; i < login.Length; i++)
+        {
+            var c = login[i];
+
+            base64[i] = c switch
+            {
+                '-' => '+',
+                '_' => '/',
+                _ => c
+            };
+        }
+
+        base64.Slice(login.Length).Fill('=');
+
         Span<byte> b = stackalloc byte[GuidByteLength];
 
         // Fails when the login is longer than 16 bytes, and the written length catches the shorter ones
-        if (!Convert.TryFromBase64String(base64, b, out var bytesWritten) || bytesWritten != GuidByteLength)
+        if (!Convert.TryFromBase64Chars(base64, b, out var bytesWritten) || bytesWritten != GuidByteLength)
         {
             throw new FormatException("Invalid login.");
         }
