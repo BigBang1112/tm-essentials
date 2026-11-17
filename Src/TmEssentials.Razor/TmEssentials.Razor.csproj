@@ -13,7 +13,7 @@
 - **Added Font Awesome 4.7 icons to `FormattedText`**, displayed by linking the new `_content/TmEssentials.Razor/tm-essentials.css` stylesheet, which includes the font
   - Added the `IconCssClass` parameter, `tm-icon` by default. Use `fa` with the Font Awesome 4.7 stylesheet, or `null` to not wrap the icons
   - Added `FormattedText.DefaultIconCssClass`
-- Updated to TmEssentials 2.0.0, which formats text the same way as ManiaPlanet and only links safe URLs
+- Updated to TmEssentials 2.9.0, which formats text the same way as ManiaPlanet and only links safe URLs
         </PackageReleaseNotes>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
     </PropertyGroup>
@@ -43,13 +43,6 @@
 
     <ItemGroup>
         <None Include="../../logo_icon_outline.png" Pack="true" PackagePath="\" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-        </PackageReference>
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">

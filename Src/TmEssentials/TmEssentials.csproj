@@ -16,6 +16,9 @@
   - `(TimeInt32)timeSingle` rounds to the nearest millisecond, like `TimeSingle.ToTimeInt32()` and `TimeInt32.Add(ITime)` with a `TimeSingle`
 - **Breaking:** `TimeInt32` arithmetic throws `OverflowException` instead of wrapping around, like `TimeSpan`
   - Applies to the `+`, `-` and `*` operators, `Add`, `Multiply(int)`, `Negate`, `Duration` and the constructors with days, hours, minutes and seconds
+- **Breaking:** `TimeInt32.FromDays`, `FromHours`, `FromMinutes`, `FromSeconds` and `FromMilliseconds` round to the nearest millisecond, like `TimeSpan` on .NET Framework, instead of truncating
+  - For example, `TimeInt32.FromSeconds(0.251f)` is now 251 milliseconds instead of 250
+  - They and `FromTicks` throw `OverflowException` outside the `TimeInt32` range instead of returning a wrong time, and `ArgumentException` for NaN
 - **Breaking:** `TextFormatter.Deformat`, `FormatAnsi` and `FormatHtml` now read formatting codes the same way as ManiaPlanet, so some results differ from 2.8.0
   - Added 1 and 2 digit colors (`$f` is `$f00`), `$p` manialinks, the `$[` and `$]` escapes, and `$m` for normal width
   - `$&lt;` and `$&gt;` save and restore up to 7 styles, and `$z` and `$g` reset to the style saved by `$&lt;`

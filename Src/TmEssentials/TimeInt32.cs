@@ -13,8 +13,8 @@ namespace TmEssentials;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Like <see cref="TimeSpan"/>, arithmetic that does not fit into <see cref="int"/> milliseconds throws <see cref="OverflowException"/>
-/// instead of wrapping around.
+/// Like <see cref="TimeSpan"/>, arithmetic and the <c>From</c> methods throw <see cref="OverflowException"/> when the result
+/// does not fit into <see cref="int"/> milliseconds, instead of wrapping around.
 /// </para>
 /// <para>
 /// Two <see cref="TimeInt32"/> values are compared by their exact milliseconds. A <see cref="TimeInt32"/> and a <see cref="TimeSingle"/>
@@ -123,46 +123,81 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime,
     }
 
     /// <summary>
-    /// Creates a new <see cref="TimeInt32"/> instance representing a specified number of days.
+    /// Creates a new <see cref="TimeInt32"/> instance representing a specified number of days, rounded to the nearest millisecond.
     /// </summary>
     /// <param name="value">The number of days.</param>
     /// <returns>A <see cref="TimeInt32"/> instance equivalent to the specified number of days.</returns>
-    public static TimeInt32 FromDays(float value) => new((int)(value * 86_400_000));
+    /// <exception cref="OverflowException"><paramref name="value"/> is out of the <see cref="TimeInt32"/> range (about ±24.8 days) or infinite.</exception>
+    /// <exception cref="ArgumentException"><paramref name="value"/> is NaN.</exception>
+    public static TimeInt32 FromDays(float value) => FromUnits(value, 86_400_000);
 
     /// <summary>
-    /// Creates a new <see cref="TimeInt32"/> instance representing a specified number of hours.
+    /// Creates a new <see cref="TimeInt32"/> instance representing a specified number of hours, rounded to the nearest millisecond.
     /// </summary>
     /// <param name="value">The number of hours.</param>
     /// <returns>A <see cref="TimeInt32"/> instance equivalent to the specified number of hours.</returns>
-    public static TimeInt32 FromHours(float value) => new((int)(value * 3_600_000));
+    /// <exception cref="OverflowException"><paramref name="value"/> is out of the <see cref="TimeInt32"/> range (about ±24.8 days) or infinite.</exception>
+    /// <exception cref="ArgumentException"><paramref name="value"/> is NaN.</exception>
+    public static TimeInt32 FromHours(float value) => FromUnits(value, 3_600_000);
 
     /// <summary>
-    /// Creates a new <see cref="TimeInt32"/> instance representing a specified number of milliseconds.
+    /// Creates a new <see cref="TimeInt32"/> instance representing a specified number of milliseconds, rounded to the nearest millisecond.
     /// </summary>
     /// <param name="value">The number of milliseconds.</param>
     /// <returns>A <see cref="TimeInt32"/> instance equivalent to the specified number of milliseconds.</returns>
-    public static TimeInt32 FromMilliseconds(float value) => new((int)value);
+    /// <exception cref="OverflowException"><paramref name="value"/> is out of the <see cref="TimeInt32"/> range (about ±24.8 days) or infinite.</exception>
+    /// <exception cref="ArgumentException"><paramref name="value"/> is NaN.</exception>
+    public static TimeInt32 FromMilliseconds(float value) => FromUnits(value, 1);
 
     /// <summary>
-    /// Creates a new <see cref="TimeInt32"/> instance representing a specified number of minutes.
+    /// Creates a new <see cref="TimeInt32"/> instance representing a specified number of minutes, rounded to the nearest millisecond.
     /// </summary>
     /// <param name="value">The number of minutes.</param>
     /// <returns>A <see cref="TimeInt32"/> instance equivalent to the specified number of minutes.</returns>
-    public static TimeInt32 FromMinutes(float value) => new((int)(value * 60_000));
+    /// <exception cref="OverflowException"><paramref name="value"/> is out of the <see cref="TimeInt32"/> range (about ±24.8 days) or infinite.</exception>
+    /// <exception cref="ArgumentException"><paramref name="value"/> is NaN.</exception>
+    public static TimeInt32 FromMinutes(float value) => FromUnits(value, 60_000);
 
     /// <summary>
-    /// Creates a new <see cref="TimeInt32"/> instance representing a specified number of seconds.
+    /// Creates a new <see cref="TimeInt32"/> instance representing a specified number of seconds, rounded to the nearest millisecond.
     /// </summary>
     /// <param name="value">The number of seconds.</param>
     /// <returns>A <see cref="TimeInt32"/> instance equivalent to the specified number of seconds.</returns>
-    public static TimeInt32 FromSeconds(float value) => new((int)(value * 1_000));
+    /// <exception cref="OverflowException"><paramref name="value"/> is out of the <see cref="TimeInt32"/> range (about ±24.8 days) or infinite.</exception>
+    /// <exception cref="ArgumentException"><paramref name="value"/> is NaN.</exception>
+    public static TimeInt32 FromSeconds(float value) => FromUnits(value, 1_000);
 
     /// <summary>
-    /// Creates a new <see cref="TimeInt32"/> instance representing a specified number of ticks.
+    /// Creates a new <see cref="TimeInt32"/> instance representing a specified number of ticks, truncated to whole milliseconds
+    /// like the explicit conversion from <see cref="TimeSpan"/>.
     /// </summary>
     /// <param name="value">The number of ticks (1 tick = 100 nanoseconds).</param>
     /// <returns>A <see cref="TimeInt32"/> instance equivalent to the specified number of ticks.</returns>
-    public static TimeInt32 FromTicks(long value) => new((int)(value / 10_000));
+    /// <exception cref="OverflowException"><paramref name="value"/> is out of the <see cref="TimeInt32"/> range (about ±24.8 days).</exception>
+    public static TimeInt32 FromTicks(long value) => (TimeInt32)new TimeSpan(value);
+
+    /// <summary>
+    /// Converts a number of units to whole milliseconds the way <see cref="TimeSpan"/> does on .NET Framework, where its precision
+    /// is also a millisecond: rounded to the nearest millisecond (halves away from zero), so float errors like 0.251 seconds being
+    /// 250.99998 milliseconds do not lose a millisecond.
+    /// </summary>
+    private static TimeInt32 FromUnits(float value, int millisecondsPerUnit)
+    {
+        if (float.IsNaN(value))
+        {
+            throw new ArgumentException("TimeInt32 does not accept NaN.", nameof(value));
+        }
+
+        var milliseconds = Math.Round((double)value * millisecondsPerUnit, MidpointRounding.AwayFromZero);
+
+        // Infinity fails this check too
+        if (milliseconds is < int.MinValue or > int.MaxValue)
+        {
+            throw new OverflowException("The time is out of the TimeInt32 range.");
+        }
+
+        return new((int)milliseconds);
+    }
 
     /// <inheritdoc />
     ITime ITime.Add(ITime time) => Add(time);

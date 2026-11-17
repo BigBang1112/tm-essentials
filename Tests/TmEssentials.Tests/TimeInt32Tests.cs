@@ -389,6 +389,111 @@ public class TimeInt32Tests
     }
 
     [Test]
+    public async Task FromMethods_WithFloatError_RoundToNearestMillisecond()
+    {
+        // 0.251f is 250.99998 milliseconds as a float, which truncation would make 250
+        await Assert.That(TimeInt32.FromSeconds(0.251f).TotalMilliseconds).IsEqualTo(251);
+        await Assert.That(TimeInt32.FromSeconds(-0.251f).TotalMilliseconds).IsEqualTo(-251);
+        await Assert.That(TimeInt32.FromSeconds(1.234f).TotalMilliseconds).IsEqualTo(1_234);
+        await Assert.That(TimeInt32.FromMinutes(1.2345f).TotalMilliseconds).IsEqualTo(74_070);
+        await Assert.That(TimeInt32.FromHours(0.001f).TotalMilliseconds).IsEqualTo(3_600);
+        await Assert.That(TimeInt32.FromDays(0.5f).TotalMilliseconds).IsEqualTo(43_200_000);
+    }
+
+    [Test]
+    [Arguments(0.4f, 0)]
+    [Arguments(-0.4f, 0)]
+    [Arguments(0.5f, 1)]
+    [Arguments(-0.5f, -1)]
+    [Arguments(1.5f, 2)]
+    [Arguments(-1.5f, -2)]
+    [Arguments(2.5f, 3)]
+    [Arguments(2_147_483_520f, 2_147_483_520)] // the largest float below 2^31
+    [Arguments(-2_147_483_648f, int.MinValue)]
+    public async Task FromMilliseconds_WithFraction_RoundsHalfAwayFromZero(float milliseconds, int expectedTotalMilliseconds)
+    {
+        // Act
+        var time = TimeInt32.FromMilliseconds(milliseconds);
+
+        // Assert
+        await Assert.That(time.TotalMilliseconds).IsEqualTo(expectedTotalMilliseconds);
+    }
+
+    [Test]
+    [Arguments(25f)]
+    [Arguments(-25f)]
+    [Arguments(float.MaxValue)]
+    [Arguments(float.PositiveInfinity)]
+    [Arguments(float.NegativeInfinity)]
+    public async Task FromDays_WithDaysOutOfRange_ThrowsOverflowException(float days)
+    {
+        // Act
+        var act = () => TimeInt32.FromDays(days);
+
+        // Assert
+        await Assert.That(act).ThrowsExactly<OverflowException>();
+    }
+
+    [Test]
+    public async Task FromMethods_WhenResultIsOutOfRange_ThrowOverflowException()
+    {
+        // Act
+        var hours = () => TimeInt32.FromHours(597f);
+        var minutes = () => TimeInt32.FromMinutes(-35_792f);
+        var seconds = () => TimeInt32.FromSeconds(2_147_484f);
+        var milliseconds = () => TimeInt32.FromMilliseconds(2_147_483_648f);
+        var ticks = () => TimeInt32.FromTicks((int.MaxValue + 1L) * 10_000);
+        var negativeTicks = () => TimeInt32.FromTicks((int.MinValue - 1L) * 10_000);
+        var maxTicks = () => TimeInt32.FromTicks(long.MaxValue);
+        var minTicks = () => TimeInt32.FromTicks(long.MinValue);
+
+        // Assert
+        await Assert.That(hours).ThrowsExactly<OverflowException>();
+        await Assert.That(minutes).ThrowsExactly<OverflowException>();
+        await Assert.That(seconds).ThrowsExactly<OverflowException>();
+        await Assert.That(milliseconds).ThrowsExactly<OverflowException>();
+        await Assert.That(ticks).ThrowsExactly<OverflowException>();
+        await Assert.That(negativeTicks).ThrowsExactly<OverflowException>();
+        await Assert.That(maxTicks).ThrowsExactly<OverflowException>();
+        await Assert.That(minTicks).ThrowsExactly<OverflowException>();
+    }
+
+    [Test]
+    public async Task FromMethods_WithNaN_ThrowArgumentException()
+    {
+        // Act
+        var days = () => TimeInt32.FromDays(float.NaN);
+        var hours = () => TimeInt32.FromHours(float.NaN);
+        var minutes = () => TimeInt32.FromMinutes(float.NaN);
+        var seconds = () => TimeInt32.FromSeconds(float.NaN);
+        var milliseconds = () => TimeInt32.FromMilliseconds(float.NaN);
+
+        // Assert
+        await Assert.That(days).ThrowsExactly<ArgumentException>();
+        await Assert.That(hours).ThrowsExactly<ArgumentException>();
+        await Assert.That(minutes).ThrowsExactly<ArgumentException>();
+        await Assert.That(seconds).ThrowsExactly<ArgumentException>();
+        await Assert.That(milliseconds).ThrowsExactly<ArgumentException>();
+    }
+
+    [Test]
+    [Arguments(9_999L, 0)]
+    [Arguments(-9_999L, 0)]
+    [Arguments(15_000L, 1)]
+    [Arguments(-15_000L, -1)]
+    [Arguments(int.MaxValue * 10_000L + 9_999L, int.MaxValue)]
+    [Arguments(int.MinValue * 10_000L - 9_999L, int.MinValue)]
+    public async Task FromTicks_WithPartialMilliseconds_TruncatesLikeTimeSpanConversion(long ticks, int expectedTotalMilliseconds)
+    {
+        // Act
+        var time = TimeInt32.FromTicks(ticks);
+
+        // Assert
+        await Assert.That(time.TotalMilliseconds).IsEqualTo(expectedTotalMilliseconds);
+        await Assert.That(time).IsEqualTo((TimeInt32)TimeSpan.FromTicks(ticks));
+    }
+
+    [Test]
     [Arguments(5, 10, 15)]
     [Arguments(-1, -2, -3)]
     [Arguments(0, 0, 0)]
