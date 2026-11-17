@@ -1,23 +1,37 @@
 name: Publish NuGet
 
 on:
-  release:
-    types: [ published ]
+  push:
+    tags: ["v*"]
   workflow_dispatch:
+    inputs:
+      description:
+        description: Text before the release notes
+        type: string
+        default: ""
 
 permissions:
-  contents: write # important for release description edit and asset upload
-  packages: write
+  contents: read
 
 jobs:
   publish:
     name: Publish NuGet
-    uses: bigbang1112/workflows/.github/workflows/publish-nuget.yml@main
-    with:
-      dotnet-version: |
-        10.x.x
-        9.x.x
-        8.x.x
-      project-path: "{TmEssentials,TmEssentials.Razor}"
-    secrets:
-      NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # creates the release and uploads the packages to it
+      packages: write # publishes to GitHub Packages
+      id-token: write # NuGet.org trusted publishing
+    concurrency:
+      group: publish-nuget-${{ github.ref }}
+    steps:
+      - uses: bigbang1112/workflows/publish-nuget-immutable@main
+        with:
+          dotnet-version: latest
+          project-path: Src/*/*.csproj
+          test-path: |
+            Tests/TmEssentials.Tests/TmEssentials.Tests.csproj
+            Tests/TmEssentials.Razor.Tests/TmEssentials.Razor.Tests.csproj
+          main-project: TmEssentials
+          release-title-prefix: TmEssentials
+          release-description: ${{ inputs.description }}
+          nuget-user: ${{ vars.NUGET_USER }}

@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<PackageId>TmEssentials</PackageId>
-		<Version>2.8.0</Version>
+		<Version>2.9.0</Version>
 		<Authors>BigBang1112</Authors>
 		<Description>A .NET library providing essential Trackmania features, like the time or text formatting.</Description>
 		<Copyright>Copyright (c) 2026 Petr Pivoňka</Copyright>
@@ -10,7 +10,31 @@
 		<PackageIcon>logo_icon_outline.png</PackageIcon>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageTags>trackmania, tm, essentials, maniaplanet, time, account, formatting</PackageTags>
-		<PackageReleaseNotes></PackageReleaseNotes>
+		<PackageReleaseNotes>
+- **Breaking:** `TimeInt32` conversions from `TimeSpan` and `TimeSingle` are now explicit, so they need a cast
+  - `(TimeInt32)timeSpan` truncates to whole milliseconds and throws `OverflowException` outside the `TimeInt32` range (about ±24.8 days)
+  - `(TimeInt32)timeSingle` rounds to the nearest millisecond, like `TimeSingle.ToTimeInt32()` and `TimeInt32.Add(ITime)` with a `TimeSingle`
+- **Breaking:** `TimeInt32` arithmetic throws `OverflowException` instead of wrapping around, like `TimeSpan`
+  - Applies to the `+`, `-` and `*` operators, `Add`, `Multiply(int)`, `Negate`, `Duration` and the constructors with days, hours, minutes and seconds
+- **Breaking:** `TextFormatter.Deformat`, `FormatAnsi` and `FormatHtml` now read formatting codes the same way as ManiaPlanet, so some results differ from 2.8.0
+  - Added 1 and 2 digit colors (`$f` is `$f00`), `$p` manialinks, the `$[` and `$]` escapes, and `$m` for normal width
+  - `$&lt;` and `$&gt;` save and restore up to 7 styles, and `$z` and `$g` reset to the style saved by `$&lt;`
+  - Carriage returns and a trailing `$` are removed
+- **Breaking:** `MapUtils.GenerateMapUid` overloads now generate UIDs the same way as the game, so UIDs from a seed differ from 2.8.0 and some UIDs are shorter than 27 characters
+- **Added `MapUtils.GenerateMapUid(Guid, uint)` and `MapUtils.TryDecodeMapUid`** to make a map UID from a UUID and a CRC32 like the game, and to read them back from a UID
+- **Added Font Awesome 4.7 icon support** to `TextFormatter.FormatHtml` with an `iconCssClass` parameter that wraps icon characters in `span` elements of that class
+  - Added `TextFormatter.IsFontAwesomeIcon`
+- Added `TextFormatter.FormattingCodeRegexPattern` that matches one formatting code the same way as the formatters
+- **Fixed `TextFormatter.FormatHtml` links that could run scripts.** `$l` links keep `http` and `https` URLs, add `http://` to URLs without a scheme, and are not clickable with any other scheme like `javascript:`
+  - Whitespace around link URLs is trimmed like in the game
+- Fixed `TextFormatter.FormatAnsi` ignoring 1 and 2 digit color codes, `$&lt;`, `$&gt;` and `$t`
+- Fixed `TimeSingle.ToString` writing some times one millisecond lower, for example `0:00.250` for 0.251 seconds
+- Fixed `TimeInt32.Days`, `Hours`, `Minutes`, `Seconds` and `ToString` losing precision near the end of a day or an hour
+- Changed `TimeInt32` equality and comparison with `TimeSingle` and other `ITime` values to use `TotalSeconds`, so `new TimeInt32(251) == new TimeSingle(0.251f)`
+- Fixed `AccountUtils.ToAccountId` returning an account ID for logins that do not decode to exactly 16 bytes. It now throws `FormatException`
+- Improved performance and reduced allocations, for example time parsing is up to 12 times faster, map UIDs up to 14 times faster and `TextFormatter.FormatHtml` up to 19 times faster
+- Removed the `totmstring` native entry point
+		</PackageReleaseNotes>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 	</PropertyGroup>
 

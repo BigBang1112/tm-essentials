@@ -2,14 +2,19 @@
 
     <PropertyGroup>
         <PackageId>TmEssentials.Razor</PackageId>
-        <Version>1.1.3</Version>
+        <Version>1.2.0</Version>
         <Authors>BigBang1112</Authors>
         <Description>Essential Trackmania features for Blazor, includes text formatting.</Description>
         <Copyright>Copyright (c) 2026 Petr Pivoňka</Copyright>
         <PackageProjectUrl>https://github.com/BigBang1112/tm-essentials</PackageProjectUrl>
         <PackageIcon>logo_icon_outline.png</PackageIcon>
         <PackageTags>trackmania, tm, essentials, maniaplanet, formatting</PackageTags>
-        <PackageReleaseNotes></PackageReleaseNotes>
+        <PackageReleaseNotes>
+- **Added Font Awesome 4.7 icons to `FormattedText`**, displayed by linking the new `_content/TmEssentials.Razor/tm-essentials.css` stylesheet, which includes the font
+  - Added the `IconCssClass` parameter, `tm-icon` by default. Use `fa` with the Font Awesome 4.7 stylesheet, or `null` to not wrap the icons
+  - Added `FormattedText.DefaultIconCssClass`
+- Updated to TmEssentials 2.0.0, which formats text the same way as ManiaPlanet and only links safe URLs
+        </PackageReleaseNotes>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
     </PropertyGroup>
     
