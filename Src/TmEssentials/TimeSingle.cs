@@ -11,6 +11,11 @@ namespace TmEssentials;
 /// This struct offers accuracy and high performance for scenarios - time of keyframes in MediaTracker for example.
 /// Operators for comparing and arithmetic operations are included.
 /// </summary>
+/// <remarks>
+/// Parsing accepts the formats that <see cref="ToString()"/> writes with milliseconds or hundredths (like <c>1:23.456</c>, <c>1:02:03.45</c>
+/// or <c>36.217</c>), optionally with a leading minus sign. A bare number is read as a fraction of a second,
+/// so <c>5</c> is 0.5 seconds, <c>05</c> is 0.05 seconds and <c>500</c> is 0.5 seconds.
+/// </remarks>
 /// <param name="TotalSeconds">The total number of seconds.</param>
 [TypeConverter(typeof(TimeSingleTypeConverter))]
 public readonly record struct TimeSingle(float TotalSeconds) : ITime,

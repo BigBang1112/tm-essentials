@@ -11,6 +11,22 @@ namespace TmEssentials;
 /// This struct offers accuracy and high performance for scenarios where time precision to the millisecond is sufficient - driven Trackmania times for example.
 /// Operators for comparing and arithmetic operations are included.
 /// </summary>
+/// <remarks>
+/// <para>
+/// Like <see cref="TimeSpan"/>, arithmetic that does not fit into <see cref="int"/> milliseconds throws <see cref="OverflowException"/>
+/// instead of wrapping around.
+/// </para>
+/// <para>
+/// Two <see cref="TimeInt32"/> values are compared by their exact milliseconds. A <see cref="TimeInt32"/> and a <see cref="TimeSingle"/>
+/// (or any other <see cref="ITime"/>) are compared by <see cref="TotalSeconds"/>, the same way as <see cref="TimeSingle"/> compares them,
+/// so <c>new TimeInt32(251) == new TimeSingle(0.251f)</c>.
+/// </para>
+/// <para>
+/// Parsing accepts the formats that <see cref="ToString()"/> writes with milliseconds or hundredths (like <c>1:23.456</c>, <c>1:02:03.45</c>
+/// or <c>36.217</c>), optionally with a leading minus sign. A bare number is read as a fraction of a second,
+/// so <c>5</c> is 500 milliseconds, <c>05</c> is 50 milliseconds and <c>500</c> is 500 milliseconds.
+/// </para>
+/// </remarks>
 /// <param name="TotalMilliseconds">The total number of milliseconds.</param>
 [TypeConverter(typeof(TimeInt32TypeConverter))]
 public readonly record struct TimeInt32(int TotalMilliseconds) : ITime,
@@ -78,8 +94,9 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime,
     /// <param name="minutes">The number of minutes.</param>
     /// <param name="seconds">The number of seconds.</param>
     /// <param name="milliseconds">The number of milliseconds (optional).</param>
+    /// <exception cref="OverflowException">The time is out of the <see cref="TimeInt32"/> range (about ±24.8 days).</exception>
     public TimeInt32(int days, int hours, int minutes, int seconds, int milliseconds = 0)
-         : this(milliseconds + seconds * 1_000 + minutes * 60_000 + hours * 3_600_000 + days * 86_400_000)
+         : this(checked(milliseconds + seconds * 1_000 + minutes * 60_000 + hours * 3_600_000 + days * 86_400_000))
     {
 
     }
@@ -155,14 +172,19 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime,
     /// </summary>
     /// <param name="time">The time interval to add.</param>
     /// <returns>A new <see cref="TimeInt32"/> instance representing the sum of the two intervals.</returns>
-    public TimeInt32 Add(ITime time) => new(TotalMilliseconds + (int)time.TotalMilliseconds);
+    public TimeInt32 Add(ITime time) => time switch
+    {
+        TimeInt32 timeInt32 => Add(timeInt32),
+        TimeSingle timeSingle => Add(timeSingle.ToTimeInt32()), // Rounded to whole milliseconds
+        _ => new(checked(TotalMilliseconds + (int)time.TotalMilliseconds))
+    };
 
     /// <summary>
     /// Adds a specified time interval to the current instance, returning a new <see cref="TimeInt32"/> that represents the sum of the two intervals.
     /// </summary>
     /// <param name="time">The time interval to add.</param>
     /// <returns>A new <see cref="TimeInt32"/> instance representing the sum of the two intervals.</returns>
-    public TimeInt32 Add(TimeInt32 time) => new(TotalMilliseconds + time.TotalMilliseconds);
+    public TimeInt32 Add(TimeInt32 time) => this + time;
 
     /// <inheritdoc />
     ITime ITime.Divide(float divisor) => Divide(divisor);
@@ -191,7 +213,8 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime,
     /// Returns a new instance representing the absolute duration of the current time interval.
     /// </summary>
     /// <returns>A <see cref="TimeInt32"/> value whose magnitude is equal to the absolute value of the current interval's total milliseconds.</returns>
-    public TimeInt32 Duration() => new(TotalMilliseconds >= 0 ? TotalMilliseconds : -TotalMilliseconds);
+    /// <exception cref="OverflowException">The value is <see cref="MinValue"/>.</exception>
+    public TimeInt32 Duration() => new(TotalMilliseconds >= 0 ? TotalMilliseconds : checked(-TotalMilliseconds));
 
     /// <inheritdoc />
     ITime ITime.Multiply(float factor) => Multiply(factor);
@@ -218,6 +241,7 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime,
     /// Returns a new <see cref="TimeInt32"/> instance that represents the negation of the current time interval (i.e., the same duration with the opposite sign).
     /// </summary>
     /// <returns>A new <see cref="TimeInt32"/> instance representing the negated time interval.</returns>
+    /// <exception cref="OverflowException">The value is <see cref="MinValue"/>.</exception>
     public TimeInt32 Negate() => -this;
 
     /// <inheritdoc />
@@ -237,10 +261,11 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime,
     }
 
     /// <summary>
-    /// Compares this instance to a specified <see cref="ITime"/> instance.
+    /// Compares this instance to a specified <see cref="ITime"/> instance: by exact milliseconds with a <see cref="TimeInt32"/>,
+    /// otherwise by <see cref="TotalSeconds"/>.
     /// </summary>
-    /// <param name="other"></param>
-    /// <returns></returns>
+    /// <param name="other">An <see cref="ITime"/> instance to compare.</param>
+    /// <returns>A signed number indicating the relative values of this instance and <paramref name="other"/>.</returns>
     public int CompareTo(ITime? other)
     {
         if (other is null)
@@ -248,17 +273,12 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime,
             return 1;
         }
 
-        if (TotalMilliseconds > other.TotalMilliseconds)
+        if (other is TimeInt32 timeInt32)
         {
-            return 1;
+            return CompareTo(timeInt32);
         }
 
-        if (TotalMilliseconds < other.TotalMilliseconds)
-        {
-            return -1;
-        }
-
-        return 0;
+        return TotalSeconds.CompareTo(other.TotalSeconds);
     }
 
     /// <summary>
@@ -281,7 +301,12 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime,
         return TotalSeconds.CompareTo(other.TotalSeconds);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Determines whether this instance and an <see cref="ITime"/> instance represent the same time interval:
+    /// by exact milliseconds with a <see cref="TimeInt32"/>, otherwise by <see cref="TotalSeconds"/>.
+    /// </summary>
+    /// <param name="other">An <see cref="ITime"/> instance to compare.</param>
+    /// <returns>True if both represent the same time interval, otherwise false.</returns>
     public bool Equals(ITime? other)
     {
         if (other is null)
@@ -289,7 +314,12 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime,
             return false;
         }
 
-        return TotalMilliseconds == other.TotalMilliseconds;
+        if (other is TimeInt32 timeInt32)
+        {
+            return TotalMilliseconds == timeInt32.TotalMilliseconds;
+        }
+
+        return TotalSeconds == other.TotalSeconds;
     }
 
     /// <inheritdoc />
@@ -440,12 +470,12 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime,
     /// <summary>
     /// Determines if a <see cref="TimeInt32"/> instance and a <see cref="TimeSingle"/> instance represent the same time interval.
     /// </summary>
-    public static bool operator ==(TimeInt32 t1, TimeSingle t2) => t1.TotalMilliseconds == t2.TotalMilliseconds;
+    public static bool operator ==(TimeInt32 t1, TimeSingle t2) => t1.Equals(t2);
 
     /// <summary>
     /// Determines if a <see cref="TimeInt32"/> instance and a <see cref="TimeSingle"/> instance do not represent the same time interval.
     /// </summary>
-    public static bool operator !=(TimeInt32 t1, TimeSingle t2) => t1.TotalMilliseconds != t2.TotalMilliseconds;
+    public static bool operator !=(TimeInt32 t1, TimeSingle t2) => !t1.Equals(t2);
 
     /// <summary>
     /// Returns the same <see cref="TimeInt32"/> instance (identity operation).
@@ -455,27 +485,27 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime,
     /// <summary>
     /// Adds two <see cref="TimeInt32"/> instances together.
     /// </summary>
-    public static TimeInt32 operator +(TimeInt32 t1, TimeInt32 t2) => new(t1.TotalMilliseconds + t2.TotalMilliseconds);
+    public static TimeInt32 operator +(TimeInt32 t1, TimeInt32 t2) => new(checked(t1.TotalMilliseconds + t2.TotalMilliseconds));
 
     /// <summary>
     /// Adds a <see cref="TimeSpan"/> to a <see cref="TimeInt32"/> instance.
     /// </summary>
-    public static TimeInt32 operator +(TimeInt32 t1, TimeSpan t2) => new(t1.TotalMilliseconds + (int)t2.TotalMilliseconds);
+    public static TimeInt32 operator +(TimeInt32 t1, TimeSpan t2) => t1 + (TimeInt32)t2;
 
     /// <summary>
     /// Negates a <see cref="TimeInt32"/> instance (reverses the sign of the interval).
     /// </summary>
-    public static TimeInt32 operator -(TimeInt32 t) => new(-t.TotalMilliseconds);
+    public static TimeInt32 operator -(TimeInt32 t) => new(checked(-t.TotalMilliseconds));
 
     /// <summary>
     /// Subtracts one <see cref="TimeInt32"/> instance from another.
     /// </summary>
-    public static TimeInt32 operator -(TimeInt32 t1, TimeInt32 t2) => new(t1.TotalMilliseconds - t2.TotalMilliseconds);
+    public static TimeInt32 operator -(TimeInt32 t1, TimeInt32 t2) => new(checked(t1.TotalMilliseconds - t2.TotalMilliseconds));
 
     /// <summary>
     /// Subtracts a <see cref="TimeSpan"/> from a <see cref="TimeInt32"/> instance.
     /// </summary>
-    public static TimeInt32 operator -(TimeInt32 t1, TimeSpan t2) => new(t1.TotalMilliseconds - (int)t2.TotalMilliseconds);
+    public static TimeInt32 operator -(TimeInt32 t1, TimeSpan t2) => t1 - (TimeInt32)t2;
 
     /// <summary>
     /// Multiplies a <see cref="TimeInt32"/> instance by a float factor, resulting in a <see cref="TimeSingle"/> instance.
@@ -485,7 +515,7 @@ public readonly record struct TimeInt32(int TotalMilliseconds) : ITime,
     /// <summary>
     /// Multiplies a <see cref="TimeInt32"/> instance by an integer factor.
     /// </summary>
-    public static TimeInt32 operator *(int factor, TimeInt32 t) => new(factor * t.TotalMilliseconds);
+    public static TimeInt32 operator *(int factor, TimeInt32 t) => new(checked(factor * t.TotalMilliseconds));
 
     /// <summary>
     /// Multiplies a <see cref="TimeInt32"/> instance by a float factor, resulting in a <see cref="TimeSingle"/> instance.
