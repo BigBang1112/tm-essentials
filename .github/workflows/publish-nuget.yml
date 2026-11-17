@@ -32,7 +32,6 @@ jobs:
             Tests/TmEssentials.Tests/TmEssentials.Tests.csproj
             Tests/TmEssentials.Razor.Tests/TmEssentials.Razor.Tests.csproj
           main-project: TmEssentials
-          release-title-prefix: TmEssentials
           release-description: ${{ inputs.description }}
           nuget-user: ${{ vars.NUGET_USER }}
           release-all-packages: true
