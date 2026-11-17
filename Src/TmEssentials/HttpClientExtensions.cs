@@ -17,10 +17,10 @@ public static class HttpClientExtensions
     /// <param name="requestUri">The Uri the request is sent to.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The task object representing the asynchronous operation.</returns>
-    public static async Task<HttpResponseMessage> HeadAsync(this HttpClient http, string? requestUri, CancellationToken cancellationToken = default)
+    public static Task<HttpResponseMessage> HeadAsync(this HttpClient http, string? requestUri, CancellationToken cancellationToken = default)
     {
-        var head = new HttpRequestMessage(HttpMethod.Head, requestUri);
-        return await http.SendAsync(head, cancellationToken);
+        // Returns the task directly instead of awaiting it, so no synchronization context is captured
+        return http.SendAsync(new HttpRequestMessage(HttpMethod.Head, requestUri), cancellationToken);
     }
 
     /// <summary>
@@ -30,10 +30,9 @@ public static class HttpClientExtensions
     /// <param name="requestUri">The Uri the request is sent to.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The task object representing the asynchronous operation.</returns>
-    public static async Task<HttpResponseMessage> HeadAsync(this HttpClient http, Uri? requestUri, CancellationToken cancellationToken = default)
+    public static Task<HttpResponseMessage> HeadAsync(this HttpClient http, Uri? requestUri, CancellationToken cancellationToken = default)
     {
-        var head = new HttpRequestMessage(HttpMethod.Head, requestUri);
-        return await http.SendAsync(head, cancellationToken);
+        return http.SendAsync(new HttpRequestMessage(HttpMethod.Head, requestUri), cancellationToken);
     }
 }
 
