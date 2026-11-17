@@ -1,4 +1,4 @@
-﻿#if NET5_0_OR_GREATER || NET21_OR_GREATER
+﻿#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 #endif
 using System.ComponentModel;
@@ -302,13 +302,10 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime,
 
     /// <inheritdoc />
     public static bool TryParse(
-#if NET5_0_OR_GREATER || NET21_OR_GREATER
+#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         [NotNullWhen(true)]
 #endif
         string? s, IFormatProvider? provider,
-#if NET5_0_OR_GREATER || NET21_OR_GREATER
-        [MaybeNullWhen(false)] 
-#endif
         out TimeSingle result)
     {
         return TryParse(s.AsSpan(), provider, out result);
@@ -342,9 +339,6 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime,
 
     /// <inheritdoc />
     public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider,
-#if NET5_0_OR_GREATER || NET21_OR_GREATER
-        [MaybeNullWhen(false)]
-#endif
         out TimeSingle result)
     {
         // The format does not depend on the culture, so the provider is not needed
@@ -365,9 +359,6 @@ public readonly record struct TimeSingle(float TotalSeconds) : ITime,
     /// <param name="result">When this method returns, contains the result of successfully parsing <paramref name="s"/>, or an undefined value on failure.</param>
     /// <returns><see langword="true"/> if <paramref name="s"/> was successfully parsed; otherwise, <see langword="false"/>.</returns>
     public static bool TryParse(ReadOnlySpan<char> s,
-#if NET5_0_OR_GREATER || NET21_OR_GREATER
-        [MaybeNullWhen(false)]
-#endif
         out TimeSingle result) => TryParse(s, null, out result);
 
     /// <inheritdoc />

@@ -124,7 +124,7 @@ public class TextFormatterTests
     [Arguments("$\nB", "$\n")]
     [Arguments("$\rB", "$\r")]
     [Arguments("$l[multi\nline]X", "$l[multi\nline]")]
-    [Arguments("$l[unclosed\nlink", "$l[unclosed\nlink")]
+    [Arguments("$l[unclosed\nlink", "$l[")]
     [Arguments("$lX", "$l")]
     [Arguments("$f0Y", "$f0")]
     [Arguments("$😀X", "$😀")]
@@ -136,6 +136,34 @@ public class TextFormatterTests
 
         // Assert
         await Assert.That(match.Value).IsEqualTo(expected);
+    }
+
+    [Test]
+    [Arguments("$l[abc")]
+    [Arguments("$h[abc$fdef")]
+    [Arguments("$l[x]a$zb")]
+    [Arguments("$lwww.x.com$l rest")]
+    public async Task FormattingCodeRegexPattern_WithoutOpenLinkCodeOrEscape_RemovesTheSameAsDeformat(string input)
+    {
+        // Act
+        var replaced = Regex.Replace(input, TextFormatter.FormattingCodeRegexPattern, "");
+
+        // Assert
+        await Assert.That(replaced).IsEqualTo(TextFormatter.Deformat(input));
+    }
+
+    [Test]
+    public async Task FormattingCodeRegexPattern_WithLinkCodeInsideLink_MatchesBracketsThatDeformatKeeps()
+    {
+        // Arrange
+        const string input = "$l[x]a$l[y]b";
+
+        // Act
+        var matches = Regex.Matches(input, TextFormatter.FormattingCodeRegexPattern);
+
+        // Assert
+        await Assert.That(matches[1].Value).IsEqualTo("$l[y]");
+        await Assert.That(TextFormatter.Deformat(input)).IsEqualTo("a[y]b");
     }
 
     [Test]

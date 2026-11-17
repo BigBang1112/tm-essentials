@@ -27,7 +27,7 @@
 - **Added `MapUtils.GenerateMapUid(Guid, uint)` and `MapUtils.TryDecodeMapUid`** to make a map UID from a UUID and a CRC32 like the game, and to read them back from a UID
 - **Added Font Awesome 4.7 icon support** to `TextFormatter.FormatHtml` with an `iconCssClass` parameter that wraps icon characters in `span` elements of that class
   - Added `TextFormatter.IsFontAwesomeIcon`
-- Added `TextFormatter.FormattingCodeRegexPattern` that matches one formatting code the same way as the formatters
+- Added `TextFormatter.FormattingCodeRegexPattern` that matches one formatting code the same way as the formatters when no link is open
 - **Fixed `TextFormatter.FormatHtml` links that could run scripts.** `$l` links keep `http` and `https` URLs, add `http://` to URLs without a scheme, and are not clickable with any other scheme like `javascript:`
   - Whitespace around link URLs is trimmed like in the game
 - Fixed `TextFormatter.FormatAnsi` ignoring 1 and 2 digit color codes, `$&lt;`, `$&gt;` and `$t`

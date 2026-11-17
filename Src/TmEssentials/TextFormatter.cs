@@ -20,16 +20,24 @@ public static class TextFormatter
     internal const string AnsiDefault = "\x1B[39m\x1B[22m";
 
     /// <summary>
-    /// A regex pattern that matches one formatting code: a dollar sign followed by a link code with <c>[url]</c>,
-    /// a color of 1 to 3 hex digits, any other character, or nothing (at the end of the string).
+    /// A regex pattern that matches one formatting code as the formatters read it when no link is open: a dollar sign followed by
+    /// a link code with its <c>[url]</c> (only the <c>[</c> when the bracket is not closed, so the rest stays visible),
+    /// a color of 1 to 3 hex digits, any other character (a surrogate pair counts as one), or nothing (at the end of the string).
     /// </summary>
     /// <remarks>
+    /// <para>
     /// The pattern does not depend on regex options. Line breaks are matched like any other character, as in the game.
+    /// </para>
+    /// <para>
+    /// A regex cannot know whether a link is open. Inside a link, the formatters read any link code as just the two characters that
+    /// close the link, so in <c>$l[x]a$l[y]b</c> the formatters show <c>[y]</c> as text, while the pattern matches <c>$l[y]</c>.
+    /// The pattern also matches the escapes <c>$$</c>, <c>$[</c> and <c>$]</c> like other codes, while the formatters show them as one character.
+    /// </para>
     /// </remarks>
 #if NET7_0_OR_GREATER
     [StringSyntax(StringSyntaxAttribute.Regex)]
 #endif
-    public const string FormattingCodeRegexPattern = @"\$(?:[hlpHLP]\[[^\]]*\]?|[0-9a-fA-F]{1,3}|[\uD800-\uDBFF][\s\S]?|[\s\S])?";
+    public const string FormattingCodeRegexPattern = @"\$(?:[hlpHLP](?:\[[^\]]*\]|\[)?|[0-9a-fA-F]{1,3}|[\uD800-\uDBFF][\s\S]?|[\s\S])?";
 
     /// <summary>
     /// The game keeps the base style plus up to 7 styles saved by <c>$&lt;</c>. Further <c>$&lt;</c> are ignored.
